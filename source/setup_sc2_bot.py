@@ -1,13 +1,29 @@
-from sc2 import BotAI
+from enum import Enum
 
-from sc2.units import Units, UnitSelection
+from sc2.bot_ai import BotAI
+from sc2.units import Units
 import sc2.unit
 from sc2.unit import Unit
 from sc2.constants import AbilityId, UpgradeId, UnitTypeId
-from sc2.constants import PROBE,  ZEALOT, STALKER,COLOSSUS, OBSERVER,IMMORTAL,PHOENIX
-from sc2.constants import NEXUS, GATEWAY,PYLON, ASSIMILATOR, CYBERNETICSCORE, ROBOTICSBAY, ROBOTICSFACILITY, FORGE,  STARGATE
 
-from enum import Enum
+PROBE = UnitTypeId.PROBE
+ZEALOT = UnitTypeId.ZEALOT
+STALKER = UnitTypeId.STALKER
+COLOSSUS = UnitTypeId.COLOSSUS
+OBSERVER = UnitTypeId.OBSERVER
+IMMORTAL = UnitTypeId.IMMORTAL
+PHOENIX = UnitTypeId.PHOENIX
+NEXUS = UnitTypeId.NEXUS
+GATEWAY = UnitTypeId.GATEWAY
+PYLON = UnitTypeId.PYLON
+ASSIMILATOR = UnitTypeId.ASSIMILATOR
+CYBERNETICSCORE = UnitTypeId.CYBERNETICSCORE
+ROBOTICSBAY = UnitTypeId.ROBOTICSBAY
+ROBOTICSFACILITY = UnitTypeId.ROBOTICSFACILITY
+FORGE = UnitTypeId.FORGE
+STARGATE = UnitTypeId.STARGATE
+
+
 
 
 class Developmentstatus(Enum):
@@ -21,7 +37,7 @@ class Developmentstatus(Enum):
 
 class DrRoboticus(BotAI):   # the botAi class contains a lot of the methods we want to use
     def __init__(self):
-        sc2.BotAI.__init__(self)  #this seems necessary to define the doctor and inherit the parent class methods
+        sc2.bot_ai.BotAI.__init__(self)  #this seems necessary to define the doctor and inherit the parent class methods
         self.opponent_id: int = None
         self.development_status = 1
         self.last_expansion_time = 0
@@ -69,7 +85,7 @@ class DrRoboticus(BotAI):   # the botAi class contains a lot of the methods we w
 
 
     async def build_workers(self):
-        for nexus in self.units(NEXUS).ready.noqueue:
+        for nexus in self.units(NEXUS).ready.idle:
             if self.can_afford_feed_unit(PROBE):
                 #somehow only build if we need some (16 per nexus
                 if (self.units(PROBE).amount / self.units(NEXUS).amount) <16:
@@ -109,7 +125,7 @@ class DrRoboticus(BotAI):   # the botAi class contains a lot of the methods we w
                     #self.do(worker.build(GATEWAY, homenexus.position))
 
     async def build_army(self):
-        for gateway in self.units(GATEWAY).ready.noqueue:
+        for gateway in self.units(GATEWAY).ready.idle:
             if self.can_feed(ZEALOT):
                 if self.units(ZEALOT).amount < 10 and self.can_afford(ZEALOT) and not self.units(CYBERNETICSCORE).exists:
                     if not self.units(CYBERNETICSCORE).ready:
@@ -120,7 +136,7 @@ class DrRoboticus(BotAI):   # the botAi class contains a lot of the methods we w
                     await self.do(gateway.train(STALKER))
                     print("training stalker")
         if self.units(ROBOTICSFACILITY).ready:
-            for Roboticsfacility in self.units(ROBOTICSFACILITY).ready.noqueue:
+            for Roboticsfacility in self.units(ROBOTICSFACILITY).ready.idle:
                 if self.units(ROBOTICSBAY).ready and self.units(CYBERNETICSCORE).ready:
                     if self.can_feed(COLOSSUS) and self.can_afford(COLOSSUS)and self.units(COLOSSUS).amount < 20:
                         await self.do(Roboticsfacility.train(COLOSSUS))
@@ -132,7 +148,7 @@ class DrRoboticus(BotAI):   # the botAi class contains a lot of the methods we w
                         await self.do(Roboticsfacility.train(IMMORTAL))
 
         if self.units(STARGATE).exists:
-            for stargate in self.units(STARGATE).ready.noqueue:
+            for stargate in self.units(STARGATE).ready.idle:
                 if self.can_feed(PHOENIX) and self.can_afford(PHOENIX)and self.units(PHOENIX).amount < 5:
                     await self.do(stargate.train(PHOENIX))
 
