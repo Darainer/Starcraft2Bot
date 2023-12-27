@@ -35,6 +35,17 @@ class Developmentstatus(Enum):
     ATTACK = 6
     REBUILD = 7
 
+
+# this method got deleted from the new package. would be better to have it in Unit, but i dont want to change the package
+def target_selectable(myUnit: Unit, target: Unit) -> bool:
+    if myUnit.can_attack_air and target.is_flying:
+        return True
+    elif myUnit.can_attack_ground and not target.is_flying:
+        return True
+    else:
+        return False
+
+
 class DrRoboticus(BotAI):   # the botAi class contains a lot of the methods we want to use
     def __init__(self):
         sc2.bot_ai.BotAI.__init__(self)  #this seems necessary to define the doctor and inherit the parent class methods
@@ -105,14 +116,18 @@ class DrRoboticus(BotAI):   # the botAi class contains a lot of the methods we w
 
     async def build_ASSYMILATOR(self):
         for nexus in self.structures(NEXUS).ready:
-            vaspenes = self.vespene_geyser.closer_than(15.0, nexus)
+            vaspenes = self.vespene_geyser.closer_than(15.0, nexus) 
             for vaspene in vaspenes:
+                if self.gas_buildings.closer_than(1.0, vaspene.position):
+                    break
+                if self.already_pending(ASSIMILATOR):
+                    break
                 if not self.can_afford(ASSIMILATOR):
                     break
                 worker = self.select_build_worker(vaspene.position)
                 if worker is None:
                     break
-                if not self.units(ASSIMILATOR).closer_than(1.0,vaspene).exists:
+                if not self.structures(ASSIMILATOR).closer_than(1.0,vaspene).exists:
                     self.do(worker.build(ASSIMILATOR,vaspene))
                     print("Building Assymilator")
 
@@ -120,28 +135,28 @@ class DrRoboticus(BotAI):   # the botAi class contains a lot of the methods we w
         nexuses = self.structures(NEXUS).ready
         if nexuses.exists:
             if self.can_afford(GATEWAY) and not self.already_pending(GATEWAY):
-                if not self.units(GATEWAY).closer_than(30.0, self.structures(NEXUS).first).exists:
+                if not self.structures(GATEWAY).closer_than(30.0, self.structures(NEXUS).first).exists:
                     self.build(GATEWAY, self.structures(PYLON).furthest_to(self.structures(NEXUS).first), 20)
                     # self.do(worker.build(GATEWAY, homenexus.position))
 
     async def build_army(self):
-        for gateway in self.units(GATEWAY).ready.idle:
+        for gateway in self.structures(GATEWAY).ready.idle:
             if self.can_feed(ZEALOT):
-                if self.units(ZEALOT).amount < 10 and self.can_afford(ZEALOT) and not self.units(CYBERNETICSCORE).exists:
-                    if not self.units(CYBERNETICSCORE).ready:
+                if self.units(ZEALOT).amount < 10 and self.can_afford(ZEALOT) and not self.structures(CYBERNETICSCORE).exists:
+                    if not self.structures(CYBERNETICSCORE).ready:
                         self.do(gateway.train(ZEALOT))
                         print("training ZEALOT")
-            if self.units(CYBERNETICSCORE).ready:
+            if self.structures(CYBERNETICSCORE).ready:
                 if self.can_feed(STALKER) and self.units(STALKER).amount < 25 and self.can_afford(STALKER):
                     self.do(gateway.train(STALKER))
                     print("training stalker")
-        if self.units(ROBOTICSFACILITY).ready:
-            for Roboticsfacility in self.units(ROBOTICSFACILITY).ready.idle:
-                if self.units(ROBOTICSBAY).ready and self.units(CYBERNETICSCORE).ready:
+        if self.structures(ROBOTICSFACILITY).ready:
+            for Roboticsfacility in self.structures(ROBOTICSFACILITY).ready.idle:
+                if self.units(ROBOTICSBAY).ready and self.structures(CYBERNETICSCORE).ready:
                     if self.can_feed(COLOSSUS) and self.can_afford(COLOSSUS)and self.units(COLOSSUS).amount < 20:
                         self.do(Roboticsfacility.train(COLOSSUS))
                         print("training COLOSSUS")
-                    elif not self.units(CYBERNETICSCORE).ready and self.can_afford_feed_unit(OBSERVER) and self.units(OBSERVER).amount < 2:
+                    elif not self.structures(CYBERNETICSCORE).ready and self.can_afford_feed_unit(OBSERVER) and self.units(OBSERVER).amount < 2:
                         self.do(Roboticsfacility.train(OBSERVER))
 
                 elif self.can_feed(IMMORTAL) and self.can_afford(IMMORTAL)and self.units(IMMORTAL).amount < 15:
@@ -156,23 +171,23 @@ class DrRoboticus(BotAI):   # the botAi class contains a lot of the methods we w
     async def build_advanced_structures(self):
         nexuses = self.structures(NEXUS).ready
         if nexuses.exists:
-            if self.units(GATEWAY).exists and self.units(GATEWAY).ready:
+            if self.structures(GATEWAY).exists and self.structures(GATEWAY).ready:
                 if self.can_afford(CYBERNETICSCORE) and not self.already_pending(CYBERNETICSCORE):
-                    if not self.units(CYBERNETICSCORE).exists:
+                    if not self.structures(CYBERNETICSCORE).exists:
                         await self.build(CYBERNETICSCORE, self.find_next_building_location(), 20)
-            if self.units(GATEWAY).exists and self.units(CYBERNETICSCORE).exists and self.units(CYBERNETICSCORE).ready:
+            if self.structures(GATEWAY).exists and self.structures(CYBERNETICSCORE).exists and self.structures(CYBERNETICSCORE).ready:
                 if self.can_afford(ROBOTICSFACILITY) and not self.already_pending(ROBOTICSFACILITY):
-                    if not self.units(ROBOTICSFACILITY).amount >= 2:
+                    if not self.structures(ROBOTICSFACILITY).amount >= 2:
                         await self.build(ROBOTICSFACILITY, self.find_next_building_location(), 20)
-            if self.units(ROBOTICSFACILITY).exists and self.units(CYBERNETICSCORE).exists:
+            if self.structures(ROBOTICSFACILITY).exists and self.structures(CYBERNETICSCORE).exists:
                 if self.can_afford(STARGATE) and not self.already_pending(STARGATE):
-                    if not self.units(STARGATE).exists:
+                    if not self.structures(STARGATE).exists:
                         await self.build(STARGATE, self.find_next_building_location(), 20)
-            if self.units(ROBOTICSFACILITY).exists and self.units(CYBERNETICSCORE).exists:
+            if self.structures(ROBOTICSFACILITY).exists and self.structures(CYBERNETICSCORE).exists:
                 if self.can_afford(ROBOTICSBAY) and not self.already_pending(ROBOTICSBAY):
                     if not self.units(ROBOTICSBAY).exists:
                         await self.build(ROBOTICSBAY, self.find_next_building_location(), 20)
-            if not self.units(FORGE).exists and not self.already_pending(FORGE):
+            if not self.structures(FORGE).exists and not self.already_pending(FORGE):
                 await self.build(FORGE, self.find_next_building_location(), 20)
 
 
@@ -194,7 +209,7 @@ class DrRoboticus(BotAI):   # the botAi class contains a lot of the methods we w
         most_exposed_nexus = self.structures(NEXUS).closest_to(self.enemy_start_locations[0])
 
         for army_unit in attacking_ground_units:
-            nearest_enemies = self.known_enemy_units.sorted_by_distance_to(army_unit)
+            nearest_enemies = self.enemy_units.sorted_by_distance_to(army_unit)
             #if army_unit.is_idle:
             if nearest_enemies.amount > 0:
                 #wait at the most exposed base if nothing is attacking us
@@ -224,20 +239,20 @@ class DrRoboticus(BotAI):   # the botAi class contains a lot of the methods we w
 
     async def research(self):
         if self.units(COLOSSUS).amount > 5:
-            if not self.units(FORGE).exists and not self.already_pending(FORGE):
+            if not self.structures(FORGE).exists and not self.already_pending(FORGE):
                 await self.build(FORGE, self.find_next_building_location(), 20)
-            elif self.units(FORGE).ready:
-                for forge in self.units(FORGE).idle:
+            elif self.structures(FORGE).ready:
+                for forge in self.structures(FORGE).idle:
                     if not self.already_pending_upgrade(UpgradeId.PROTOSSGROUNDARMORSLEVEL1)>0:
                         self.do(forge.research(UpgradeId.PROTOSSGROUNDARMORSLEVEL1))
                     elif not self.already_pending_upgrade(UpgradeId.PROTOSSGROUNDWEAPONSLEVEL1)>0:
                         self.do(forge.research(UpgradeId.PROTOSSGROUNDWEAPONSLEVEL1))
                     elif not self.already_pending_upgrade(UpgradeId.PROTOSSSHIELDSLEVEL1)>0:
                         self.do(forge.research(UpgradeId.PROTOSSSHIELDSLEVEL1))
-                    elif self.units(UnitTypeId.TWILIGHTCOUNCIL).exists and self.already_pending_upgrade(UpgradeId.PROTOSSGROUNDARMORSLEVEL1)>1:
+                    elif self.structures(UnitTypeId.TWILIGHTCOUNCIL).exists and self.already_pending_upgrade(UpgradeId.PROTOSSGROUNDARMORSLEVEL1)>1:
                         self.do(forge.research(UpgradeId.PROTOSSGROUNDARMORSLEVEL2))
 
-                #elif not self.units(UnitTypeId.TWILIGHTCOUNCIL).exists:
+                # elif not self.units(UnitTypeId.TWILIGHTCOUNCIL).exists:
                   #  await self.build(TWILIGHTCOUNCIL, self.find_next_building_location(), 20)
 
 
@@ -255,8 +270,8 @@ class DrRoboticus(BotAI):   # the botAi class contains a lot of the methods we w
         return attacking_units
 
     def find_next_building_location(self):
-        if self.units(PYLON).exists:
-            nextBuildlocation = self.units(PYLON).closest_to(self.enemy_start_locations[0])
+        if self.structures(PYLON).exists:
+            nextBuildlocation = self.structures(PYLON).closest_to(self.enemy_start_locations[0])
         else:
             nextBuildlocation = self.structures(NEXUS).first
         return nextBuildlocation
@@ -264,11 +279,11 @@ class DrRoboticus(BotAI):   # the botAi class contains a lot of the methods we w
 
     def choose_target(self, army_unit=Unit) -> Unit:
 
-        nearest_enemies = self.known_enemy_units.sorted_by_distance_to(army_unit)
+        nearest_enemies = self.enemy_units.sorted_by_distance_to(army_unit)
         if len(nearest_enemies) >= 1:
             for enemy in nearest_enemies:
                 if enemy.is_attacking and army_unit.target_in_range(enemy):
-                    if army_unit.target_selectable(enemy):
+                    if target_selectable(army_unit, enemy):
                         target = enemy
                         return target
             return nearest_enemies[0]  #unless someone is attacking, take the closest
