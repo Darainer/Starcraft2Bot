@@ -9,7 +9,7 @@ from ThreeBaseVoidRay import ThreebaseVoidrayBot
 
 run_game(
   maps.get("AbyssalReefLE"),
-  [Bot(Race.Protoss, ThreebaseVoidrayBot()),
+  [Bot(Race.Protoss, DrRoboticus()),
   Computer(Race.Protoss, Difficulty.Hard)],
   realtime=False
 )
