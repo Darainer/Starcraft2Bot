@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+replays/
+logs/
+.coverage
+coverage.xml
+htmlcov/
+.ruff_cache/
+dist/
+*.egg-info/
+.mypy_cache/

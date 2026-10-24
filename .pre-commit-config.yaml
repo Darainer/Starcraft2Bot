@@ -1,0 +1,15 @@
+repos:
+  - repo: local
+    hooks:
+      - id: ruff-check
+        name: Ruff lint
+        entry: uv run --locked ruff check
+        language: system
+        types: [python]
+        exclude: ^source/(ThreeBaseVoidRay|setup_sc2_bot|run_SC2_game)\.py$
+      - id: ruff-format
+        name: Ruff format
+        entry: uv run --locked ruff format --check
+        language: system
+        types: [python]
+        exclude: ^source/(ThreeBaseVoidRay|setup_sc2_bot|run_SC2_game)\.py$

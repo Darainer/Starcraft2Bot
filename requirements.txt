@@ -1,1 +1,2 @@
-burnysc2
+# Compatibility for pip users. Canonical dependencies are in pyproject.toml.
+.
