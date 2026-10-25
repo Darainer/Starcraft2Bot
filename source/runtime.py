@@ -11,7 +11,7 @@ import re
 import sys
 import time
 from contextlib import asynccontextmanager, suppress
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from importlib.metadata import version
 from pathlib import Path
@@ -19,7 +19,7 @@ from pathlib import Path
 import aiohttp
 from google.protobuf.json_format import MessageToDict
 from loguru import logger
-from s2clientprotocol import data_pb2
+from s2clientprotocol import data_pb2, query_pb2
 from s2clientprotocol import sc2api_pb2 as pb
 from sc2 import paths
 from sc2.client import Client
@@ -341,6 +341,17 @@ async def connection(installation, attach_port=None):
 class SharedClient(Client):
     """Preserve selection and check JoinGame errors before the SDK consumes them."""
 
+    async def available_ability_snapshot(self, units):
+        if not units:
+            return {}
+        response = await self._execute(
+            query=query_pb2.RequestQuery(
+                abilities=[query_pb2.RequestQueryAvailableAbilities(unit_tag=u.tag) for u in units],
+                ignore_resource_requirements=False,
+            )
+        )
+        return MessageToDict(response.query, preserving_proto_field_name=True)
+
     async def get_game_data(self):
         response = await self._execute(
             data=pb.RequestData(
@@ -521,7 +532,11 @@ class RuntimeAssistant(EconomyAssistant):
             if observation is not None and now - self._last_tactical_snapshot >= 5:
                 self._last_tactical_snapshot = now
                 observed = MessageToDict(observation, preserving_proto_field_name=True)
-                decision = self.tactics.tick(self, observation=observed)
+                abilities = {}
+                query = getattr(getattr(self, "client", None), "available_ability_snapshot", None)
+                if query is not None:
+                    abilities = await query(getattr(self, "all_own_units", ()))
+                decision = self.tactics.tick(self, observation=observed, available_abilities=abilities)
                 decision["micro_since_last_sample"] = self._micro_decisions
                 self._micro_decisions = []
                 snapshot = {
@@ -532,6 +547,10 @@ class RuntimeAssistant(EconomyAssistant):
                     "sampling_clock": "game_seconds" if fast else "wall_seconds",
                     "decision": decision,
                     "observation": observed,
+                    "available_abilities": abilities,
+                    "settings": asdict(self.settings),
+                    "released_unit_tags": sorted(self.control.released),
+                    "observed_action_rejections": dict(self.action_rejections),
                 }
                 destination = self.report.path.with_suffix(".state.jsonl")
                 with destination.open("a", encoding="utf-8") as stream:

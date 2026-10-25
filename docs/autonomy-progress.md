@@ -30,6 +30,9 @@ pys2clientprotocol 1.0.2. Map: BelShirVestigeLE.
 | 143435-526107 | pressure / VeryEasy Terran, real time | Deliberately stopped after 247 sampled game seconds; replay saved | Opening progressed, but research remained inactive |
 | 143913-132613 | pressure / VeryEasy Terran, accelerated | Victory near 9:05; replay saved; no runtime error | Supply stalled at 46 and upgrades stayed empty despite surplus resources |
 | 144206-109033 | pressure / Easy Terran, accelerated, 600s bound | Time-limit tie; replay saved; no runtime error | Supply reached 102; weapons/armor/shields level 1 completed; Immortals produced |
+| 144451-625652 | pressure / Medium Terran, accelerated, 900s bound | Victory near 10:45; replay saved; no runtime error | 130 used supply; all three level-1 ground upgrades completed |
+| 144609-480602 | balanced / Medium Terran, accelerated, 900s bound | Victory near 11:25; replay saved; no runtime error | Three-base economy, upgrades and mixed army produced |
+| 144827-628075 | robotics / Medium Terran, accelerated, 900s bound | Victory near 10:05; replay saved; no runtime error | Ground tech profile completed a full match; one rejected build action recorded |
 
 The research failure was an exact-versus-generic ability-ID mismatch: availability
 queries returned exact research IDs, while the planner compared generic remaps.

@@ -99,6 +99,10 @@ target and newly queued unit orders. This includes observed units/buildings and
 their raw orders, health, shields, energy, positions, resources, supply, upgrades,
 effects, visibility grids, selection and observed events. Large tags retain their
 protobuf string representation. Absent optional fields remain absent.
+Each sample also batches a resource-aware availability query for every owned
+unit/building, preserving raw ability IDs. This is queried immediately after the
+observation, rather than an atomic snapshot of both responses. Settings,
+released tags and accumulated observed action rejections accompany the sample.
 
 Static ability/unit/upgrade data is saved once as `.game-data.pb`; map metadata,
 terrain/pathing/placement grids and player setup as `.game-info.json`. The runtime
@@ -123,7 +127,7 @@ print(json.dumps({"strategy": strategy, "reason": "Protect home"}))
 ```
 
 Input contains `schema_version`, the full player `observation`, summarized
-`situation`, profile thresholds, and `previous_strategy`. Output accepts
+`situation`, raw `available_abilities`, profile thresholds, and `previous_strategy`. Output accepts
 `strategy` (defend/regroup/push/retreat), `reason` (up to 500 characters), and an
 optional `target: [x, y]` within the playable map. The script overrides the selected
 built-in strategy until disabled. It cannot submit arbitrary SC2 orders through

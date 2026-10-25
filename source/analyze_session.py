@@ -42,6 +42,7 @@ def summarize(report_path):
         "player": observation.get("player_common", {}),
         "own_units_and_buildings": dict(own),
         "completed_upgrades": upgrades,
+        "observed_action_rejections": latest.get("observed_action_rejections", {}),
         "first_completed_seconds": milestones,
         "strategy_samples": dict(strategies),
         "last_decision": latest["decision"],

@@ -76,6 +76,7 @@ class EconomyAssistant(BotAI):
         self._storms = []
         self._last_upgrade = -60.0
         self._blocked_producers = {}
+        self.action_rejections = {}
 
     @property
     def settings(self):
@@ -118,6 +119,8 @@ class EconomyAssistant(BotAI):
         live = {unit.tag for unit in self.all_own_units}
         self.control.released.intersection_update(live)
         for error in self.state.action_errors:
+            key = f"{error.ability_id}:{error.result}"
+            self.action_rejections[key] = self.action_rejections.get(key, 0) + 1
             if error.result == 41:
                 self._blocked_producers[error.unit_tag] = self.time + 15
             logger.warning(

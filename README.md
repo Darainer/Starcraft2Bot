@@ -64,7 +64,7 @@ startup/error milestones; they never automatically certify human control.
 | Expansion up to three bases when worker count permits | Overall tactics and manual interventions |
 | Gateway/Cybernetics Core/Robotics tech and scaled Gateways | Selecting optional abilities to delegate |
 | Replenishment to configured unit targets | Selected or explicitly released units/buildings |
-| Ground weapons/armor/shields level 1 and Chrono Boost | All combat abilities by default |
+| Ground/air upgrade chains through level 3 and Chrono Boost | Optional combat spells by default |
 
 Default composition targets: 12 Zealots, 40 Stalkers, 2 Sentries and 6 Immortals.
 These are upper targets, not a promise they all fit below 200 supply. Set a target

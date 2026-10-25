@@ -45,7 +45,7 @@ class TacticalController:
         self.active_mode = "manual"
         self.enemy_buildings = {}
 
-    def tick(self, bot, observation=None):
+    def tick(self, bot, observation=None, available_abilities=None):
         self.active_mode = "manual"
         policy = PROFILES[bot.settings.profile]
         army = bot.units.of_type(set(ARMY_TARGETS)).ready
@@ -89,6 +89,7 @@ class TacticalController:
                         "situation": asdict(state),
                         "profile": policy,
                         "observation": observation,
+                        "available_abilities": available_abilities,
                         "previous_strategy": self.previous,
                     },
                 )

@@ -83,7 +83,7 @@ class AssistantSettings:
         if unknown:
             raise ValueError(f"Unknown settings: {', '.join(sorted(unknown))}")
         profile = data.get("profile", "balanced")
-        if profile not in PROFILES:
+        if not isinstance(profile, str) or profile not in PROFILES:
             raise ValueError("Unknown profile")
         composition = {name: PROFILES[profile][name] for name in COMPOSITION}
         return cls(**{**composition, **data}).validate()

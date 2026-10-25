@@ -82,6 +82,18 @@ def test_compatibility_blocks_automation_before_on_start(monkeypatch, installati
     assert report.data["compatibility"]["ok"] is False
 
 
+def test_dynamic_ability_snapshot_preserves_raw_ids_and_resource_requirements():
+    response = pb.Response(query=runtime.query_pb2.ResponseQuery())
+    response.query.abilities.add(unit_tag=123).abilities.add(ability_id=99999)
+    socket = FakeSocket([response])
+    client = runtime.SharedClient(socket)
+    result = asyncio.run(client.available_ability_snapshot([SimpleNamespace(tag=123)]))
+    assert result["abilities"][0]["abilities"][0]["ability_id"] == 99999
+    assert socket.requests[0].query.abilities[0].unit_tag == 123
+    assert not socket.requests[0].query.ignore_resource_requirements
+    assert asyncio.run(client.available_ability_snapshot([])) == {}
+
+
 @pytest.fixture
 def installation(monkeypatch, tmp_path):
     monkeypatch.setattr(runtime.paths, "PF", "Windows")
