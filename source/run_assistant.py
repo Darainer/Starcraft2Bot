@@ -36,6 +36,8 @@ def main(argv=None):
     parser.add_argument("--strategy", choices=["auto", "defend", "regroup", "push", "retreat"])
     parser.add_argument("--strategy-script", type=Path, help="Local Python JSON strategy script")
     parser.add_argument("--attack", action=argparse.BooleanOptionalAction, default=None)
+    parser.add_argument("--fast-test", action="store_true", help="Accelerated local autonomous evaluation")
+    parser.add_argument("--game-time-limit", type=int, help="End test after this many game seconds (30–3600)")
     parser.add_argument("--sc2-path", type=Path, help="SC2 installation root; overrides SC2PATH")
     parser.add_argument(
         "--sc2-version", default="latest", help="latest installed binary, or exact SDK version label"
@@ -62,6 +64,10 @@ def main(argv=None):
     )
     parser.add_argument("--version", action="version", version=version("starcraft2-economy-assistant"))
     args = parser.parse_args(argv)
+    if args.game_time_limit is not None and not 30 <= args.game_time_limit <= 3600:
+        parser.error("Game time limit must be between 30 and 3600 seconds")
+    if args.fast_test and args.attach_port:
+        parser.error("Fast tests require a new owned client, not an attached client")
     try:
         settings = AssistantSettings.load(args.config) if args.config else AssistantSettings()
         if args.profile:
@@ -113,6 +119,8 @@ def main(argv=None):
     args.runtime_report = args.runtime_report or Path("logs") / f"runtime-{stamp}.json"
     args.replay.parent.mkdir(parents=True, exist_ok=True)
     report = RuntimeReport(args.runtime_report, install, game_map, args.attach_port)
+    if args.fast_test:
+        report.update(fast_test=True)
     assistant = RuntimeAssistant(settings, report)
     players = [
         Bot(Race.Protoss, assistant, fullscreen=False),
@@ -122,6 +130,11 @@ def main(argv=None):
         "Runtime report: {}. Human control remains unverified until the live checklist passes.", report.path
     )
     try:
+        test_options = {}
+        if args.fast_test:
+            test_options["realtime"] = False
+        if args.game_time_limit is not None:
+            test_options["game_time_limit"] = args.game_time_limit
         asyncio.run(
             run_session(
                 install,
@@ -131,6 +144,7 @@ def main(argv=None):
                 report,
                 probe=args.probe,
                 attach_port=args.attach_port,
+                **test_options,
             )
         )
     except KeyboardInterrupt:

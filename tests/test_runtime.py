@@ -228,7 +228,7 @@ def test_local_match_realtime_and_report(session_setup):
     assert len(request.player_setup) == 2
     assert request.player_setup[0].type == 1  # Participant, shared with human
     assert request.player_setup[1].type == 2  # Built-in computer
-    assert play.call_args.kwargs == {"realtime": True}
+    assert play.call_args.kwargs == {"realtime": True, "game_time_limit": None}
     assert client.raw_affects_selection is False
     client.save_replay.assert_awaited_once()
     client.leave.assert_awaited_once()

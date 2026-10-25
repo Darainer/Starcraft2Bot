@@ -112,3 +112,19 @@ def test_interrupt_reports_status(installed):
         run_assistant.main(["--runtime-report", "logs/interrupted.json"])
     assert exc.value.code == 130
     assert json.loads(Path("logs/interrupted.json").read_text())["phase"] == "interrupted"
+
+
+def test_fast_test_has_explicit_bounded_runtime(installed):
+    run_assistant.main(["--fast-test", "--game-time-limit", "600", "--profile", "air", "--attack"])
+    assert installed.call_args.kwargs["realtime"] is False
+    assert installed.call_args.kwargs["game_time_limit"] == 600
+    settings = installed.call_args.args[2][0].ai.settings
+    assert settings.attack and settings.voidrays == 14
+    assert installed.call_args.args[4].data["fast_test"]
+
+
+@pytest.mark.parametrize("args", [["--game-time-limit", "0"], ["--fast-test", "--attach-port", "5001"]])
+def test_invalid_fast_test_arguments(args):
+    with pytest.raises(SystemExit) as exc:
+        run_assistant.main(args)
+    assert exc.value.code == 2

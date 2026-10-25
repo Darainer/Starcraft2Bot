@@ -248,8 +248,13 @@ class EconomyAssistant(BotAI):
         home = safe_bases.closest_to(home)
         # Spending/building first prevents allocation from claiming every idle builder.
         if s.supply and self.supply_cap < 200 and self.supply_left < max(5, len(bases) * 3):
-            if await self.build_structure(U.PYLON, home.position.towards(self.game_info.map_center, 5)):
-                return
+            # Spread supply/power across bases and around existing power rather
+            # than exhausting one small search ring at the original Nexus.
+            anchors = [base.position.towards(self.game_info.map_center, 5) for base in safe_bases]
+            anchors += [p.position for p in self.structures(U.PYLON).ready]
+            for anchor in anchors:
+                if await self.build_structure(U.PYLON, anchor, max_distance=18):
+                    return
             if not self.already_pending(U.PYLON) and not self.affordable(U.PYLON):
                 return  # Save for supply instead of repeatedly spending on probes.
         worker_target = min(
@@ -305,7 +310,7 @@ class EconomyAssistant(BotAI):
         pylons = self.structures(U.PYLON).ready.filter(lambda p: self.safe_at(p.position))
         if not pylons:
             return False
-        near = pylons.closest_to(home).position
+        anchors = [p.position for p in pylons.sorted_by_distance_to(home)]
         plan = [
             (U.GATEWAY, 1, U.PYLON),
             (U.CYBERNETICSCORE, 1, U.GATEWAY),
@@ -324,8 +329,10 @@ class EconomyAssistant(BotAI):
                 count += self.structures(U.WARPGATE).amount
             if count >= target or self.already_pending(kind) or not self.structures(prerequisite).ready:
                 continue
-            if self.affordable(kind, reserve) and await self.build_structure(kind, near):
-                return True
+            if self.affordable(kind, reserve):
+                for near in anchors:
+                    if await self.build_structure(kind, near):
+                        return True
         return False
 
     def produce(self, reserve):
@@ -373,9 +380,11 @@ class EconomyAssistant(BotAI):
                 if not building.is_powered or not self.available(building):
                     continue
                 ability = self.game_data.upgrades[upgrade.value].research_ability.id
-                if ability in await self.get_available_abilities(building) and self.issue(
-                    building.research(upgrade), paid=True
-                ):
+                available = await self.get_available_abilities(building)
+                # Query replies may use exact research IDs while game data uses
+                # a generic research-family remap. Compare the same namespace.
+                available = {self.game_data.abilities[a.value].id for a in available if a.value}
+                if ability in available and self.issue(building.research(upgrade), paid=True):
                     self._last_upgrade = self.time
                     logger.info("Research queued: {} at {}", upgrade.name, building.tag)
                     return True

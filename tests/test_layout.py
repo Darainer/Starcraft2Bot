@@ -93,3 +93,23 @@ def test_upgrade_can_reach_level_three_and_air_research(bot, make_unit, populate
     bot.get_available_abilities = AsyncMock(return_value=[ability])
     assert asyncio.run(bot.upgrade(0))
     assert bot.actions[0].ability == ability
+
+
+def test_research_compares_exact_query_id_with_generic_game_data(bot, make_unit, populate):
+    from sc2.ids.ability_id import AbilityId as A
+
+    populate(make_unit(U.FORGE))
+    exact = A.FORGERESEARCH_PROTOSSGROUNDWEAPONSLEVEL1
+    generic = A.RESEARCH_PROTOSSGROUNDWEAPONS
+    bot.game_data.abilities[exact.value]._proto.remaps_to_ability_id = generic.value
+    bot.get_available_abilities = AsyncMock(return_value=[exact])
+    assert asyncio.run(bot.upgrade(0))
+    assert bot.actions[0].ability == exact
+
+
+def test_supply_tries_another_base_when_main_layout_is_full(bot, make_unit, populate):
+    populate(make_unit(U.NEXUS), make_unit(U.NEXUS, (30, 0)), make_unit(U.PROBE))
+    bot.supply_left = 1
+    bot.build_structure = AsyncMock(side_effect=[False, True])
+    asyncio.run(bot.macro())
+    assert bot.build_structure.await_count == 2

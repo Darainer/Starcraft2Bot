@@ -146,12 +146,22 @@ SHA-256 are recorded with the plan. Three executable examples are included:
 ```powershell
 .\Control.ps1 quit
 python -m source.analyze_session logs/runtime-<session>.json
+python -m source.trials --profiles pressure balanced --difficulty Easy --duration 600
+python -m source.trials --profiles robotics air --difficulty Medium --duration 900 --repeat 2
 ```
 
 The quit command saves a replay before leaving the match. The analyzer reports
 sampled build milestones, completed upgrades, composition, resources, strategy
 history and the recorded result. A deliberately stopped test records a defeat;
 it is not evidence that the opponent defeated the bot.
+
+The trial runner launches owned local clients sequentially, with bounded game
+durations, snapshots and replays per trial. It records the comparison in
+`logs/latest-trials.json`. Do not run it concurrently with a match you want to keep.
+By default it uses accelerated non-real-time API games; snapshots and tactical
+decisions then use five **game** seconds and micro uses half a game second.
+Add `--realtime` to watch at normal speed. A time-limit result is not a win.
+Single-game CLI equivalents are `--fast-test --game-time-limit 600`.
 
 Building placement reserves two-tile aisles, mining routes and production exit
 corridors, and checks nearby ground connectivity before placing structures. It

@@ -378,11 +378,11 @@ class SharedClient(Client):
         return response
 
 
-def create_request(map_path, players):
+def create_request(map_path, players, realtime=True):
     # Inline map data avoids game-process path resolution / protected-folder differences.
     request = pb.RequestCreateGame(
         local_map=pb.LocalMap(map_path=map_path.name, map_data=map_path.read_bytes()),
-        realtime=True,
+        realtime=realtime,
         disable_fog=False,
     )
     for player in players:
@@ -393,7 +393,18 @@ def create_request(map_path, players):
     return request
 
 
-async def run_session(installation, map_path, players, replay, report, *, probe=False, attach_port=None):
+async def run_session(
+    installation,
+    map_path,
+    players,
+    replay,
+    report,
+    *,
+    probe=False,
+    attach_port=None,
+    realtime=True,
+    game_time_limit=None,
+):
     try:
         async with connection(installation, attach_port) as server:
             response = await server.ping()
@@ -416,14 +427,16 @@ async def run_session(installation, map_path, players, replay, report, *, probe=
                 raise RuntimeError(
                     "Client is not idle/launched. Refusing to replace an existing game or replay."
                 )
-            result = await server._execute(create_game=create_request(map_path, players))
+            result = await server._execute(create_game=create_request(map_path, players, realtime))
             if not result.HasField("create_game") or result.create_game.HasField("error"):
                 raise RuntimeError(f"CreateGame failed: {result.create_game}")
             report.update(phase="created", replay_target=str(replay))
             client = SharedClient(server._ws)
             client.raw_affects_selection = False
             try:
-                outcome = await _play_game(players[0], client, realtime=True)
+                outcome = await _play_game(
+                    players[0], client, realtime=realtime, game_time_limit=game_time_limit
+                )
                 if report.data.get("bot_error"):
                     raise RuntimeError(report.data["bot_error"])
                 report.update(phase="ended", result=str(outcome))
@@ -502,7 +515,8 @@ class RuntimeAssistant(EconomyAssistant):
                     await self.client.leave()
                     return
             await super().on_step(iteration)
-            now = time.monotonic()
+            fast = getattr(self.report, "data", {}).get("fast_test", False)
+            now = self.time if fast else time.monotonic()
             observation = getattr(self.state, "response_observation", None)
             if observation is not None and now - self._last_tactical_snapshot >= 5:
                 self._last_tactical_snapshot = now
@@ -515,6 +529,7 @@ class RuntimeAssistant(EconomyAssistant):
                     "captured_utc": datetime.now(timezone.utc).isoformat(),
                     "game_loop": self.state.game_loop,
                     "visibility_scope": "player_observation_fog_of_war",
+                    "sampling_clock": "game_seconds" if fast else "wall_seconds",
                     "decision": decision,
                     "observation": observed,
                 }
