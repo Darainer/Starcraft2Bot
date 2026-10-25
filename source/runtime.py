@@ -419,7 +419,7 @@ async def run_session(installation, map_path, players, replay, report, *, probe=
             result = await server._execute(create_game=create_request(map_path, players))
             if not result.HasField("create_game") or result.create_game.HasField("error"):
                 raise RuntimeError(f"CreateGame failed: {result.create_game}")
-            report.update(phase="created")
+            report.update(phase="created", replay_target=str(replay))
             client = SharedClient(server._ws)
             client.raw_affects_selection = False
             try:
@@ -430,8 +430,9 @@ async def run_session(installation, map_path, players, replay, report, *, probe=
             finally:
                 # Preserve the original failure if saving/leave fails during disconnect.
                 try:
-                    await client.save_replay(str(replay))
-                    report.update(replay=str(replay))
+                    if report.data.get("replay") != str(replay):
+                        await client.save_replay(str(replay))
+                        report.update(replay=str(replay))
                 except (ProtocolError, OSError, TimeoutError, aiohttp.ClientError) as exc:
                     report.update(replay_error=str(exc))
                     logger.warning("Replay could not be saved: {}", exc)
@@ -451,6 +452,8 @@ class RuntimeAssistant(EconomyAssistant):
         self._reported_observation = False
         self._last_tactical_snapshot = float("-inf")
         self.tactics = TacticalController()
+        self._last_micro = float("-inf")
+        self._micro_decisions = []
 
     async def on_start(self):
         try:
@@ -492,6 +495,10 @@ class RuntimeAssistant(EconomyAssistant):
                 self.report.update(last_control_command=command)
                 logger.info("Local control: {}", command)
                 if command.get("quit"):
+                    replay = self.report.data.get("replay_target")
+                    if replay:
+                        await self.client.save_replay(replay)
+                        self.report.update(replay=replay)
                     await self.client.leave()
                     return
             await super().on_step(iteration)
@@ -501,6 +508,8 @@ class RuntimeAssistant(EconomyAssistant):
                 self._last_tactical_snapshot = now
                 observed = MessageToDict(observation, preserving_proto_field_name=True)
                 decision = self.tactics.tick(self, observation=observed)
+                decision["micro_since_last_sample"] = self._micro_decisions
+                self._micro_decisions = []
                 snapshot = {
                     "schema_version": 1,
                     "captured_utc": datetime.now(timezone.utc).isoformat(),
@@ -519,6 +528,9 @@ class RuntimeAssistant(EconomyAssistant):
                     strategy_reason=decision["reason"],
                     automation_paused=not self.settings.enabled,
                 )
+            if observation is not None and now - self._last_micro >= 0.5:
+                self._last_micro = now
+                self._micro_decisions.extend(self.tactics.micro(self))
             if not self._reported_observation:
                 self.report.update(phase="observing", first_game_loop=self.state.game_loop)
                 self._reported_observation = True

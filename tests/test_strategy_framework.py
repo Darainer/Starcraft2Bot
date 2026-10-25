@@ -167,3 +167,20 @@ def test_runtime_applies_mailbox_before_step(monkeypatch, tmp_path):
     asyncio.run(bot.on_step(0))
     assert bot.settings.enabled
     assert updates[0]["last_control_command"]["command"] == "!assist resume"
+
+
+def test_local_quit_saves_replay_before_leaving(monkeypatch, tmp_path):
+    from unittest.mock import AsyncMock
+
+    path = tmp_path / "runtime.json"
+    path.write_text('{"phase":"observing","local_control":true}')
+    data = {"replay_target": "test.SC2Replay"}
+    report = SimpleNamespace(path=path, data=data, update=lambda **kw: data.update(kw))
+    bot = runtime.RuntimeAssistant(AssistantSettings(), report)
+    bot.client = SimpleNamespace(save_replay=AsyncMock(), leave=AsyncMock())
+    bot.state = SimpleNamespace(game_loop=1)
+    queue_command(path, "!assist quit")
+    asyncio.run(bot.on_step(0))
+    bot.client.save_replay.assert_awaited_once_with("test.SC2Replay")
+    bot.client.leave.assert_awaited_once()
+    assert data["replay"] == "test.SC2Replay"

@@ -42,8 +42,11 @@ def choose_strategy(state: TacticalSituation, requested: str, policy=None) -> tu
 class TacticalController:
     def __init__(self):
         self.previous = "regroup"
+        self.active_mode = "manual"
+        self.enemy_buildings = {}
 
     def tick(self, bot, observation=None):
+        self.active_mode = "manual"
         policy = PROFILES[bot.settings.profile]
         army = bot.units.of_type(set(ARMY_TARGETS)).ready
         fighters = army.filter(lambda unit: unit.can_attack)
@@ -109,8 +112,15 @@ class TacticalController:
             target = threats.closest_to(front).position
         elif strategy == "push":
             buildings = bot.enemy_structures.filter(lambda unit: unit.is_visible)
+            for building in buildings:
+                self.enemy_buildings[building.tag] = building.position
+            for tag, position in list(self.enemy_buildings.items()):
+                if bot.is_visible(position) and not any(b.distance_to(position) < 3 for b in buildings):
+                    del self.enemy_buildings[tag]
             if buildings:
                 target = buildings.closest_to(front).position
+            elif self.enemy_buildings:
+                target = min(self.enemy_buildings.values(), key=front.distance_to)
             elif bot.enemy_start_locations:
                 target = bot.enemy_start_locations[0]
                 # Once the enemy spawn is visibly clear, search known expansion
@@ -126,6 +136,7 @@ class TacticalController:
                 decision.update(strategy="manual", reason="Script target outside playable map")
                 return decision
         target = Point2((target.x, target.y))
+        self.active_mode = strategy
         decision["target"] = list(target)
         for unit in army:
             if not bot.available(unit):
@@ -142,3 +153,43 @@ class TacticalController:
             if bot.issue(command):
                 decision["orders"].append({"unit_tag": unit.tag, "action": "move" if move else "attack"})
         return decision
+
+    def micro(self, bot):
+        """Protect damaged units and focus reachable threats between strategy polls."""
+        if not bot.settings.enabled or not bot.settings.attack or self.active_mode not in {"push", "defend"}:
+            return []
+        decisions = []
+        enemies = bot.enemy_units.filter(lambda unit: unit.is_visible and unit.can_be_attacked)
+        for unit in bot.units.of_type(set(ARMY_TARGETS)).ready:
+            if not bot.available(unit) or not unit.can_attack:
+                continue
+            maximum = unit.health_max + unit.shield_max
+            targets = enemies.filter(lambda enemy, unit=unit: unit.target_in_range(enemy))
+            command, reason = None, None
+            if maximum and (unit.health + unit.shield) / maximum < 0.25:
+                home = (
+                    bot.townhalls.ready.closest_to(unit).position
+                    if bot.townhalls.ready
+                    else bot.start_location
+                )
+                command, reason = unit.move(home), "individual_retreat"
+            elif targets and unit.weapon_cooldown == 0:
+                target = min(
+                    targets,
+                    key=lambda enemy: (
+                        not enemy.can_attack,
+                        enemy.health + enemy.shield,
+                        unit.distance_to(enemy),
+                    ),
+                )
+                if unit.order_target != target.tag:
+                    command, reason = unit.attack(target), "focus_fire"
+            elif targets and unit.weapon_cooldown > 0 and unit.ground_range >= 4:
+                threat = targets.closest_to(unit)
+                if threat.can_attack_ground and threat.ground_range < unit.ground_range:
+                    destination = unit.position.towards(threat.position, -2)
+                    if bot.is_visible(destination) and bot.in_pathing_grid(destination):
+                        command, reason = unit.move(destination), "kite_melee"
+            if command is not None and bot.issue(command):
+                decisions.append({"unit_tag": unit.tag, "action": reason})
+        return decisions

@@ -85,6 +85,32 @@ def test_retreat_uses_move_towards_home(bot, populate, make_unit):
     assert bot.actions[0].target == bot.start_location
 
 
+def test_micro_focuses_low_health_visible_threat_and_preserves_ownership(bot, populate, make_unit):
+    soldier = make_unit(U.STALKER, (10, 10), weapon_cooldown=0)
+    selected = make_unit(U.STALKER, (10, 10), is_selected=True)
+    enemy = make_unit(U.MARINE, (12, 10), alliance=4, health=10, shield=0)
+    populate(soldier, selected, enemy, make_unit(U.NEXUS))
+    bot.settings.attack = True
+    controller = TacticalController()
+    controller.active_mode = "push"
+    orders = controller.micro(bot)
+    assert orders == [{"unit_tag": soldier.tag, "action": "focus_fire"}]
+    assert bot.actions[0].target.tag == enemy.tag
+
+
+def test_micro_withdraws_critically_damaged_unit(bot, populate, make_unit):
+    soldier = make_unit(U.STALKER, (10, 10), health=10, shield=0)
+    populate(soldier, make_unit(U.NEXUS))
+    bot.settings.attack = True
+    controller = TacticalController()
+    controller.active_mode = "defend"
+    assert controller.micro(bot)[0]["action"] == "individual_retreat"
+    assert bot.actions[0].target == bot.start_location
+    bot.actions.clear()
+    bot.settings.attack = False
+    assert controller.micro(bot) == []
+
+
 def test_snapshot_interval_and_raw_observation_roundtrip(monkeypatch, tmp_path):
     report = SimpleNamespace(path=tmp_path / "runtime.json", update=lambda **kwargs: None)
     bot = runtime.RuntimeAssistant(AssistantSettings(), report)
@@ -92,7 +118,9 @@ def test_snapshot_interval_and_raw_observation_roundtrip(monkeypatch, tmp_path):
     response.observation.player_common.minerals = 123
     response.observation.raw_data.units.add(tag=9999999999999, unit_type=84)
     bot.state = SimpleNamespace(game_loop=224, response_observation=response)
-    bot.tactics = SimpleNamespace(tick=lambda bot, **kwargs: {"strategy": "regroup", "reason": "test"})
+    bot.tactics = SimpleNamespace(
+        tick=lambda bot, **kwargs: {"strategy": "regroup", "reason": "test"}, micro=lambda bot: []
+    )
     monkeypatch.setattr(EconomyAssistant, "on_step", AsyncMock())
     clock = iter([0, 4.9, 5.0])
     monkeypatch.setattr(runtime.time, "monotonic", lambda: next(clock))

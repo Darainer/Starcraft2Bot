@@ -80,10 +80,14 @@ def preserves_local_paths(grid, point, radius, units):
 async def find_spaced_placement(bot, kind, near, max_distance):
     if kind == U.NEXUS:
         return await bot.find_placement(kind, near, max_distance=max_distance, random_alternative=False)
-    for distance in range(0, max_distance + 1, 2):
+    for distance in range(0, max_distance + 1):
         for index in range(8 if distance else 1):
             angle = index * math.pi / 4
             anchor = near.offset((round(distance * math.cos(angle)), round(distance * math.sin(angle))))
+            # Odd-width footprints use half-tile centers. Include the 4.5-tile
+            # pylon-to-gateway spacing that preserves both aisles and power.
+            if kind != U.PYLON:
+                anchor = Point2((math.floor(anchor.x) + 0.5, math.floor(anchor.y) + 0.5))
             if not layout_clear(bot, kind, anchor):
                 continue
             placement = await bot.find_placement(kind, anchor, max_distance=0, random_alternative=False)

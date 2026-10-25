@@ -141,6 +141,33 @@ SHA-256 are recorded with the plan. Three executable examples are included:
 - `counterattack.py`: repel a raid, then counterattack while army supply permits.
 - `conservative.py`: require a large, healthy force before pushing.
 
+## Autonomous test analysis
+
+```powershell
+.\Control.ps1 quit
+python -m source.analyze_session logs/runtime-<session>.json
+```
+
+The quit command saves a replay before leaving the match. The analyzer reports
+sampled build milestones, completed upgrades, composition, resources, strategy
+history and the recorded result. A deliberately stopped test records a defeat;
+it is not evidence that the opponent defeated the bot.
+
+Building placement reserves two-tile aisles, mining routes and production exit
+corridors, and checks nearby ground connectivity before placing structures. It
+aligns odd-width buildings to half-tile centers so spacing can coexist with
+pylon power. These conservative constraints can reject cramped layouts; they
+are not a guarantee against every terrain/unit collision. A rejected production
+spawn backs off for 15 game seconds instead of retrying every macro tick.
+
+Research periodically takes precedence over additional production buildings.
+Ground weapon/armor/shield and air weapon/armor chains support levels 1–3; tech,
+resources, selection, reserves and ability availability still gate research.
+Between five-second strategic decisions, micro checks every half second for
+critical-health retreats, visible in-range focus fire and pathable kiting against
+shorter-range ground threats. These orders retain the same ownership rules and
+are disabled when a strategy script fails or attack control is off.
+
 Startup checks metadata mappings, including movement and attack commands. The
 test suite exercises strategies, scripts, bounds, ownership and snapshot cadence
 without launching SC2. New tactics still require live acceptance on your installed

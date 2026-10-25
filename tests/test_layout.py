@@ -53,6 +53,7 @@ def test_powered_gateway_candidates_include_six_tile_ring(bot, make_unit, popula
     bot.find_placement = AsyncMock(side_effect=lambda kind, near, **kw: near if near.length <= 6.5 else None)
     result = asyncio.run(find_spaced_placement(bot, U.GATEWAY, Point2((0, 0)), 12))
     assert result is not None and 4.5 <= result.length <= 6.5
+    assert result.x % 1 == result.y % 1 == 0.5
     assert layout_clear(bot, U.GATEWAY, result)
 
 
