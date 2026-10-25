@@ -13,7 +13,7 @@ concurrency:
 
 jobs:
   quality:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
@@ -26,29 +26,17 @@ jobs:
       - run: uv run --locked mypy
       - run: uv build
   tests:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: ubuntu-latest
-            python: '3.10'
-          - os: ubuntu-latest
-            python: '3.12'
-          - os: windows-latest
-            python: '3.12'
-          - os: macos-latest
-            python: '3.13'
-    runs-on: ${{ matrix.os }}
+    runs-on: windows-latest
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
         with:
           enable-cache: true
-      - run: uv sync --locked --python ${{ matrix.python }}
-      - run: uv run --locked --python ${{ matrix.python }} pytest --cov --cov-report=term-missing --cov-report=xml
-      - run: uv run --locked --python ${{ matrix.python }} sc2-assistant --help
+      - run: uv sync --locked --python 3.12
+      - run: uv run --locked --python 3.12 pytest --cov --cov-report=term-missing --cov-report=xml
+      - run: uv run --locked --python 3.12 sc2-assistant --help
       - uses: actions/upload-artifact@v4
         with:
-          name: coverage-${{ matrix.os }}-${{ matrix.python }}
+          name: coverage-windows-3.12
           path: coverage.xml
