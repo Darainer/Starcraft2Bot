@@ -265,7 +265,15 @@ class RuntimeReport:
         self.path.parent.mkdir(parents=True, exist_ok=True)
         temporary = self.path.with_suffix(self.path.suffix + ".tmp")
         temporary.write_text(json.dumps(self.data, indent=2) + "\n", encoding="utf-8")
-        temporary.replace(self.path)
+        for attempt in range(4):
+            try:
+                temporary.replace(self.path)
+                return
+            except PermissionError:
+                if attempt == 3:
+                    logger.warning("Runtime report is temporarily locked; retaining update for next sample")
+                    return
+                time.sleep(0.05 * (attempt + 1))
 
 
 def verify_ping(response, installation):
@@ -503,6 +511,8 @@ class RuntimeAssistant(EconomyAssistant):
 
     async def on_start(self):
         try:
+            if self.report.data.get("fast_test"):
+                self.client.game_step = self.report.data["fast_step_size"]
             audit = getattr(self.client, "compatibility", None)
             if audit is not None:
                 self.report.update(compatibility=audit)
@@ -574,6 +584,8 @@ class RuntimeAssistant(EconomyAssistant):
                     "game_loop": self.state.game_loop,
                     "visibility_scope": "player_observation_fog_of_war",
                     "sampling_clock": "game_seconds" if fast else "wall_seconds",
+                    "api_step_size": self.client.game_step if fast else None,
+                    "opponent_difficulty": self.report.data.get("opponent_difficulty"),
                     "decision": decision,
                     "observation": observed,
                     "available_abilities": abilities,

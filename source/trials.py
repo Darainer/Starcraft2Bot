@@ -17,13 +17,20 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--profiles", nargs="+", choices=list(PROFILES), default=["pressure", "balanced"])
     parser.add_argument("--repeat", type=int, default=1)
-    parser.add_argument("--duration", type=int, default=600)
-    parser.add_argument("--difficulty", choices=["VeryEasy", "Easy", "Medium", "Hard"], default="Easy")
+    parser.add_argument("--duration", type=int, default=1500)
+    parser.add_argument("--fast-step-size", type=int, default=32)
+    parser.add_argument(
+        "--difficulty",
+        choices=["VeryEasy", "Easy", "Medium", "MediumHard", "Hard", "Harder", "VeryHard"],
+        default="Easy",
+    )
     parser.add_argument("--opponent", choices=["Terran", "Protoss", "Zerg"], default="Terran")
     parser.add_argument("--realtime", action="store_true")
     args = parser.parse_args(argv)
     if not 1 <= args.repeat <= 10 or not 30 <= args.duration <= 3600:
         parser.error("Repeat must be 1–10; duration must be 30–3600 game seconds")
+    if not 4 <= args.fast_step_size <= 64:
+        parser.error("Fast-test step size must be between 4 and 64 simulation loops")
     try:
         settings = json.loads((ROOT / ".local/windows.json").read_text(encoding="utf-8-sig"))
     except (OSError, ValueError) as exc:
@@ -55,7 +62,7 @@ def main(argv=None):
                 str(args.duration),
             ]
             if not args.realtime:
-                command.append("--fast-test")
+                command += ["--fast-test", "--fast-step-size", str(args.fast_step_size)]
             completed = subprocess.run(command, cwd=ROOT, check=False)
             try:
                 result = summarize(report)
@@ -65,6 +72,8 @@ def main(argv=None):
                 profile=profile,
                 opponent=args.opponent,
                 difficulty=args.difficulty,
+                game_time_limit=args.duration,
+                fast_step_size=None if args.realtime else args.fast_step_size,
                 exit_code=completed.returncode,
             )
             results.append(result)
@@ -79,6 +88,8 @@ def main(argv=None):
                             "result",
                             "sampled_game_seconds",
                             "completed_upgrades",
+                            "game_time_limit",
+                            "fast_step_size",
                             "error",
                             "report",
                         )

@@ -36,15 +36,62 @@ class ArmyWaves:
         def supply(group):
             return sum(bot.calculate_supply_cost(u.type_id) for u in group)
 
-        minimum_supply = max(24, policy["attack_supply"])
-        minimum_units = 8 if bot.settings.profile == "pressure" else 10
+        difficulty = getattr(bot, "opponent_difficulty", "Medium")
+        hard_supply = {
+            "MediumHard": 40,
+            "Hard": 64,
+            "Harder": 72,
+            "VeryHard": 96,
+            "CheatVision": 96,
+            "CheatMoney": 96,
+            "CheatInsane": 112,
+        }.get(difficulty, 0)
+        minimum_supply = max(24, policy["attack_supply"], hard_supply)
+        minimum_units = (
+            {
+                "MediumHard": 10,
+                "Hard": 16,
+                "Harder": 18,
+                "VeryHard": 24,
+                "CheatVision": 24,
+                "CheatMoney": 24,
+                "CheatInsane": 28,
+            }.get(difficulty, 12)
+            if hard_supply
+            else (8 if bot.settings.profile == "pressure" else 10)
+        )
         composition_ok = (
             bot.settings.profile != "robotics" or bool(units.of_type({U.IMMORTAL, U.COLOSSUS}))
         ) and (bot.settings.profile != "air" or units(U.VOIDRAY).amount >= 4)
+        if hard_supply:
+            heavy_ready = (
+                bot.settings.immortals > 0 and units(U.IMMORTAL).amount >= min(2, bot.settings.immortals)
+            ) or (bot.settings.colossi > 0 and units(U.COLOSSUS).amount >= min(2, bot.settings.colossi))
+            composition_ok = composition_ok and heavy_ready
         intel = getattr(bot, "scout_report", {})
+        force_intel = intel.get("peak_enemy_force") or intel.get("last_enemy_force") or {}
+        enemy_gate = None
+        if (
+            hard_supply
+            and intel.get("force_intel_ready")
+            and bot.time - force_intel.get("seen_seconds", -999) <= 180
+        ):
+            # Scale against the largest recent sighting; fresh intel is still
+            # required to launch, so an old partial sighting cannot clear the gate.
+            enemy_gate = min(96, int(force_intel.get("supply", 0) * 1.05 + 0.999))
+            minimum_supply = max(minimum_supply, enemy_gate)
         if intel.get("flying", 0) >= 2 and len(units.filter(lambda u: u.can_attack_air)) < 2:
             composition_ok = False
-        scouted = not bot.settings.scouting or bool(intel.get("enemy_seen"))
+        if force_intel.get("air_supply", 0) >= 8:
+            anti_air = units.filter(lambda unit: unit.can_attack_air)
+            anti_air_supply = supply(anti_air)
+            composition_ok = composition_ok and anti_air_supply >= min(
+                32, max(16, int(force_intel["air_supply"] * 0.75 + 0.999))
+            )
+        # A complete high-difficulty force should not camp forever if the scout
+        # loses contact. Use the large army gate as a bounded launch fallback.
+        scouting_timeout = hard_supply and bot.time >= 600 and supply(units) >= minimum_supply
+        scouted = not bot.settings.scouting or bool(intel.get("force_intel_ready")) or scouting_timeout
         readiness = sum(bot.calculate_supply_cost(u.type_id) for u in units if u.distance_to(rally) <= 10)
         fraction = readiness / max(1, supply(units))
         reason = "Assemble a complete, scouted attack wave"
@@ -136,10 +183,14 @@ class ArmyWaves:
             "members": sorted(self.members),
             "reinforcement_members": sorted(self.reinforcements),
             "minimum_supply": minimum_supply,
+            "enemy_force_supply_gate": enemy_gate,
             "minimum_units": minimum_units,
+            "opponent_difficulty": difficulty,
             "assembled_fraction": fraction,
             "composition_ready": composition_ok,
             "scouted": scouted,
+            "scouting_timeout": bool(scouting_timeout),
+            "enemy_force_intel": intel.get("last_enemy_force"),
             "center": list(self.center) if self.center is not None else None,
             "cohesion_fraction": cohesion_fraction,
             "core_supply": supply(core),

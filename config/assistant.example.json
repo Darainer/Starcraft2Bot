@@ -6,6 +6,7 @@
   "adaptive_composition": true,
   "warp_reinforcement": true,
   "warp_prisms": 1,
+  "observers": 1,
   "strategy": "auto",
   "profile": "balanced",
   "strategy_script": "",

@@ -51,15 +51,18 @@ Press Enter, type one command, then Enter again:
 Auto prioritizes retreat when depleted/locally outmatched, then base defense,
 then attacking above the profile's supply threshold, otherwise regrouping. A
 lower continuation threshold avoids repeatedly switching an attacking army home.
-Strength is a health-times-DPS heuristic, not a combat simulator. No terrain-aware
-formation planner or full opponent model is claimed. Visible enemy buildings are
+When an already launched wave is near the enemy base and a local base is raided,
+auto mode detaches a small attack-capable squad to respond while the main wave
+continues its objective. Without an active wave, auto defense still gathers the
+available army. Strength is a health-times-DPS heuristic, not a combat simulator.
+No terrain-aware formation planner or full opponent model is claimed. Visible enemy buildings are
 attack objectives; otherwise it checks the enemy spawn and then known expansion
 locations. Retreat/regroup issue move orders; defend/push issue attack-move orders.
 Nonattacking support units move with the group. Workers are never recruited.
 
 ### Scout, compose, assemble, advance, reinforce
 
-Autonomous mode assigns one eligible Probe to scouting after reaching 16 workers.
+Autonomous mode assigns one eligible Probe to scouting after reaching 12 workers.
 That Probe is reserved from economic orders and returns after acquiring enemy
 information or meeting a threat. Human selection/release still takes precedence.
 Visible enemy combat composition can raise Stalker, Immortal or Colossus targets;
@@ -78,6 +81,58 @@ for stragglers when cohesion drops. Zealots occupy forward slots; ranged units
 follow; support/casters take rear slots. Remote reinforcements assemble in groups
 of at least six/12 supply before moving toward the core. Nearby safe arrivals can
 join directly. Pause, selection and release still prevent new delegated orders.
+
+Against MediumHard, Hard and VeryHard opponents, wave launch gates scale from 40
+to 64/72/96 supply and require 10/16/18/24 units; Hard and above also wait for
+at least two configured high-tech units. The Probe and Observer patrol the
+approaches to each ready Nexus; the Observer also visits every expansion that is
+not one of our bases. Visible groups of at least three combat units and six
+supply within 120 of a ready Nexus are logged with visible unit counts, type
+composition, air/ground supply and estimated strength. Auto compares the visible
+attack group with defenders near it and requires about a 1.3–1.5× local force
+advantage before continuing an engagement; when locally outmatched, it pulls the army
+back to regroup and starts a 45-second build-up emergency. During that emergency,
+worker production, new bases, gas expansion, upgrades and non-army construction
+pause; supply, combat production and production-building construction continue.
+Air-heavy enemies raise Stalker targets and armored air adds Void Rays, while
+armored ground and light-ground compositions raise Immortal and Colossus targets
+respectively. Wave launch waits for a meaningful enemy combat-group sighting in
+the last 90 seconds. Auto compares army resources lost with enemy army
+resources killed; a poor recent trade also triggers a 60-second retreat and
+combat-production emergency. The strongest recent sighting (up to 180 seconds old)
+sets an additional enemy-force gate, capped at 120 supply; a new wave requires force
+intel from the last 90 seconds. If force intel is still incomplete after 15 minutes,
+a reserve meeting the current supply gate may launch while scouting continues.
+The Observer retreats toward home when it detects
+nearby anti-air or takes heavy damage. The whole army remains in one wave while
+engaging the main enemy force. In the final cleanup phase, after the army meets its
+difficulty wave gate and four or fewer enemy structures are visible, the force may
+split 60/20/20: the main group attacks the most exposed visible resource center;
+two groups search distinct expansion sites across the map, skipping only our
+Nexuses. After visiting every site, those groups hold open enemy-side expansions
+to deny a rebuild. Visible enemy workers and bases are logged with defender counts
+and exposure scores. The endgame groups return to wave assembly if supply falls
+below its gate. Site sweeps use current vision; stale enemy building memories are
+not treated as confirmed. Mineral stock is not exposed by the SC2 API; destroying
+resource centers and nearby workers denies future income instead.
+
+Supply construction keeps a larger reserve (20–40 supply, scaled with bases and
+army size). Once three Nexuses are ready, it queues up to three Pylons at a time
+until supply cap reaches 200. Once a stable game passes 900 seconds, macro can add
+one Nexus beyond the profile target and raise the worker ceiling by up to 12;
+emergency retreat still pauses economic expansion while it rebuilds the army.
+
+Macro targets at least three Nexuses, starts expanding after 14 workers, and
+continues at roughly 12 workers per base. After 900 seconds, it can take one more
+safe local expansion and raise the worker cap by up to 12. If every current base is
+under threat, it can still build a Nexus at a nearby safe site; a direct emergency
+attack remains the first priority.
+
+The production plan builds at least five Gateways/Warpgates total, scaling up to
+ten based on base count and Stalker demand. It builds this initial production
+capacity before starting the remaining upgrade lines, so army reinforcement can
+keep pace with the VeryHard force size. It also places one Shield Battery at each
+safe Nexus with nearby Pylon power, including during a defensive emergency.
 
 Warpgate research and eligible Gateway conversion support reinforcement. A Warp
 Prism follows behind a deployed wave, phases at a visible rear position, and
@@ -193,6 +248,7 @@ SHA-256 are recorded with the plan. Three executable examples are included:
 python -m source.analyze_session logs/runtime-<session>.json
 python -m source.trials --profiles pressure balanced --difficulty Easy --duration 600
 python -m source.trials --profiles robotics air --difficulty Medium --duration 900 --repeat 2
+python -m source.trials --profiles robotics --difficulty Hard --duration 1500
 ```
 
 The quit command saves a replay before leaving the match. The analyzer reports
@@ -201,11 +257,17 @@ history and the recorded result. A deliberately stopped test records a defeat;
 it is not evidence that the opponent defeated the bot.
 
 The trial runner launches owned local clients sequentially, with bounded game
-durations, snapshots and replays per trial. It records the comparison in
+durations, snapshots and replays per trial. The default duration is 1500 game
+seconds (25 minutes); set `--duration` to change it. It records the comparison in
 `logs/latest-trials.json`. Do not run it concurrently with a match you want to keep.
-By default it uses accelerated non-real-time API games; snapshots and tactical
-decisions then use five **game** seconds and micro uses half a game second.
-Add `--realtime` to watch at normal speed. A time-limit result is not a win.
+By default it uses accelerated non-real-time API games with 32 game loops per API
+turn (`--fast-step-size`, allowed 4–64). This reduces API round trips for faster
+evaluation; it also lowers response resolution to about 1.4 game seconds per bot
+turn. Strategic decisions sample every five game seconds and combat micro runs
+once per API turn. Reduce the step size when evaluating fine-grained reactions.
+64 loops is faster but coarser and lost a Hard trial before the default 32-loop
+trial could finish; use 32 for strategy comparisons.
+Add `--realtime` to watch at normal speed. A time-limit result is a tie, not a win.
 Single-game CLI equivalents are `--fast-test --game-time-limit 600`.
 
 Building placement reserves two-tile aisles, mining routes and production exit

@@ -20,6 +20,8 @@ class WarpReinforcement:
         self.last_issued = {}
         self.reserved_positions = []
         self.gate_positions = {}
+        self.defense_signature = ()
+        self.defense_supply_queued = 0
         self.last_report = {"phase": "waiting_for_tech"}
 
     def reject(self, failure, now):
@@ -61,6 +63,30 @@ class WarpReinforcement:
         prism_types = {U.WARPPRISM, U.WARPPRISMPHASING}
         prisms = bot.units.of_type(prism_types).ready
         home = bot.start_location
+        workers = {U.SCV, U.PROBE, U.DRONE}
+        visible_threats = bot.enemy_units.filter(
+            lambda unit: unit.is_visible and unit.can_attack and unit.type_id not in workers
+        )
+        bases = bot.townhalls.ready
+        base_threats = visible_threats.filter(lambda unit: any(unit.distance_to(base) < 22 for base in bases))
+        raid_supply = sum(bot.calculate_supply_cost(unit.type_id) for unit in base_threats)
+        small_raid = len(base_threats) <= 6 and raid_supply <= 12
+        emergency_raid = bool(base_threats and getattr(bot, "economic_emergency", False))
+        defense_base = None
+        defense_threat = None
+        if (small_raid or emergency_raid) and base_threats and bases:
+            defense_threat = min(
+                base_threats,
+                key=lambda enemy: min(enemy.distance_to(base) for base in bases),
+            )
+            defense_base = bases.closest_to(defense_threat)
+            signature = defense_base.tag
+            if signature != self.defense_signature:
+                self.defense_signature = signature
+                self.defense_supply_queued = 0
+        else:
+            self.defense_signature = ()
+            self.defense_supply_queued = 0
         anchor = None
         phase = "home_warp_in"
         if prisms:
@@ -98,10 +124,40 @@ class WarpReinforcement:
             pylons = bot.structures(U.PYLON).ready.filter(lambda u: bot.safe_at(u.position))
             if pylons:
                 anchor = pylons.closest_to(home).position
+        defense_anchor_available = False
+        if defense_base is not None:
+            pylons = bot.structures(U.PYLON).ready.filter(lambda u: bot.safe_at(u.position, 8))
+            if pylons:
+                anchor = pylons.closest_to(defense_base).position
+                phase = "home_defense_warp_in"
+                defense_anchor_available = True
+        defense_limit = min(20 if emergency_raid else 8, raid_supply) if defense_threat is not None else 0
+        defense_kind = None
+        if defense_threat is not None:
+            if defense_threat.is_flying:
+                preferred = (U.STALKER, U.SENTRY)
+            elif defense_threat.is_armored:
+                preferred = (U.STALKER, U.ZEALOT)
+            else:
+                preferred = (U.ZEALOT, U.STALKER)
+            defense_kind = next(
+                (kind for kind in preferred if getattr(bot.settings, WARP_UNITS[kind][1]) > 0),
+                None,
+            )
         self.last_report = {
             "phase": phase,
             "queued_warp_in_orders": self.warpins,
             "anchor": list(anchor) if anchor is not None else None,
+            "small_base_raid": {
+                "enemy_tags": sorted(unit.tag for unit in base_threats),
+                "enemy_supply": raid_supply,
+                "queued_defense_supply": self.defense_supply_queued,
+                "base_tag": defense_base.tag if defense_base is not None else None,
+                "emergency": emergency_raid,
+            }
+            if defense_threat is not None
+            else None,
+            "defense_warp_in_skipped": bool(defense_threat is not None and not defense_anchor_available),
         }
         if anchor is None or bot.supply_left < 6:
             return
@@ -117,6 +173,14 @@ class WarpReinforcement:
                 / getattr(bot.settings, WARP_UNITS[kind][1])
             )
         )
+        if (
+            defense_threat is not None
+            and defense_anchor_available
+            and self.defense_supply_queued < defense_limit
+            and defense_kind in WARP_UNITS
+            and getattr(bot.settings, WARP_UNITS[defense_kind][1]) > 0
+        ):
+            choices = [defense_kind]
         for gate in bot.structures(U.WARPGATE).ready.idle:
             if not bot.available(gate) or bot.time - self.last_issued.get(gate.tag, -100) < 4:
                 continue
@@ -142,4 +206,9 @@ class WarpReinforcement:
                         (position, bot.time + (5 if phase == "forward_warp_in" else 13))
                     )
                     self.last_report.update(queued_warp_in_orders=self.warpins, last_unit=kind.name)
+                    if defense_threat is not None and kind == defense_kind:
+                        self.defense_supply_queued += bot.calculate_supply_cost(kind)
+                        self.last_report["small_base_raid"]["queued_defense_supply"] = (
+                            self.defense_supply_queued
+                        )
                     return

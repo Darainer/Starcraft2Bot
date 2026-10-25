@@ -49,6 +49,7 @@ class AssistantSettings:
     scouting: bool = True
     warp_reinforcement: bool = True
     warp_prisms: int = 1
+    observers: int = 1
     adaptive_composition: bool = True
     reserve_minerals: int = 0
     reserve_gas: int = 0
