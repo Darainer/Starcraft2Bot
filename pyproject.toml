@@ -1,0 +1,58 @@
+[build-system]
+requires = ["hatchling>=1.27,<2"]
+build-backend = "hatchling.build"
+
+[project]
+name = "starcraft2-economy-assistant"
+version = "0.2.0"
+description = "API-based Protoss economy and ability assistant for human-controlled local SC2 games"
+readme = "README.md"
+requires-python = ">=3.10,<3.14"
+dependencies = [
+    "burnysc2==7.3.0",
+    "pys2clientprotocol==1.0.2",
+    "aiohttp>=3.11.10,<4",
+    "loguru>=0.7.3,<0.8",
+]
+
+[project.scripts]
+sc2-assistant = "source.run_assistant:main"
+
+[dependency-groups]
+dev = ["pytest>=8,<10", "pytest-cov>=6,<8", "ruff>=0.11,<1", "pre-commit>=4,<5", "mypy>=1.15,<2"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["source"]
+exclude = ["source/ThreeBaseVoidRay.py", "source/setup_sc2_bot.py", "source/run_SC2_game.py"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers --strict-config"
+
+[tool.coverage.run]
+branch = true
+source = ["source"]
+omit = ["source/ThreeBaseVoidRay.py", "source/setup_sc2_bot.py", "source/run_SC2_game.py"]
+
+[tool.coverage.report]
+show_missing = true
+skip_empty = true
+fail_under = 85
+
+[tool.ruff]
+target-version = "py310"
+line-length = 110
+extend-exclude = ["source/ThreeBaseVoidRay.py", "source/setup_sc2_bot.py", "source/run_SC2_game.py"]
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I", "B", "UP", "SIM"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["source"]
+
+# Strict checking of the SDK-independent configuration/ownership boundary.
+# The dynamic SC2 adapter is exercised with real SDK protocol objects in tests.
+[tool.mypy]
+python_version = "3.10"
+strict = true
+files = ["source/assistant_control.py"]
