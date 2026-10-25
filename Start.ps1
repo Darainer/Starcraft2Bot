@@ -20,7 +20,11 @@ param(
     [string]$Sc2Version = 'latest',
     [string]$Sc2Path,
     [string]$MapFile,
-    [string]$ConfigFile
+    [string]$ConfigFile,
+    [ValidateSet('balanced', 'pressure', 'fortress', 'robotics', 'air')][string]$Profile,
+    [ValidateSet('auto', 'defend', 'regroup', 'push', 'retreat')][string]$Strategy,
+    [string]$StrategyScript,
+    [switch]$ManualArmy
 )
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
@@ -43,6 +47,7 @@ try {
     else { $MapFile = $Saved.map_file }
     if ($ConfigFile) { $ConfigFile = (Resolve-Path -LiteralPath $ConfigFile).ProviderPath }
     else { $ConfigFile = Join-Path $RepoRoot 'config/assistant.example.json' }
+    if ($StrategyScript) { $StrategyScript = (Resolve-Path -LiteralPath $StrategyScript).ProviderPath }
     $LaunchArgs = @('run', '--locked', '--no-sync', 'sc2-assistant', '--sc2-path', $Sc2Path,
         '--sc2-version', $Sc2Version, '--config', $ConfigFile)
     if ($Probe) { $LaunchArgs += '--probe' }
@@ -52,6 +57,10 @@ try {
         else { $LaunchArgs += @('--difficulty', $Difficulty, '--opponent', $Opponent) }
     }
     if ($StartPaused) { $LaunchArgs += '--start-paused' }
+    if ($Profile) { $LaunchArgs += @('--profile', $Profile.ToLowerInvariant()) }
+    if ($Strategy) { $LaunchArgs += @('--strategy', $Strategy.ToLowerInvariant()) }
+    if ($StrategyScript) { $LaunchArgs += @('--strategy-script', $StrategyScript) }
+    if ($ManualArmy) { $LaunchArgs += '--no-attack' }
     if ($AttachPort) { $LaunchArgs += @('--attach-port', [string]$AttachPort) }
     Push-Location -LiteralPath $RepoRoot
     try {

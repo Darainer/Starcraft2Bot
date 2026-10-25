@@ -1,8 +1,12 @@
 # Starcraft2Bot — human economy assistant
 
 An API assistant intended to manage Protoss economy and build-out while you
-control the army with normal mouse and keyboard. Army movement, attacks, control groups and rally points
-remain yours. No screen capture, LLM, cloud service or model training is needed.
+control the army with normal mouse and keyboard, or delegate movement and attacks
+to selectable tactical scripts. The Windows example config enables attack automation
+with the balanced auto strategy; use `Start.ps1 -ManualArmy` for manual control.
+See [strategies and full observed state](docs/strategies.md) for five setups,
+script injection, five-second snapshots and the local Python command interface.
+No screen capture, LLM, cloud service or model training is needed.
 
 **Status:** implementation and automated tests; no SC2 binary version has yet
 passed this project's live human-control acceptance. Some 5.0.x clients have
@@ -55,12 +59,12 @@ startup/error milestones; they never automatically certify human control.
 
 | Assistant | Human |
 | --- | --- |
-| Probes, idle workers, mineral/gas balancing | Army movement, targets and engagements |
+| Probes, idle workers, mineral/gas balancing | Army movement when attack control is off |
 | Pylons and assimilators | Control groups and production rally points |
 | Expansion up to three bases when worker count permits | Overall tactics and manual interventions |
 | Gateway/Cybernetics Core/Robotics tech and scaled Gateways | Selecting optional abilities to delegate |
 | Replenishment to configured unit targets | Selected or explicitly released units/buildings |
-| Ground weapons/armor/shields level 1 and Chrono Boost | All combat abilities by default |
+| Ground/air upgrade chains through level 3 and Chrono Boost | Optional combat spells by default |
 
 Default composition targets: 12 Zealots, 40 Stalkers, 2 Sentries and 6 Immortals.
 These are upper targets, not a promise they all fit below 200 supply. Set a target

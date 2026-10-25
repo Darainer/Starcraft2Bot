@@ -9,25 +9,160 @@ import os
 import platform
 import re
 import sys
+import time
 from contextlib import asynccontextmanager, suppress
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from importlib.metadata import version
 from pathlib import Path
 
 import aiohttp
+from google.protobuf.json_format import MessageToDict
 from loguru import logger
+from s2clientprotocol import data_pb2, query_pb2
 from s2clientprotocol import sc2api_pb2 as pb
 from sc2 import paths
 from sc2.client import Client
 from sc2.controller import Controller
 from sc2.data import Status
+from sc2.dicts.unit_research_abilities import RESEARCH_INFO
+from sc2.dicts.unit_train_build_abilities import TRAIN_INFO
+from sc2.game_data import AbilityData, GameData
+from sc2.ids.ability_id import AbilityId
+from sc2.ids.unit_typeid import UnitTypeId
+from sc2.ids.upgrade_id import UpgradeId
 from sc2.main import _play_game
 from sc2.protocol import ProtocolError
 from sc2.sc2process import SC2Process
 from sc2.versions import VERSIONS
 
-from source.economy_assistant import EconomyAssistant
+from source.economy_assistant import AIR_UPGRADES, GROUND_UPGRADES, PRODUCERS, SPELLS, EconomyAssistant
+from source.local_control import consume_command
+from source.scouting import ScoutController
+from source.tactics import TacticalController
+from source.warp_reinforcement import WARP_UNITS, WarpReinforcement
+
+
+@dataclass(frozen=True)
+class ObservedAbility:
+    """Opaque game ID: readable/countable, never a fabricated SDK command."""
+
+    value: int
+
+
+class ObservedAbilityData(AbilityData):
+    @property
+    def exact_id(self):
+        return ObservedAbility(self._proto.ability_id)
+
+    @property
+    def id(self):
+        value = self._proto.remaps_to_ability_id or self._proto.ability_id
+        known = AbilityId(value)
+        return known if known.value else ObservedAbility(value)
+
+
+class ObservationAbilities(dict):
+    """Preserve even order IDs missing from SC2's own metadata response."""
+
+    def __init__(self, game_data, unknown):
+        super().__init__(game_data.abilities)
+        self.game_data = game_data
+        self.unknown = unknown
+
+    def __missing__(self, key):
+        if not isinstance(key, int) or key <= 0:
+            raise KeyError(key)
+        self.unknown.append(key)
+        logger.warning("Observed undocumented SC2 order ID {}; preserving opaque identity", key)
+        value = ObservedAbilityData(self.game_data, data_pb2.AbilityData(ability_id=key))
+        self[key] = value
+        return value
+
+
+def compatible_game_data(data):
+    game_data = GameData(data)
+    aliases, opaque = [], []
+    for ability in data.abilities:
+        if ability.ability_id and ability.ability_id not in game_data.abilities:
+            canonical = game_data.abilities.get(ability.remaps_to_ability_id)
+            if canonical is not None:
+                game_data.abilities[ability.ability_id] = canonical
+                aliases.append(ability.ability_id)
+            else:
+                game_data.abilities[ability.ability_id] = ObservedAbilityData(game_data, ability)
+                opaque.append(ability.ability_id)
+    game_data.abilities = ObservationAbilities(game_data, opaque)
+    return game_data, aliases, opaque
+
+
+def audit_commands(data, game_data):
+    """Check every assistant command, including disabled optional features."""
+    abilities = {a.ability_id: a for a in data.abilities}
+    checks = []
+
+    def check(name, expected, actual=None):
+        proto = abilities.get(expected.value)
+        supported = proto is not None and expected.value in game_data.abilities
+        mapped = proto.remaps_to_ability_id or expected.value if proto else None
+        if actual is not None:
+            other = abilities.get(actual)
+            other_mapped = other.remaps_to_ability_id or actual if other else None
+            supported = supported and other is not None and mapped == other_mapped
+        checks.append({"command": name, "ability_id": expected.value, "ok": bool(supported)})
+
+    for producer, entries in TRAIN_INFO.items():
+        if producer not in {UnitTypeId.PROBE, UnitTypeId.NEXUS, *PRODUCERS}:
+            continue
+        for kind, info in entries.items():
+            if producer == UnitTypeId.PROBE and kind not in {
+                UnitTypeId.NEXUS,
+                UnitTypeId.PYLON,
+                UnitTypeId.ASSIMILATOR,
+                UnitTypeId.GATEWAY,
+                UnitTypeId.CYBERNETICSCORE,
+                UnitTypeId.ROBOTICSFACILITY,
+                UnitTypeId.TWILIGHTCOUNCIL,
+                UnitTypeId.TEMPLARARCHIVE,
+                UnitTypeId.ROBOTICSBAY,
+                UnitTypeId.STARGATE,
+                UnitTypeId.FORGE,
+                UnitTypeId.FLEETBEACON,
+            }:
+                continue
+            if producer in PRODUCERS and kind not in PRODUCERS[producer]:
+                continue
+            unit = game_data.units.get(kind.value)
+            check(f"{producer.name}:{kind.name}", info["ability"], unit._proto.ability_id if unit else -1)
+    upgrades = {
+        UpgradeId.PSISTORMTECH,
+        UpgradeId.BLINKTECH,
+        UpgradeId.WARPGATERESEARCH,
+        *GROUND_UPGRADES,
+        *AIR_UPGRADES,
+    }
+    for entries in RESEARCH_INFO.values():
+        for upgrade, info in entries.items():
+            if upgrade in upgrades:
+                item = game_data.upgrades.get(upgrade.value)
+                check(upgrade.name, info["ability"], item._proto.ability_id if item else -1)
+    for ability in {
+        *SPELLS,
+        AbilityId.EFFECT_CHRONOBOOSTENERGYCOST,
+        AbilityId.HARVEST_GATHER,
+        AbilityId.MOVE_MOVE,
+        AbilityId.ATTACK_ATTACK,
+        AbilityId.MORPH_WARPGATE,
+        AbilityId.MORPH_WARPPRISMPHASINGMODE,
+        AbilityId.MORPH_WARPPRISMTRANSPORTMODE,
+        *(item[0] for item in WARP_UNITS.values()),
+    }:
+        check(ability.name, ability)
+    return {
+        "ok": all(c["ok"] for c in checks),
+        "commands": checks,
+        "scope": "Static game data and SDK mappings; execution and human controls unverified",
+    }
 
 
 @dataclass(frozen=True)
@@ -130,7 +265,15 @@ class RuntimeReport:
         self.path.parent.mkdir(parents=True, exist_ok=True)
         temporary = self.path.with_suffix(self.path.suffix + ".tmp")
         temporary.write_text(json.dumps(self.data, indent=2) + "\n", encoding="utf-8")
-        temporary.replace(self.path)
+        for attempt in range(4):
+            try:
+                temporary.replace(self.path)
+                return
+            except PermissionError:
+                if attempt == 3:
+                    logger.warning("Runtime report is temporarily locked; retaining update for next sample")
+                    return
+                time.sleep(0.05 * (attempt + 1))
 
 
 def verify_ping(response, installation):
@@ -213,12 +356,60 @@ async def connection(installation, attach_port=None):
 class SharedClient(Client):
     """Preserve selection and check JoinGame errors before the SDK consumes them."""
 
+    async def available_ability_snapshot(self, units):
+        if not units:
+            return {}
+        response = await self._execute(
+            query=query_pb2.RequestQuery(
+                abilities=[query_pb2.RequestQueryAvailableAbilities(unit_tag=u.tag) for u in units],
+                ignore_resource_requirements=False,
+            )
+        )
+        return MessageToDict(response.query, preserving_proto_field_name=True)
+
+    async def get_game_data(self):
+        response = await self._execute(
+            data=pb.RequestData(
+                ability_id=True, unit_type_id=True, upgrade_id=True, buff_id=True, effect_id=True
+            )
+        )
+        game_data, aliases, opaque = compatible_game_data(response.data)
+        self.game_data_wire = response.data.SerializeToString()
+        self.compatibility = audit_commands(response.data, game_data)
+        self.compatibility.update(
+            declared_alias_ids=aliases,
+            opaque_order_ids=opaque,
+            sdk_version=version("burnysc2"),
+            protocol_version=version("pys2clientprotocol"),
+        )
+        logger.info(
+            "Startup compatibility: {} commands, {} failures, {} aliases, {} opaque order IDs",
+            len(self.compatibility["commands"]),
+            sum(not check["ok"] for check in self.compatibility["commands"]),
+            len(aliases),
+            len(opaque),
+        )
+        return game_data
+
     async def _execute(self, **kwargs):
         if "join_game" in kwargs:
             options = kwargs["join_game"].options
             options.raw_affects_selection = False
             options.show_cloaked = False
         response = await super()._execute(**kwargs)
+        if "action" in kwargs and response.HasField("action"):
+            failures = getattr(self, "recent_rejections", [])
+            for action, result in zip(kwargs["action"].actions, response.action.result, strict=False):
+                if result != 1 and action.HasField("action_raw"):
+                    command = action.action_raw.unit_command
+                    failure = {
+                        "ability_id": command.ability_id,
+                        "result": result,
+                        "unit_tags": list(command.unit_tags),
+                    }
+                    failures.append(failure)
+                    logger.warning("SC2 rejected action request: {}", failure)
+            self.recent_rejections = failures
         if "join_game" in kwargs:
             result = response.join_game
             if result.HasField("error") or not result.player_id:
@@ -226,11 +417,11 @@ class SharedClient(Client):
         return response
 
 
-def create_request(map_path, players):
+def create_request(map_path, players, realtime=True):
     # Inline map data avoids game-process path resolution / protected-folder differences.
     request = pb.RequestCreateGame(
         local_map=pb.LocalMap(map_path=map_path.name, map_data=map_path.read_bytes()),
-        realtime=True,
+        realtime=realtime,
         disable_fog=False,
     )
     for player in players:
@@ -241,7 +432,18 @@ def create_request(map_path, players):
     return request
 
 
-async def run_session(installation, map_path, players, replay, report, *, probe=False, attach_port=None):
+async def run_session(
+    installation,
+    map_path,
+    players,
+    replay,
+    report,
+    *,
+    probe=False,
+    attach_port=None,
+    realtime=True,
+    game_time_limit=None,
+):
     try:
         async with connection(installation, attach_port) as server:
             response = await server.ping()
@@ -264,22 +466,25 @@ async def run_session(installation, map_path, players, replay, report, *, probe=
                 raise RuntimeError(
                     "Client is not idle/launched. Refusing to replace an existing game or replay."
                 )
-            result = await server._execute(create_game=create_request(map_path, players))
+            result = await server._execute(create_game=create_request(map_path, players, realtime))
             if not result.HasField("create_game") or result.create_game.HasField("error"):
                 raise RuntimeError(f"CreateGame failed: {result.create_game}")
-            report.update(phase="created")
+            report.update(phase="created", replay_target=str(replay))
             client = SharedClient(server._ws)
             client.raw_affects_selection = False
             try:
-                outcome = await _play_game(players[0], client, realtime=True)
+                outcome = await _play_game(
+                    players[0], client, realtime=realtime, game_time_limit=game_time_limit
+                )
                 if report.data.get("bot_error"):
                     raise RuntimeError(report.data["bot_error"])
                 report.update(phase="ended", result=str(outcome))
             finally:
                 # Preserve the original failure if saving/leave fails during disconnect.
                 try:
-                    await client.save_replay(str(replay))
-                    report.update(replay=str(replay))
+                    if report.data.get("replay") != str(replay):
+                        await client.save_replay(str(replay))
+                        report.update(replay=str(replay))
                 except (ProtocolError, OSError, TimeoutError, aiohttp.ClientError) as exc:
                     report.update(replay_error=str(exc))
                     logger.warning("Replay could not be saved: {}", exc)
@@ -297,11 +502,39 @@ class RuntimeAssistant(EconomyAssistant):
         super().__init__(settings)
         self.report = report
         self._reported_observation = False
+        self._last_tactical_snapshot = float("-inf")
+        self.tactics = TacticalController()
+        self._last_micro = float("-inf")
+        self._micro_decisions = []
+        self.scouting = ScoutController()
+        self.reinforcement = WarpReinforcement()
 
     async def on_start(self):
         try:
+            if self.report.data.get("fast_test"):
+                self.client.game_step = self.report.data["fast_step_size"]
+            audit = getattr(self.client, "compatibility", None)
+            if audit is not None:
+                self.report.update(compatibility=audit)
+                if not audit["ok"]:
+                    failures = [c["command"] for c in audit["commands"] if not c["ok"]]
+                    raise RuntimeError("Command compatibility failed: " + ", ".join(failures))
+            wire = getattr(self.client, "game_data_wire", None)
+            if wire is not None:
+                metadata = self.report.path.with_suffix(".game-data.pb")
+                metadata.write_bytes(wire)
+                self.report.update(game_data_snapshot=str(metadata))
             await super().on_start()
-            self.report.update(phase="bot_started", automation_paused=not self.settings.enabled)
+            game_info = getattr(getattr(self, "game_info", None), "_proto", None)
+            if game_info is not None:
+                map_info = self.report.path.with_suffix(".game-info.json")
+                map_info.write_text(
+                    json.dumps(MessageToDict(game_info, preserving_proto_field_name=True)), encoding="utf-8"
+                )
+                self.report.update(game_info_snapshot=str(map_info))
+            self.report.update(
+                phase="bot_started", automation_paused=not self.settings.enabled, local_control=True
+            )
             if not self.settings.enabled:
                 await self.chat_send(
                     "Automation PAUSED. Test controls, then type !assist resume", team_only=True
@@ -312,7 +545,69 @@ class RuntimeAssistant(EconomyAssistant):
 
     async def on_step(self, iteration):
         try:
+            for failure in getattr(getattr(self, "client", None), "recent_rejections", []):
+                key = f"direct:{failure['ability_id']}:{failure['result']}"
+                self.action_rejections[key] = self.action_rejections.get(key, 0) + 1
+                self.reinforcement.reject(failure, self.time)
+            if getattr(self, "client", None) is not None:
+                self.client.recent_rejections = []
+            selected = [unit.tag for unit in getattr(self, "all_own_units", ()) if unit.is_selected]
+            command = consume_command(self.report.path, self.control, selected)
+            if command:
+                self.report.update(last_control_command=command)
+                logger.info("Local control: {}", command)
+                if command.get("quit"):
+                    replay = self.report.data.get("replay_target")
+                    if replay:
+                        await self.client.save_replay(replay)
+                        self.report.update(replay=replay)
+                    await self.client.leave()
+                    return
             await super().on_step(iteration)
+            fast = getattr(self.report, "data", {}).get("fast_test", False)
+            now = self.time if fast else time.monotonic()
+            observation = getattr(self.state, "response_observation", None)
+            if observation is not None and now - self._last_tactical_snapshot >= 5:
+                self._last_tactical_snapshot = now
+                observed = MessageToDict(observation, preserving_proto_field_name=True)
+                scouting = self.scouting.tick(self)
+                abilities = {}
+                query = getattr(getattr(self, "client", None), "available_ability_snapshot", None)
+                if query is not None:
+                    abilities = await query(getattr(self, "all_own_units", ()))
+                decision = self.tactics.tick(self, observation=observed, available_abilities=abilities)
+                decision["micro_since_last_sample"] = self._micro_decisions
+                self._micro_decisions = []
+                snapshot = {
+                    "schema_version": 1,
+                    "captured_utc": datetime.now(timezone.utc).isoformat(),
+                    "game_loop": self.state.game_loop,
+                    "visibility_scope": "player_observation_fog_of_war",
+                    "sampling_clock": "game_seconds" if fast else "wall_seconds",
+                    "api_step_size": getattr(self.client, "game_step", None) if fast else None,
+                    "opponent_difficulty": getattr(self.report, "data", {}).get("opponent_difficulty"),
+                    "decision": decision,
+                    "observation": observed,
+                    "available_abilities": abilities,
+                    "settings": asdict(self.settings),
+                    "released_unit_tags": sorted(self.control.released),
+                    "observed_action_rejections": dict(self.action_rejections),
+                    "scouting": scouting,
+                    "reinforcement": self.reinforcement.last_report,
+                }
+                destination = self.report.path.with_suffix(".state.jsonl")
+                with destination.open("a", encoding="utf-8") as stream:
+                    stream.write(json.dumps(snapshot) + "\n")
+                self.report.update(
+                    state_snapshots=str(destination),
+                    last_game_loop=self.state.game_loop,
+                    strategy=decision["strategy"],
+                    strategy_reason=decision["reason"],
+                    automation_paused=not self.settings.enabled,
+                )
+            if observation is not None and now - self._last_micro >= 0.5:
+                self._last_micro = now
+                self._micro_decisions.extend(self.tactics.micro(self))
             if not self._reported_observation:
                 self.report.update(phase="observing", first_game_loop=self.state.game_loop)
                 self._reported_observation = True

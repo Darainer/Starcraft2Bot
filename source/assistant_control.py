@@ -8,8 +8,11 @@ from dataclasses import asdict, dataclass, fields, replace
 from pathlib import Path
 from typing import Protocol
 
+from source.strategy_profiles import COMPOSITION, PROFILES
+
 COMBAT_POWERS = ("blink", "storm", "feedback", "guardian_shield", "voidray_alignment")
 ECONOMY = ("workers", "allocation", "supply", "gas", "expansion", "construction", "production", "upgrades")
+STRATEGIES = ("auto", "defend", "regroup", "push", "retreat")
 
 
 class SelectableUnit(Protocol):
@@ -37,7 +40,17 @@ class AssistantSettings:
     feedback: bool = False
     guardian_shield: bool = False
     voidray_alignment: bool = False
-    hud: bool = True
+    hud: bool = False
+    attack: bool = False
+    strategy: str = "auto"
+    profile: str = "balanced"
+    strategy_script: str = ""
+    army_waves: bool = True
+    scouting: bool = True
+    warp_reinforcement: bool = True
+    warp_prisms: int = 1
+    observers: int = 1
+    adaptive_composition: bool = True
     reserve_minerals: int = 0
     reserve_gas: int = 0
     bases: int = 3
@@ -56,6 +69,10 @@ class AssistantSettings:
             value, default = getattr(self, field.name), getattr(defaults, field.name)
             if type(value) is not type(default):
                 raise ValueError(f"{field.name} must be {type(default).__name__}")
+            if field.name == "strategy" and value not in STRATEGIES:
+                raise ValueError("Unknown strategy; choose " + ", ".join(STRATEGIES))
+            if field.name == "profile" and value not in PROFILES:
+                raise ValueError("Unknown profile; choose " + ", ".join(PROFILES))
             if type(value) is int:
                 limit = 10000 if field.name.startswith("reserve_") else 200
                 minimum = 1 if field.name == "bases" else 0
@@ -71,7 +88,11 @@ class AssistantSettings:
         unknown = set(data) - set(asdict(cls()))
         if unknown:
             raise ValueError(f"Unknown settings: {', '.join(sorted(unknown))}")
-        return cls(**data).validate()
+        profile = data.get("profile", "balanced")
+        if not isinstance(profile, str) or profile not in PROFILES:
+            raise ValueError("Unknown profile")
+        composition = {name: PROFILES[profile][name] for name in COMPOSITION}
+        return cls(**{**composition, **data}).validate()
 
 
 class Control:
@@ -88,7 +109,7 @@ class Control:
         return (
             f"{'RUNNING' if s.enabled else 'PAUSED'} | on: {', '.join(enabled)} | "
             f"reserve {s.reserve_minerals}m/{s.reserve_gas}g | bases {s.bases} | "
-            f"released {len(self.released)}"
+            f"released {len(self.released)} | strategy {s.strategy} attack {s.attack} profile {s.profile}"
         )
 
     def command(self, text: str, selected_tags: Sequence[int] = ()) -> str | None:
@@ -102,7 +123,9 @@ class Control:
             return (
                 "!assist pause/resume/status; <toggle> on/off; economy/spells on/off; "
                 "reserve <minerals> <gas>; set <setting> <number>; release/claim/claim-all. "
-                "Toggles: " + ", ".join(ECONOMY + ("chrono",) + COMBAT_POWERS + ("hud",))
+                "strategy auto/defend/regroup/push/retreat; attack on/off. "
+                "profile balanced/pressure/fortress/robotics/air; script <path|off>. "
+                "Toggles: " + ", ".join(ECONOMY + ("chrono",) + COMBAT_POWERS + ("hud", "attack"))
             )
         if args in (["release"], ["claim"]):
             if args[0] == "release":
@@ -117,6 +140,17 @@ class Control:
         try:
             if args in (["pause"], ["resume"]):
                 candidate.enabled = args[0] == "resume"
+            elif len(args) == 2 and args[0] == "strategy":
+                candidate.strategy = args[1]
+            elif len(args) == 2 and args[0] == "profile":
+                if args[1] not in PROFILES:
+                    raise ValueError("Unknown profile")
+                candidate.profile = args[1]
+                for name in COMPOSITION:
+                    setattr(candidate, name, PROFILES[args[1]][name])
+            elif len(args) >= 2 and args[0] == "script":
+                # Retain path case on Windows and on case-sensitive platforms.
+                candidate.strategy_script = text.split(maxsplit=2)[2] if args[1] != "off" else ""
             elif len(args) == 2 and args[1] in ("on", "off"):
                 name, value = args[0], args[1] == "on"
                 names = ECONOMY if name == "economy" else COMBAT_POWERS if name == "spells" else (name,)

@@ -5,13 +5,104 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock, Mock
 
 import pytest
+from s2clientprotocol import data_pb2, raw_pb2
 from s2clientprotocol import sc2api_pb2 as pb
 from sc2.data import Difficulty, Race, Result, Status
+from sc2.ids.ability_id import AbilityId
 from sc2.player import Bot, Computer
+from sc2.unit import UnitOrder
 
 from source import runtime
 from source.assistant_control import AssistantSettings
 from source.economy_assistant import EconomyAssistant
+
+
+def test_retail_order_alias_uses_game_declared_canonical_ability():
+    canonical = AbilityId.HARVEST_GATHER.value
+    response = pb.Response(
+        data=pb.ResponseData(
+            abilities=[
+                data_pb2.AbilityData(ability_id=canonical),
+                data_pb2.AbilityData(ability_id=4135, remaps_to_ability_id=canonical),
+                data_pb2.AbilityData(ability_id=99999),
+            ]
+        )
+    )
+    client = runtime.SharedClient(FakeSocket([response]))
+    data = asyncio.run(client.get_game_data())
+    order = UnitOrder.from_proto(
+        raw_pb2.UnitOrder(ability_id=4135, target_unit_tag=123),
+        SimpleNamespace(game_data=data),
+    )
+    assert order.ability.exact_id == AbilityId.HARVEST_GATHER
+    assert order.ability.id == AbilityId.HARVEST_GATHER
+    assert order.target == 123
+    opaque = UnitOrder.from_proto(raw_pb2.UnitOrder(ability_id=99999), SimpleNamespace(game_data=data))
+    assert opaque.ability.exact_id.value == 99999
+    assert opaque.ability.id.value == 99999
+    undocumented = UnitOrder.from_proto(raw_pb2.UnitOrder(ability_id=4137), SimpleNamespace(game_data=data))
+    assert undocumented.ability.exact_id.value == 4137
+    assert undocumented.ability.id.value == 4137
+    assert data.abilities.unknown[-1] == 4137
+    assert client.compatibility["ok"] is False  # Incomplete metadata is diagnosed.
+
+
+def test_complete_command_audit_and_changed_creation_ability(bot):
+    from sc2.ids.unit_typeid import UnitTypeId
+
+    data = pb.ResponseData(
+        abilities=[a._proto for a in bot.game_data.abilities.values()],
+        units=[u._proto for u in bot.game_data.units.values()],
+        upgrades=[u._proto for u in bot.game_data.upgrades.values()],
+    )
+    # The economy fixture deliberately omits unused tech structures. Supply
+    # metadata from the SDK manifest so every assistant command can be checked.
+    from sc2.dicts.unit_train_build_abilities import TRAIN_INFO
+
+    for kind, info in TRAIN_INFO[UnitTypeId.PROBE].items():
+        if kind.value not in bot.game_data.units:
+            data.units.add(unit_id=kind.value, available=True, ability_id=info["ability"].value)
+    game_data, _, _ = runtime.compatible_game_data(data)
+    assert runtime.audit_commands(data, game_data)["ok"]
+    game_data.units[UnitTypeId.PROBE.value]._proto.ability_id = AbilityId.MOVE.value
+    audit = runtime.audit_commands(data, game_data)
+    assert not audit["ok"]
+    assert any(not c["ok"] and c["command"] == "NEXUS:PROBE" for c in audit["commands"])
+
+
+def test_compatibility_blocks_automation_before_on_start(monkeypatch, installation, tmp_path):
+    report = runtime.RuntimeReport(tmp_path / "audit.json", installation)
+    bot = runtime.RuntimeAssistant(AssistantSettings(), report)
+    bot.client = SimpleNamespace(compatibility={"ok": False, "commands": [{"command": "PROBE", "ok": False}]})
+    start = AsyncMock()
+    monkeypatch.setattr(EconomyAssistant, "on_start", start)
+    with pytest.raises(RuntimeError, match="Command compatibility failed: PROBE"):
+        asyncio.run(bot.on_start())
+    start.assert_not_awaited()
+    assert report.data["compatibility"]["ok"] is False
+
+
+def test_dynamic_ability_snapshot_preserves_raw_ids_and_resource_requirements():
+    response = pb.Response(query=runtime.query_pb2.ResponseQuery())
+    response.query.abilities.add(unit_tag=123).abilities.add(ability_id=99999)
+    socket = FakeSocket([response])
+    client = runtime.SharedClient(socket)
+    result = asyncio.run(client.available_ability_snapshot([SimpleNamespace(tag=123)]))
+    assert result["abilities"][0]["abilities"][0]["ability_id"] == 99999
+    assert socket.requests[0].query.abilities[0].unit_tag == 123
+    assert not socket.requests[0].query.ignore_resource_requirements
+    assert asyncio.run(client.available_ability_snapshot([])) == {}
+
+
+def test_action_response_rejections_are_retained_for_runtime_diagnostics():
+    response = pb.Response(action=pb.ResponseAction(result=[41]))
+    client = runtime.SharedClient(FakeSocket([response]))
+    request = pb.RequestAction()
+    command = request.actions.add().action_raw.unit_command
+    command.ability_id = 979
+    command.unit_tags.append(123)
+    asyncio.run(client._execute(action=request))
+    assert client.recent_rejections == [{"ability_id": 979, "result": 41, "unit_tags": [123]}]
 
 
 @pytest.fixture
@@ -160,7 +251,7 @@ def test_local_match_realtime_and_report(session_setup):
     assert len(request.player_setup) == 2
     assert request.player_setup[0].type == 1  # Participant, shared with human
     assert request.player_setup[1].type == 2  # Built-in computer
-    assert play.call_args.kwargs == {"realtime": True}
+    assert play.call_args.kwargs == {"realtime": True, "game_time_limit": None}
     assert client.raw_affects_selection is False
     client.save_replay.assert_awaited_once()
     client.leave.assert_awaited_once()
@@ -207,6 +298,7 @@ def test_failure_paths_are_reported(session_setup, failure):
 def test_runtime_bot_milestones_and_errors(monkeypatch, installation, tmp_path):
     report = runtime.RuntimeReport(tmp_path / "report.json", installation)
     bot = runtime.RuntimeAssistant(AssistantSettings(enabled=False), report)
+    bot.client = SimpleNamespace()
     bot.chat_send = AsyncMock()
     bot.state = SimpleNamespace(game_loop=224)
     monkeypatch.setattr(EconomyAssistant, "on_start", AsyncMock())

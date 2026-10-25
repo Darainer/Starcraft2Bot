@@ -92,6 +92,14 @@ using the JSON report/replay under `logs/` and `replays/`; never invent a pass.
 ```
 
 Uses the saved installation/map and starts automation against Medium Terran.
+Automation defaults to on and the flashing debug overlay defaults to off.
+Each match audits all assistant command mappings against the live game data
+before automation starts, including optional spells. A failed audit stops startup
+and lists the incompatible commands in the runtime JSON report. The report also
+records exact game binary/data and Python package versions. Unknown observed order
+IDs retain their identity without being treated as executable assistant commands.
+This checks metadata compatibility; it does not prove command effects, tech
+availability, or human controls. The API-only probe does not run the command audit.
 For example: `./Start.ps1 -Difficulty Hard -Opponent Zerg`.
 `!assist pause` / `!assist resume` control automation; spellcasters default off.
 See [README](../README.md) for the individual toggles. Logs and replays are saved

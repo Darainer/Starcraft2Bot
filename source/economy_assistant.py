@@ -1,4 +1,6 @@
-"""Protoss co-pilot: macro automation without army move/attack commands."""
+"""Protoss economy and abilities; tactical orders live in the separate controller."""
+
+import math
 
 from loguru import logger
 from sc2.bot_ai import BotAI
@@ -9,6 +11,7 @@ from sc2.ids.upgrade_id import UpgradeId as G
 from sc2.unit_command import UnitCommand
 
 from source.assistant_control import Control, within_budget
+from source.layout import find_spaced_placement
 
 ARMY_TARGETS = {
     U.ZEALOT: "zealots",
@@ -21,9 +24,10 @@ ARMY_TARGETS = {
 }
 PRODUCERS = {
     U.GATEWAY: (U.STALKER, U.ZEALOT, U.SENTRY, U.HIGHTEMPLAR),
-    U.ROBOTICSFACILITY: (U.IMMORTAL, U.COLOSSUS),
+    U.ROBOTICSFACILITY: (U.OBSERVER, U.WARPPRISM, U.IMMORTAL, U.COLOSSUS),
     U.STARGATE: (U.VOIDRAY,),
 }
+PRODUCTION_TARGETS = {**ARMY_TARGETS, U.WARPPRISM: "warp_prisms", U.OBSERVER: "observers"}
 SPELLS = {
     A.EFFECT_BLINK_STALKER,
     A.PSISTORM_PSISTORM,
@@ -31,6 +35,16 @@ SPELLS = {
     A.GUARDIANSHIELD_GUARDIANSHIELD,
     A.EFFECT_VOIDRAYPRISMATICALIGNMENT,
 }
+GROUND_UPGRADES = tuple(
+    getattr(G, f"{family}{level}")
+    for level in range(1, 4)
+    for family in ("PROTOSSGROUNDWEAPONSLEVEL", "PROTOSSGROUNDARMORSLEVEL", "PROTOSSSHIELDSLEVEL")
+)
+AIR_UPGRADES = tuple(
+    getattr(G, f"{family}{level}")
+    for level in range(1, 4)
+    for family in ("PROTOSSAIRWEAPONSLEVEL", "PROTOSSAIRARMORSLEVEL")
+)
 
 
 def storm_target(caster, enemies, friends, existing):
@@ -63,6 +77,15 @@ class EconomyAssistant(BotAI):
         self._used = set()
         self._casts = {}
         self._storms = []
+        self._last_upgrade = -60.0
+        self._blocked_producers = {}
+        self.action_rejections = {}
+        self._production_cursor = 0
+        self.construction_reservations = {}
+        self.scout_tag = None
+        self.scout_report = {}
+        self._paid_action_issued = False
+        self.economic_emergency = False
 
     @property
     def settings(self):
@@ -70,18 +93,27 @@ class EconomyAssistant(BotAI):
 
     async def on_start(self):
         await self.chat_send(
-            "Economy assistant ready. You control the army. Type !assist help", team_only=True
+            "Assistant ready. Type !assist help; !assist attack off returns army control", team_only=True
         )
 
     def available(self, unit):
-        return unit.tag not in self._used and self.control.eligible(unit)
+        return unit.tag != self.scout_tag and unit.tag not in self._used and self.control.eligible(unit)
 
-    def issue(self, command, paid=False, supply=False):
-        if not isinstance(command, UnitCommand) or not self.available(command.unit):
+    def issue(self, command, paid=False, supply=False, scout_order=False):
+        if not isinstance(command, UnitCommand):
+            return False
+        eligible = self.available(command.unit) or (
+            scout_order
+            and command.unit.tag == self.scout_tag
+            and command.unit.tag not in self._used
+            and self.control.eligible(command.unit)
+        )
+        if not eligible:
             return False
         accepted = self.do(command, subtract_cost=paid, subtract_supply=supply, can_afford_check=paid)
         if accepted:
             self._used.add(command.unit.tag)
+            self._paid_action_issued |= paid
         return accepted
 
     def affordable(self, item, extra_minerals=0):
@@ -90,8 +122,23 @@ class EconomyAssistant(BotAI):
             self.minerals, self.vespene, cost.minerals, cost.vespene, self.settings, extra_minerals
         )
 
+    def issue_warp_in(self, command, kind):
+        # Warp-in IDs have separate SDK cost lookup entries; use the live unit
+        # price and supply explicitly so budgeting is charged exactly once.
+        if not self.affordable(kind) or not self.can_feed(kind) or not self.issue(command):
+            return False
+        cost = self.calculate_cost(kind)
+        supply = self.calculate_supply_cost(kind)
+        self.minerals -= cost.minerals
+        self.vespene -= cost.vespene
+        self.supply_left -= supply
+        self.supply_used += supply
+        self._paid_action_issued = True
+        return True
+
     async def on_step(self, iteration):
         self._used.clear()
+        self._paid_action_issued = False
         selected = [unit.tag for unit in self.all_own_units if unit.is_selected]
         for message in self.state.chat:
             if message.player_id != self.player_id:
@@ -105,6 +152,10 @@ class EconomyAssistant(BotAI):
         live = {unit.tag for unit in self.all_own_units}
         self.control.released.intersection_update(live)
         for error in self.state.action_errors:
+            key = f"{error.ability_id}:{error.result}"
+            self.action_rejections[key] = self.action_rejections.get(key, 0) + 1
+            if error.result == 41:
+                self._blocked_producers[error.unit_tag] = self.time + 15
             logger.warning(
                 "SC2 rejected action: unit={} ability={} result={}",
                 error.unit_tag,
@@ -114,7 +165,11 @@ class EconomyAssistant(BotAI):
         if self.settings.enabled:
             if self.time - self._last_macro >= 0.5:
                 self._last_macro = self.time
-                await self.macro()
+                reinforcement = getattr(self, "reinforcement", None)
+                if reinforcement is not None:
+                    await reinforcement.tick(self, self.tactics.waves)
+                if not self._paid_action_issued:
+                    await self.macro()
             await self.powers()
         if self.settings.hud and self.time - self._last_hud >= 0.5:
             self._last_hud = self.time
@@ -141,18 +196,40 @@ class EconomyAssistant(BotAI):
         workers = self.workers.filter(lambda w: self.available(w) and (w.is_idle or w.is_gathering))
         return workers.closest_to(point) if workers else None
 
-    async def build_structure(self, kind, near, max_distance=12):
-        if self.already_pending(kind) or not self.affordable(kind):
+    async def safe_expansion_location(self, reference):
+        preferred = await self.get_next_expansion()
+        candidates = [preferred] if preferred else []
+        if not candidates:
+            candidates = sorted(getattr(self, "expansion_locations_list", ()), key=reference.distance_to)
+        for location in candidates:
+            if any(base.distance_to(location) < 10 for base in self.townhalls):
+                continue
+            if self.enemy_structures.closer_than(10, location):
+                continue
+            if self.safe_at(location, 12):
+                return location
+        return None
+
+    async def build_structure(self, kind, near, max_distance=12, allow_pending=False):
+        if (self.already_pending(kind) and not allow_pending) or not self.affordable(kind):
             return False
         worker = self.builder(near)
         if worker is None:
             return False
-        placement = await self.find_placement(
-            kind, near, max_distance=max_distance, random_alternative=False, placement_step=2
-        )
+        placement = await find_spaced_placement(self, kind, near, max_distance)
         if placement is None or not self.safe_at(placement):
             return False
-        return self.issue(worker.build(kind, placement), paid=True)
+        workers = self.workers.filter(
+            lambda unit: self.available(unit) and (unit.is_idle or unit.is_gathering)
+        ).sorted_by_distance_to(placement)
+        query = getattr(self.client, "query_pathing", None)
+        for candidate in workers[:4]:
+            if (
+                query is None or candidate.distance_to(placement) < 3 or await query(candidate, placement)
+            ) and self.issue(candidate.build(kind, placement), paid=True):
+                self.construction_reservations[candidate.tag] = (kind, placement, self.time + 45)
+                return True
+        return False
 
     async def allocate_workers(self):
         """Only idle/gathering probes; never pull a scouting, fighting or building probe."""
@@ -224,6 +301,11 @@ class EconomyAssistant(BotAI):
         """At most one paid action per macro tick, plus periodic worker allocation."""
         s = self.settings
         bases = self.townhalls.ready
+        late_game = self.time >= 900
+        base_target = min(5, max(3, s.bases) + int(late_game))
+        supply_buffer = min(40, max(20, len(bases) * 8 + self.supply_army // 8))
+        fill_supply_cap = self.townhalls.ready.amount >= 3
+        pylon_target = min(3, max(1, math.ceil((200 - self.supply_cap) / 8))) if fill_supply_cap else 1
         if not bases:
             if s.expansion and not self.townhalls and self.workers:
                 await self.build_structure(U.NEXUS, self.start_location, max_distance=2)
@@ -231,16 +313,53 @@ class EconomyAssistant(BotAI):
         home = bases.closest_to(self.start_location)
         safe_bases = bases.filter(lambda base: self.safe_at(base.position))
         if not safe_bases:
+            if s.supply and self.supply_cap < 200 and (fill_supply_cap or self.supply_left <= supply_buffer):
+                safe_pylons = self.structures(U.PYLON).ready.filter(
+                    lambda pylon: self.safe_at(pylon.position)
+                )
+                if await self.build_supply_pylons([pylon.position for pylon in safe_pylons], pylon_target):
+                    return
+            if self.economic_emergency and s.production and self.produce(0):
+                return
+            if (
+                s.expansion
+                and self.townhalls.amount < base_target
+                and not self.already_pending(U.NEXUS)
+                and self.supply_workers >= 14
+            ):
+                location = await self.safe_expansion_location(self.start_location)
+                if (
+                    location
+                    and self.builder(location)
+                    and await self.build_structure(U.NEXUS, location, max_distance=2)
+                ):
+                    return
             return
         home = safe_bases.closest_to(home)
         # Spending/building first prevents allocation from claiming every idle builder.
-        if s.supply and self.supply_cap < 200 and self.supply_left < max(5, len(bases) * 3):
-            if await self.build_structure(U.PYLON, home.position.towards(self.game_info.map_center, 5)):
+        if (
+            s.supply
+            and self.supply_cap < 200
+            and (fill_supply_cap or self.supply_left <= supply_buffer)
+            and self.already_pending(U.PYLON) < pylon_target
+        ):
+            # Spread supply/power across bases and around existing power rather
+            # than exhausting one small search ring at the original Nexus.
+            anchors = [base.position.towards(self.game_info.map_center, 5) for base in safe_bases]
+            anchors += [p.position for p in self.structures(U.PYLON).ready]
+            if await self.build_supply_pylons(anchors, pylon_target):
                 return
             if not self.already_pending(U.PYLON) and not self.affordable(U.PYLON):
                 return  # Save for supply instead of repeatedly spending on probes.
+        if self.economic_emergency:
+            if s.construction and await self.construct(home, 0, army_only=True):
+                return
+            if s.production and self.produce(0):
+                return
+            return
+        worker_cap = min(80, s.max_workers + (12 if late_game else 0))
         worker_target = min(
-            s.max_workers, sum(base.ideal_harvesters for base in bases) + 3 * len(self.gas_buildings.ready)
+            worker_cap, sum(base.ideal_harvesters for base in bases) + 3 * len(self.gas_buildings.ready)
         )
         if s.workers and self.supply_workers + self.already_pending(U.PROBE) < worker_target:
             for nexus in safe_bases.idle:
@@ -265,16 +384,42 @@ class EconomyAssistant(BotAI):
         expansion_reserve = 0
         if (
             s.expansion
-            and self.townhalls.amount < s.bases
+            and self.townhalls.amount < base_target
             and not self.already_pending(U.NEXUS)
-            and self.supply_workers >= 16 * len(bases)
-            and self.structures(U.CYBERNETICSCORE).ready
+            and self.supply_workers >= max(14, 12 * len(bases))
         ):
-            location = await self.get_next_expansion()
-            if location and self.safe_at(location, 22) and self.builder(location):
+            location = await self.safe_expansion_location(home.position)
+            if location and self.builder(location):
                 expansion_reserve = 400
                 if await self.build_structure(U.NEXUS, location, max_distance=2):
                     return
+        gateway_count = self.structures(U.GATEWAY).amount + self.structures(U.WARPGATE).amount
+        gateway_target = min(10, max(5, 2 * len(bases), (s.stalkers + 5) // 6))
+        warpgate_research_needed = (
+            s.attack
+            and s.warp_reinforcement
+            and G.WARPGATERESEARCH not in self.state.upgrades
+            and not self.already_pending_upgrade(G.WARPGATERESEARCH)
+        )
+        high_difficulty = getattr(self, "opponent_difficulty", "Medium") in {
+            "MediumHard",
+            "Hard",
+            "Harder",
+            "VeryHard",
+            "CheatVision",
+            "CheatMoney",
+            "CheatInsane",
+        }
+        research_capacity_ready = not high_difficulty or gateway_count >= min(5, gateway_target)
+        # Periodically give research priority over additional production buildings.
+        # Worker/supply emergencies and explicit reserves still take precedence.
+        if (
+            s.upgrades
+            and (warpgate_research_needed or research_capacity_ready)
+            and self.time - self._last_upgrade >= 30
+            and await self.upgrade(expansion_reserve)
+        ):
+            return
         if s.construction and await self.construct(home, expansion_reserve):
             return
         if s.upgrades and await self.upgrade(expansion_reserve):
@@ -283,55 +428,107 @@ class EconomyAssistant(BotAI):
             return
         # Also runs in on_step after paid actions via the separate allocation clock.
 
-    async def construct(self, home, reserve):
+    async def build_supply_pylons(self, anchors, target):
+        if self.already_pending(U.PYLON) >= target:
+            return False
+        for anchor in anchors:
+            if await self.build_structure(U.PYLON, anchor, max_distance=18, allow_pending=True):
+                return True
+        return False
+
+    async def construct(self, home, reserve, army_only=False):
         s = self.settings
         pylons = self.structures(U.PYLON).ready.filter(lambda p: self.safe_at(p.position))
         if not pylons:
             return False
-        near = pylons.closest_to(home).position
+        anchors = [p.position for p in pylons.sorted_by_distance_to(home)]
         plan = [
             (U.GATEWAY, 1, U.PYLON),
             (U.CYBERNETICSCORE, 1, U.GATEWAY),
-            (U.ROBOTICSFACILITY, int(s.immortals > 0 or s.colossi > 0), U.CYBERNETICSCORE),
-            (U.TWILIGHTCOUNCIL, int(s.blink or s.high_templar > 0), U.CYBERNETICSCORE),
+            (
+                U.GATEWAY,
+                min(10, max(5, 2 * self.townhalls.ready.amount, (s.stalkers + 5) // 6)),
+                U.CYBERNETICSCORE,
+            ),
+            (
+                U.ROBOTICSFACILITY,
+                int(s.immortals > 0 or s.colossi > 0 or (s.attack and s.warp_reinforcement))
+                + int(s.immortals + s.colossi >= 8 and self.townhalls.ready.amount >= 2),
+                U.CYBERNETICSCORE,
+            ),
+            (
+                U.FORGE,
+                int(s.upgrades) * (1 + int(self.supply_army >= 24) + int(self.supply_army >= 60)),
+                U.CYBERNETICSCORE,
+            ),
+            (U.TWILIGHTCOUNCIL, int(s.upgrades or s.blink or s.high_templar > 0), U.CYBERNETICSCORE),
             (U.TEMPLARARCHIVE, int(s.high_templar > 0), U.TWILIGHTCOUNCIL),
             (U.ROBOTICSBAY, int(s.colossi > 0), U.ROBOTICSFACILITY),
-            (U.STARGATE, int(s.voidrays > 0), U.CYBERNETICSCORE),
-            (U.FORGE, int(s.upgrades), U.CYBERNETICSCORE),
-            (U.GATEWAY, min(6, 2 * self.townhalls.ready.amount), U.CYBERNETICSCORE),
+            (U.STARGATE, min(3, (s.voidrays + 5) // 6, self.townhalls.ready.amount), U.CYBERNETICSCORE),
+            (U.FLEETBEACON, int(s.voidrays > 0 and s.upgrades), U.STARGATE),
         ]
         for kind, target, prerequisite in plan:
+            if army_only and kind not in {U.GATEWAY, U.ROBOTICSFACILITY, U.STARGATE}:
+                continue
             count = self.structures(kind).amount
             if kind == U.GATEWAY:
                 count += self.structures(U.WARPGATE).amount
             if count >= target or self.already_pending(kind) or not self.structures(prerequisite).ready:
                 continue
-            if self.affordable(kind, reserve) and await self.build_structure(kind, near):
+            if self.affordable(kind, reserve):
+                for near in anchors:
+                    if await self.build_structure(kind, near):
+                        return True
+        return await self.build_base_battery(reserve)
+
+    async def build_base_battery(self, reserve):
+        if not self.structures(U.CYBERNETICSCORE).ready or not self.affordable(U.SHIELDBATTERY, reserve):
+            return False
+        for base in self.townhalls.ready:
+            if self.structures(U.SHIELDBATTERY).closer_than(10, base):
+                continue
+            local_pylons = self.structures(U.PYLON).ready.filter(
+                lambda pylon, base=base: pylon.distance_to(base) < 5 and self.safe_at(pylon.position, 10)
+            )
+            if local_pylons and await self.build_structure(
+                U.SHIELDBATTERY, local_pylons.closest_to(base).position, max_distance=6
+            ):
                 return True
         return False
 
     def produce(self, reserve):
-        for producer, kinds in PRODUCERS.items():
+        producers = list(PRODUCERS.items())
+        order = producers[self._production_cursor :] + producers[: self._production_cursor]
+        for producer, kinds in order:
             candidates = [
                 kind
                 for kind in kinds
-                if getattr(self.settings, ARMY_TARGETS[kind]) > 0
-                and self.units(kind).amount + self.already_pending(kind)
-                < getattr(self.settings, ARMY_TARGETS[kind])
+                if (kind != U.WARPPRISM or (self.settings.attack and self.settings.warp_reinforcement))
+                and (kind != U.OBSERVER or self.settings.scouting)
+                and getattr(self.settings, PRODUCTION_TARGETS[kind]) > 0
+                and self.units(kind).amount
+                + self.already_pending(kind)
+                + (self.units(U.WARPPRISMPHASING).amount if kind == U.WARPPRISM else 0)
+                < getattr(self.settings, PRODUCTION_TARGETS[kind])
             ]
             candidates.sort(
                 key=lambda kind: (
                     (self.units(kind).amount + self.already_pending(kind))
-                    / getattr(self.settings, ARMY_TARGETS[kind])
+                    / getattr(self.settings, PRODUCTION_TARGETS[kind])
                 )
             )
             for building in self.structures(producer).ready.idle:
-                if not building.is_powered or not self.available(building):
+                if (
+                    self._blocked_producers.get(building.tag, 0) > self.time
+                    or not building.is_powered
+                    or not self.available(building)
+                ):
                     continue
                 for kind in candidates:
                     if self.tech_requirement_progress(kind) < 1 or not self.affordable(kind, reserve):
                         continue
                     if self.issue(building.train(kind), paid=True, supply=True):
+                        self._production_cursor = (list(PRODUCERS).index(producer) + 1) % len(PRODUCERS)
                         return True
         return False
 
@@ -341,11 +538,11 @@ class EconomyAssistant(BotAI):
             plan.append((G.PSISTORMTECH, U.TEMPLARARCHIVE))
         if self.settings.blink:
             plan.append((G.BLINKTECH, U.TWILIGHTCOUNCIL))
-        plan += [
-            (G.PROTOSSGROUNDWEAPONSLEVEL1, U.FORGE),
-            (G.PROTOSSGROUNDARMORSLEVEL1, U.FORGE),
-            (G.PROTOSSSHIELDSLEVEL1, U.FORGE),
-        ]
+        if self.settings.attack and self.settings.warp_reinforcement:
+            plan.append((G.WARPGATERESEARCH, U.CYBERNETICSCORE))
+        if self.settings.voidrays:
+            plan += [(upgrade, U.CYBERNETICSCORE) for upgrade in AIR_UPGRADES]
+        plan += [(upgrade, U.FORGE) for upgrade in GROUND_UPGRADES]
         for upgrade, kind in plan:
             if self.already_pending_upgrade(upgrade) or not self.affordable(upgrade, reserve):
                 continue
@@ -353,8 +550,14 @@ class EconomyAssistant(BotAI):
                 if not building.is_powered or not self.available(building):
                     continue
                 ability = self.game_data.upgrades[upgrade.value].research_ability.id
-                if ability in await self.get_available_abilities(building):
-                    return self.issue(building.research(upgrade), paid=True)
+                available = await self.get_available_abilities(building)
+                # Query replies may use exact research IDs while game data uses
+                # a generic research-family remap. Compare the same namespace.
+                available = {self.game_data.abilities[a.value].id for a in available if a.value}
+                if ability in available and self.issue(building.research(upgrade), paid=True):
+                    self._last_upgrade = self.time
+                    logger.info("Research queued: {} at {}", upgrade.name, building.tag)
+                    return True
         return False
 
     async def powers(self):
