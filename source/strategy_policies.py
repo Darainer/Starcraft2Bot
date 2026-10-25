@@ -14,14 +14,15 @@ class Candidate:
     reason: str
 
 
-def candidates(state: Assessment):
+def candidates(state: Assessment, continuing=False):
     policy = PROFILES[state.profile]
     result = [Candidate("develop", "rally", 10, "Assemble, scout, and develop sustainable production")]
     if state.threat_supply:
         result.append(Candidate("stabilize", "threat", 100, "Protect a threatened base"))
     if state.health < policy["retreat_health"] or state.local_advantage < 0.85 or state.trade_bad:
         result.append(Candidate("recover", "home", 120, "Recover from an unfavorable engagement"))
-    if state.army_supply < max(16, policy["attack_supply"]) or state.army_count < 6:
+    threshold = max(8, policy["continue_supply"]) if continuing else max(16, policy["attack_supply"])
+    if state.army_supply < threshold or state.army_count < (4 if continuing else 6):
         return result
     for target in state.targets:
         age = state.time - target.seen_at
@@ -82,7 +83,11 @@ def compose(state, choice, plan_id, ranked):
         alternatives = [
             target
             for target in state.targets
-            if target.id != choice.target_id and target.economic and target.visible and target.defense == 0
+            if target.id != choice.target_id
+            and target.economic
+            and target.visible
+            and target.defense == 0
+            and any(candidate.target_id == target.id for candidate in ranked)
         ]
         if alternatives and remaining >= 48:
             target = max(alternatives, key=lambda target: target.value - target.travel * 0.15)

@@ -22,7 +22,13 @@ class StrategicDirector:
         self.committed_until = -1
 
     def decide(self, state):
-        ranked = candidates(state)
+        continuing = self.active is not None and self.active.objective in {
+            "pressure",
+            "contain",
+            "counterattack",
+            "finish",
+        }
+        ranked = candidates(state, continuing=continuing)
         ranked = [c for c in ranked if self.blocked_targets.get(c.target_id, -1) <= state.time]
         choice = max(ranked, key=lambda candidate: candidate.score)
         urgent = choice.objective in {"stabilize", "recover"}

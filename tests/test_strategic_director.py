@@ -109,6 +109,24 @@ def test_commitment_target_failure_and_emergency_interrupt(assessment):
     assert len(director.history) >= 4
 
 
+def test_failed_target_is_not_reissued_as_secondary_raid(assessment):
+    director = StrategicDirector()
+    plan = director.decide(assessment)
+    failed = next(m.target_id for m in plan.missions if m.role == "deny")
+    director.report_failure(failed, assessment.time)
+    plan = director.decide(assessment)
+    assert all(m.target_id != failed for m in plan.missions)
+
+
+def test_active_pressure_uses_lower_exit_threshold(assessment):
+    director = StrategicDirector()
+    director.decide(assessment)
+    reduced = replace(assessment, army_supply=12, army_count=6)
+    assert director.decide(reduced).objective == "pressure"
+    assert StrategicDirector().decide(reduced).objective == "develop"
+    assert director.decide(replace(reduced, army_supply=4, army_count=2)).objective == "develop"
+
+
 def test_stale_fog_cannot_authorize_denial(assessment):
     fog = tuple(replace(t, visible=False, seen_at=30) for t in assessment.targets)
     state = replace(assessment, targets=fog, timing_ready=True, profile="fortress")

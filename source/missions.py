@@ -32,7 +32,12 @@ class MissionPlanner:
         evidence = {target.id for target in state.targets}
         for mission_id, old in self.records.items():
             old_id = old.get("target_id", "")
-            if old_id.isdecimal() and old_id not in evidence and bot.is_visible(Point2(old["target"])):
+            if (
+                old_id.isdecimal()
+                and old_id not in evidence
+                and bot.is_visible(Point2(old["target"]))
+                and bot.enemy_structures.find_by_tag(int(old_id)) is None
+            ):
                 self.events.append(
                     {"mission": mission_id, "target_id": old_id, "time": bot.time, "result": "target_cleared"}
                 )
