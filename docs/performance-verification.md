@@ -25,6 +25,27 @@ or reinstall was made. Human input acceptance remains separate, under the
 Local diagnostics are in `logs/performance-pressure-terran-01.json` and its `.log`.
 Logs and personal installation paths remain uncommitted.
 
+### Comparison with the successful session
+
+The pre-overhaul commit `f55dc1b` was checked out separately and launched with the
+same existing interpreter and installed binary. Its API probe failed with the
+same `536936448` exit before connecting; the current branch was left intact.
+The `LocalProcess`, `connection`, and `run_session` implementations are unchanged
+between that commit and this branch, as verified by comparing their parsed code.
+The CLI, launcher scripts and dependency pins are also unchanged.
+
+The earlier successful Codex session used the same `.venv` interpreter and
+`source.trials` entry point. Its recorded execution context was
+`danger-full-access`; this session's attempted launches ran as the restricted
+`codexsandboxoffline` account. This isolates the failure from the tactical-code
+changes and identifies an execution-context difference worth correcting first.
+It does not identify the exact internal SC2 failure behind that native exit code.
+
+After the user enabled Full Access, the immediate retry still reported the
+restricted account and failed before API connection. The effective command
+runner must reflect the permission change before further live testing. This
+requirement is now recorded in [AGENTS.md](../AGENTS.md).
+
 ## Retail-observation verification
 
 Commit `f9e07fe` adds a controller benchmark that reconstructs real SDK observations
