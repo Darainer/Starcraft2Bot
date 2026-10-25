@@ -10,6 +10,8 @@ from statistics import mean
 from sc2.ids.unit_typeid import UnitTypeId
 from sc2.ids.upgrade_id import UpgradeId
 
+from source.session_review import SessionReview
+
 
 def summarize(report_path):
     report_path = Path(report_path)
@@ -25,9 +27,11 @@ def summarize(report_path):
     peak_known_expansions = 0
     seen_events = set()
     production = {"GATEWAY", "ROBOTICSFACILITY", "STARGATE"}
+    review = SessionReview()
     with report_path.with_suffix(".state.jsonl").open(encoding="utf-8") as stream:
         for line in stream:
             row = json.loads(line)
+            review.observe(row)
             latest = row
             samples += 1
             strategies[row["decision"]["strategy"]] += 1
@@ -155,6 +159,7 @@ def summarize(report_path):
         inspected_expansion_sites=len(inspected_sites),
         peak_known_enemy_expansions=peak_known_expansions,
     )
+    metrics.update(review.summary())
     return {
         "report": str(report_path),
         "phase": report["phase"],

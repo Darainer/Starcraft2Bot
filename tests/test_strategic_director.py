@@ -128,6 +128,35 @@ def test_failed_target_is_not_reissued_as_secondary_raid(assessment):
     assert all(m.target_id != failed for m in plan.missions)
 
 
+def test_target_commitment_survives_fog_and_mode_changes_but_expires(assessment):
+    director = StrategicDirector()
+    natural = assessment.targets[0]
+    search = replace(assessment.targets[1], id="site:8", economic=False, expansion=False, value=32)
+    state = replace(assessment, targets=(natural, search))
+    assert director.decide(state).missions[-1].target_id == "natural"
+    fog = replace(natural, visible=False, defense=1, advantage=1)
+    for time in (102, 108, 118):
+        plan = director.decide(replace(state, time=time, targets=(fog, search)))
+        assert plan.missions[-1].target_id == "natural" and plan.objective == "contain"
+    assert director.committed_until == 120  # Pressure/contain switches do not renew indefinitely.
+    assert director.decide(replace(state, time=121, targets=(fog, search))).missions[-1].target_id == "site:8"
+
+
+def test_confirmed_expansion_interrupts_speculative_search_and_cleared_target_releases(assessment):
+    director = StrategicDirector()
+    search = replace(assessment.targets[0], id="site:0", economic=False, expansion=False, value=32)
+    assert director.decide(replace(assessment, targets=(search,))).missions[-1].target_id == "site:0"
+    assert (
+        director.decide(replace(assessment, time=101, targets=(search, *assessment.targets)))
+        .missions[-1]
+        .target_id
+        == "natural"
+    )
+    assert (
+        director.decide(replace(assessment, time=102, targets=(search,))).missions[-1].target_id == "site:0"
+    )
+
+
 def test_active_pressure_uses_lower_exit_threshold(assessment):
     director = StrategicDirector()
     director.decide(assessment)

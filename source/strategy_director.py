@@ -6,6 +6,8 @@ from collections import deque
 from source.strategic_plan import validate_plan
 from source.strategy_policies import candidates, compose
 
+OFFENSIVE = {"pressure", "contain", "counterattack", "finish"}
+
 
 class StrategicDirector:
     def __init__(self):
@@ -32,13 +34,37 @@ class StrategicDirector:
         ranked = [c for c in ranked if self.blocked_targets.get(c.target_id, -1) <= state.time]
         choice = max(ranked, key=lambda candidate: candidate.score)
         urgent = choice.objective in {"stabilize", "recover"}
-        if self.active and state.time < self.committed_until and self.profile == state.profile and not urgent:
+        if self.active and self.profile == state.profile and not urgent:
             main = next(m for m in self.active.missions if m.role == "main")
             previous = next(
-                (c for c in ranked if c.objective == self.active.objective and c.target_id == main.target_id),
+                (
+                    c
+                    for c in ranked
+                    if c.target_id == main.target_id
+                    and (
+                        c.objective == self.active.objective
+                        or c.objective in OFFENSIVE
+                        and self.active.objective in OFFENSIVE
+                    )
+                ),
                 None,
             )
-            if previous and previous.score + 12 >= choice.score:
+            targets = {target.id: target for target in state.targets}
+            old_target, new_target = targets.get(main.target_id), targets.get(choice.target_id)
+            confirmed_opportunity = (
+                old_target is not None
+                and not old_target.economic
+                and new_target is not None
+                and new_target.economic
+                and new_target.visible
+            )
+            # Losing sight can change pressure into safe containment; it must
+            # not send the army across the map toward a speculative search site.
+            if (
+                previous
+                and not confirmed_opportunity
+                and (state.time < self.committed_until or previous.score + 12 >= choice.score)
+            ):
                 choice = previous
         changed = not self.active or (
             self.active.objective,
@@ -47,8 +73,14 @@ class StrategicDirector:
         ) != (choice.objective, choice.target_id, state.profile)
         self.sequence += 1
         proposal = validate_plan(compose(state, choice, self.sequence, ranked), state)
+        target_changed = (
+            not self.active
+            or self.profile != state.profile
+            or self.active.missions[-1].target_id != proposal.missions[-1].target_id
+        )
         if changed:
-            self.committed_until = state.time + 8
+            if target_changed:
+                self.committed_until = state.time + (20 if proposal.objective in OFFENSIVE else 8)
             self.history.append(
                 {"time": state.time, "objective": proposal.objective, "reason": proposal.reason}
             )

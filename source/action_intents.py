@@ -59,7 +59,7 @@ class ActionExecutor:
                 area.x <= point.x < area.x + area.width and area.y <= point.y < area.y + area.height
             ):
                 reason = "outside_map"
-            elif intent.action == "move" and unit.distance_to(point) < 2:
+            elif intent.action == "move" and unit.distance_to(point) < 2 and not unit.orders:
                 reason = "at_destination"
             elif (
                 unit.orders

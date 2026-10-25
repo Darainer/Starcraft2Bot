@@ -25,6 +25,28 @@ def weapon(bot, kind, domain=3, distance=5, damage=6):
         proto.weapons.append(data_pb2.Weapon(type=domain, damage=damage, attacks=1, range=distance, speed=1))
 
 
+def test_regroup_hold_cancels_existing_outbound_order_at_current_position(bot, make_unit, populate):
+    unit = make_unit(
+        U.STALKER,
+        (10, 10),
+        orders=[raw_pb2.UnitOrder(ability_id=A.MOVE.value, target_world_space_pos={"x": 80, "y": 80})],
+    )
+    populate(unit)
+    bot.settings.attack = True
+    executor = ActionExecutor()
+    executor.assign({unit.tag: "main"})
+    intent = ActionIntent(
+        unit.tag,
+        executor.assignments[unit.tag][1],
+        bot.state.game_loop,
+        bot.state.game_loop + 8,
+        "move",
+        (10, 10),
+    )
+    assert executor.execute(bot, intent)
+    assert bot.actions[-1].target == unit.position
+
+
 def setup_army(bot, make_unit, populate, count=30, position=(10, 10)):
     weapon(bot, U.NEXUS, damage=0)
     army = [make_unit(U.STALKER, position) for _ in range(count)]

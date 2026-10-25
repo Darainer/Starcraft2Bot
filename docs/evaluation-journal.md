@@ -27,7 +27,7 @@ Five concurrent Windows clients work. No controlled net-speedup claim is made.
   midfield. Recorded targets switch among search sites and bases within seconds;
   advance/regroup changes also occur around a single cohesion threshold.
 
-## Next implementation: movement stability and measurable opponent inference
+## Implementation plan: movement stability and measurable opponent inference
 
 1. Preserve a bounded commitment to the current offensive target through brief
    visibility changes, including a safe transition from pressure to containment.
@@ -57,6 +57,76 @@ Five concurrent Windows clients work. No controlled net-speedup claim is made.
    and repeat the same thirty scenarios with up to five clients. Compare both
    movement stability and wins/trades; fewer reversals alone does not prove better
    tactics. Publish the classifier's measured limits even if accuracy is poor.
+
+## Implementation and closeout: 2026-10-25
+
+Steps 1-5 are implemented. The director retains an offensive target across brief
+visibility and mode changes, with a 20-second commitment and emergency overrides.
+Confirmed economic targets can replace speculative destinations. Army cohesion
+now counts fighting supply consistently, continues advancing at 70%, and resumes
+after regrouping at 80%. Regrouping holds a fixed anchor and cancels obsolete
+outbound orders for units already at their holding point.
+
+The new `opponent_strategy.py` component consumes only scouting evidence and
+timestamps. It records a five-category belief, Unknown/abstention, confidence,
+evidence, and current tactical indicators. It does not control tactical decisions.
+The configured opponent build enters only the offline evaluator. Repeated sightings
+do not multiply confidence, and stale or missing vision can cause abstention.
+
+The [detailed baseline report](evaluations/2026-10-25-af603e0.md) now covers all
+30 completed games: outcomes, estimated army trades, economic damage, costly
+15-second windows, unit disappearances, enemy composition, objectives, movement
+reversals, action rejections, and strategy classification. Loaded passengers stay
+tracked so boarding a transport is not counted as a casualty. Score corrections,
+transformations, and five-second sampling still limit exact fight attribution.
+
+Findings from the ten distinct fixed scenarios:
+
+- Zerg Air and Macro wins combine favorable estimated army exchanges (4.86 and
+  1.70 killed/lost) with substantial economic damage (4675 and 9250 resources).
+  Terran Air wins also inflict substantial economic damage (12050). This is
+  consistent with effective pressure; it does not isolate expansion denial as
+  the cause of victory.
+- Terran Power/Macro timeouts have poor army exchange ratios (0.39 and 0.21).
+  Their costly windows include sieged tanks and large bio armies, with losses
+  sometimes continuing during recovery. Zerg Power loses with a 0.09 ratio.
+  Rush/Timing losses and the earlier Terran Timing regression remain unresolved.
+- Baseline movement includes 50 advance/regroup changes in the representative
+  Terran Air victory and 10 short target reversals against Terran Power. These
+  are comparison metrics for the movement fix, not proof every reversal was wrong.
+- The observational classifier is not accurate enough to drive strategy. At the
+  final sample it scores 10% accuracy, 20% coverage, and 50% conditional accuracy;
+  eight of ten scenarios are Unknown. At 360 seconds it scores 55.6% accuracy
+  across nine eligible scenarios. The configured opening build and late-game
+  composition can differ. Confidence is heuristic and uncalibrated; no held-out
+  accuracy claim is justified by this development matrix.
+
+An offline controller benchmark processed 219 recorded observations (up to 212
+own units), proposing 5756 orders with zero ownership/duplicate-order violations.
+Total controller p95 was 9.486 ms, maximum 20.005 ms. This measures CPU cost on
+recorded state; it does not simulate the effects of the changed orders.
+
+Final local checks passed: locked dependency sync, Ruff lint and formatting,
+the configured mypy ownership/configuration boundary, **324 tests with 92.33%
+coverage**, and source/wheel builds. Tests include consecutive movement decisions,
+urgent target overrides, ownership, classifier label isolation and stale evidence,
+time-horizon evaluation, score corrections, and transport passenger accounting.
+
+The user requested closeout, a commit, and a PR before a new live matrix began.
+All existing game sessions have ended. The fresh 30-game comparison for the latest
+movement implementation remains **unverified**, and no new win-rate improvement
+is claimed. Step 6's live comparison is explicitly deferred in the PR. The next
+evaluation should freeze the committed gameplay revision and reuse the same
+settings, three repeats per scenario, and up to five concurrent clients.
+
+Generate future detailed reports with:
+
+```powershell
+uv run --locked python -m source.evaluate_matches --matrix logs/movement-matrix-fixed.json --revision <gameplay-commit> --output docs/evaluations/<date-commit>.md --json-output logs/evaluation-<commit>.json --compare logs/evaluation-af603e0.json
+```
+
+Keep raw recordings and JSON evaluations local; commit the Markdown findings and
+update this journal after each completed frozen matrix.
 
 ## Research basis and limits
 

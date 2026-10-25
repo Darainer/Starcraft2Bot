@@ -51,6 +51,9 @@ coverage is not proof of actual gameplay quality.
 - `tactics.py` / `army_waves.py`: tactical integration, combat micro and cohesion.
 - `composition.py`: reversible scouting-driven production targets.
 - `replay_strategy.py` / `analyze_session.py`: offline decisions and sampled metrics.
+- `opponent_strategy.py`: observational strategy beliefs from player-visible evidence.
+- `session_review.py` / `evaluate_matches.py`: trade/movement diagnostics and
+  offline classification evaluation; see `docs/evaluation-journal.md`.
 - `run_assistant.py`: CLI configuration, preflight/probe selection and reporting.
 - `runtime.py`: exact binary/data validation, process ownership, loopback attach,
   raw shared-client configuration, match lifecycle and machine diagnostics.

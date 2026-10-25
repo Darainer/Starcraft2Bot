@@ -347,5 +347,9 @@ separate scouting follow-up. Terran Timing's regression remains unresolved.
 
 The user observed units reversing direction in midfield while expansion attacks
 worked well. Recordings confirm rapid switches among search sites and expansion
-targets, as well as advance/regroup transitions. Movement stability is the next
-isolated change; expansion scouting and economic-target preference are retained.
+targets, as well as advance/regroup transitions. The movement-stability fix now
+has synthetic validation; its fresh live comparison is pending at PR closeout.
+Expansion scouting and economic-target preference are retained. See the
+[running evaluation journal](evaluation-journal.md) for implementation/checks
+and the [detailed baseline review](evaluations/2026-10-25-af603e0.md) for trade
+windows, enemy composition, movement metrics, and opponent-classifier accuracy.

@@ -30,6 +30,8 @@ class ArmyWaves:
         self.phase = "assemble"
         self.center = None
         self.last_state = {}
+        self.regroup_anchor = None
+        self.holding_positions = {}
 
     def reset(self):
         self.members.clear()
@@ -37,6 +39,8 @@ class ArmyWaves:
         self.phase = "assemble"
         self.center = None
         self.last_state = {}
+        self.regroup_anchor = None
+        self.holding_positions.clear()
 
     def plan(self, bot, army, objective, rally, policy):
         units = army.filter(bot.control.eligible)
@@ -66,8 +70,11 @@ class ArmyWaves:
         readiness = sum(
             bot.calculate_supply_cost(unit.type_id)
             for index, unit in enumerate(ordered_units)
-            if unit.distance_to(rally) <= 10
-            or unit.distance_to(staging_slot(index, len(ordered_units), rally)) <= 3
+            if unit.can_attack
+            and (
+                unit.distance_to(rally) <= 10
+                or unit.distance_to(staging_slot(index, len(ordered_units), rally)) <= 3
+            )
         )
         fraction = readiness / max(1, supply(units))
         reason = "Assemble a complete, scouted attack wave"
@@ -112,13 +119,24 @@ class ArmyWaves:
                 if len(gathered) >= 6:
                     self.reinforcements = {u.tag for u in gathered}
                     batch = gathered
-            cohesion = sum(bot.calculate_supply_cost(u.type_id) for u in core if u.distance_to(anchor) <= 9)
-            coherent = cohesion / max(1, supply(core)) >= 0.8
+            gathering = self.regroup_anchor if self.phase == "regroup" and self.regroup_anchor else anchor
+            cohesion = supply(core.filter(lambda u: u.distance_to(gathering) <= 9))
             cohesion_fraction = cohesion / max(1, supply(core))
+            coherent = cohesion_fraction >= (0.8 if self.phase == "regroup" else 0.7)
             engaged = any(
                 u.is_visible and u.can_attack and u.distance_to(anchor) < 10 for u in bot.enemy_units
             )
             self.phase = "engage" if engaged else "advance" if coherent else "regroup"
+            if self.phase == "regroup":
+                self.regroup_anchor = gathering
+                self.holding_positions = {
+                    tag: point for tag, point in self.holding_positions.items() if tag in self.members
+                }
+                for unit in core.closer_than(9, gathering):
+                    self.holding_positions.setdefault(unit.tag, unit.position)
+            else:
+                self.regroup_anchor = None
+                self.holding_positions.clear()
             waypoint = (
                 anchor.towards(objective, min(12, anchor.distance_to(objective))) if coherent else anchor
             )
@@ -128,6 +146,9 @@ class ArmyWaves:
             length = max(direction.length, 1)
             forward = Point2((direction.x / length, direction.y / length))
             for index, unit in enumerate(sorted(core, key=lambda u: u.tag)):
+                if self.phase == "regroup":
+                    destinations[unit.tag] = ("move", self.holding_positions.get(unit.tag, gathering))
+                    continue
                 depth = (
                     2 if unit.type_id == U.ZEALOT else -4 if unit.type_id in {U.SENTRY, U.HIGHTEMPLAR} else -1
                 )

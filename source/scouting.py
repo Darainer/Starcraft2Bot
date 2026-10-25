@@ -7,6 +7,7 @@ from source.combat_assessment import home_threats, observed_supply, visible_thre
 from source.composition import composition_targets
 from source.endgame_sweep import BASE_TYPES, DEFENSE_TYPES
 from source.expansion_intel import expansion_sites, is_expansion
+from source.opponent_strategy import OpponentStrategyModel
 
 WORKERS = {U.PROBE, U.SCV, U.DRONE}
 
@@ -26,6 +27,7 @@ class ScoutController:
         self.expansion_checks = {}
         self.observer_blocked = {}
         self.observer_goal = None
+        self.opponent_model = OpponentStrategyModel()
 
     def _rush_warning(self, bot, combat, buildings, report):
         """Short-lived opening alerts from visible evidence, never opponent settings."""
@@ -337,6 +339,7 @@ class ScoutController:
         bot.scout_report = report
 
         worker_status = self._worker_scout(bot, enemies, report)
+        report["opponent_strategy"] = self.opponent_model.observe(bot.time, report)
         observer_status = self._observer_tick(bot) if bot.settings.scouting else {"phase": "disabled"}
         return {"phase": worker_status, "observer": observer_status, "intel": report}
 
