@@ -1,4 +1,4 @@
-"""Protoss co-pilot: macro automation without army move/attack commands."""
+"""Protoss economy and abilities; tactical orders live in the separate controller."""
 
 from loguru import logger
 from sc2.bot_ai import BotAI
@@ -70,7 +70,7 @@ class EconomyAssistant(BotAI):
 
     async def on_start(self):
         await self.chat_send(
-            "Economy assistant ready. You control the army. Type !assist help", team_only=True
+            "Assistant ready. Type !assist help; !assist attack off returns army control", team_only=True
         )
 
     def available(self, unit):

@@ -15,6 +15,7 @@ from sc2.player import Bot, Computer
 
 from source.assistant_control import AssistantSettings
 from source.runtime import RuntimeAssistant, RuntimeReport, inspect_installation, resolve_map, run_session
+from source.strategy_profiles import COMPOSITION, PROFILES
 
 
 def port_number(value):
@@ -31,6 +32,10 @@ def main(argv=None):
     parser.add_argument("--difficulty", choices=[d.name for d in Difficulty], default="Medium")
     parser.add_argument("--opponent", choices=["Terran", "Protoss", "Zerg", "Random"], default="Terran")
     parser.add_argument("--config", type=Path, help="Optional JSON settings file")
+    parser.add_argument("--profile", choices=list(PROFILES), help="Army setup and tactical thresholds")
+    parser.add_argument("--strategy", choices=["auto", "defend", "regroup", "push", "retreat"])
+    parser.add_argument("--strategy-script", type=Path, help="Local Python JSON strategy script")
+    parser.add_argument("--attack", action=argparse.BooleanOptionalAction, default=None)
     parser.add_argument("--sc2-path", type=Path, help="SC2 installation root; overrides SC2PATH")
     parser.add_argument(
         "--sc2-version", default="latest", help="latest installed binary, or exact SDK version label"
@@ -59,6 +64,17 @@ def main(argv=None):
     args = parser.parse_args(argv)
     try:
         settings = AssistantSettings.load(args.config) if args.config else AssistantSettings()
+        if args.profile:
+            settings.profile = args.profile
+            for name in COMPOSITION:
+                setattr(settings, name, PROFILES[args.profile][name])
+        if args.strategy:
+            settings.strategy = args.strategy
+        if args.attack is not None:
+            settings.attack = args.attack
+        if args.strategy_script:
+            settings.strategy_script = str(args.strategy_script.resolve(strict=True))
+        settings.validate()
     except (ValueError, OSError) as exc:
         parser.error(str(exc))
     if args.check_config:

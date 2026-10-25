@@ -5,13 +5,81 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock, Mock
 
 import pytest
+from s2clientprotocol import data_pb2, raw_pb2
 from s2clientprotocol import sc2api_pb2 as pb
 from sc2.data import Difficulty, Race, Result, Status
+from sc2.ids.ability_id import AbilityId
 from sc2.player import Bot, Computer
+from sc2.unit import UnitOrder
 
 from source import runtime
 from source.assistant_control import AssistantSettings
 from source.economy_assistant import EconomyAssistant
+
+
+def test_retail_order_alias_uses_game_declared_canonical_ability():
+    canonical = AbilityId.HARVEST_GATHER.value
+    response = pb.Response(
+        data=pb.ResponseData(
+            abilities=[
+                data_pb2.AbilityData(ability_id=canonical),
+                data_pb2.AbilityData(ability_id=4135, remaps_to_ability_id=canonical),
+                data_pb2.AbilityData(ability_id=99999),
+            ]
+        )
+    )
+    client = runtime.SharedClient(FakeSocket([response]))
+    data = asyncio.run(client.get_game_data())
+    order = UnitOrder.from_proto(
+        raw_pb2.UnitOrder(ability_id=4135, target_unit_tag=123),
+        SimpleNamespace(game_data=data),
+    )
+    assert order.ability.exact_id == AbilityId.HARVEST_GATHER
+    assert order.ability.id == AbilityId.HARVEST_GATHER
+    assert order.target == 123
+    opaque = UnitOrder.from_proto(raw_pb2.UnitOrder(ability_id=99999), SimpleNamespace(game_data=data))
+    assert opaque.ability.exact_id.value == 99999
+    assert opaque.ability.id.value == 99999
+    undocumented = UnitOrder.from_proto(raw_pb2.UnitOrder(ability_id=4137), SimpleNamespace(game_data=data))
+    assert undocumented.ability.exact_id.value == 4137
+    assert undocumented.ability.id.value == 4137
+    assert data.abilities.unknown[-1] == 4137
+    assert client.compatibility["ok"] is False  # Incomplete metadata is diagnosed.
+
+
+def test_complete_command_audit_and_changed_creation_ability(bot):
+    from sc2.ids.unit_typeid import UnitTypeId
+
+    data = pb.ResponseData(
+        abilities=[a._proto for a in bot.game_data.abilities.values()],
+        units=[u._proto for u in bot.game_data.units.values()],
+        upgrades=[u._proto for u in bot.game_data.upgrades.values()],
+    )
+    # The economy fixture deliberately omits unused tech structures. Supply
+    # metadata from the SDK manifest so every assistant command can be checked.
+    from sc2.dicts.unit_train_build_abilities import TRAIN_INFO
+
+    for kind, info in TRAIN_INFO[UnitTypeId.PROBE].items():
+        if kind.value not in bot.game_data.units:
+            data.units.add(unit_id=kind.value, available=True, ability_id=info["ability"].value)
+    game_data, _, _ = runtime.compatible_game_data(data)
+    assert runtime.audit_commands(data, game_data)["ok"]
+    game_data.units[UnitTypeId.PROBE.value]._proto.ability_id = AbilityId.MOVE.value
+    audit = runtime.audit_commands(data, game_data)
+    assert not audit["ok"]
+    assert any(not c["ok"] and c["command"] == "NEXUS:PROBE" for c in audit["commands"])
+
+
+def test_compatibility_blocks_automation_before_on_start(monkeypatch, installation, tmp_path):
+    report = runtime.RuntimeReport(tmp_path / "audit.json", installation)
+    bot = runtime.RuntimeAssistant(AssistantSettings(), report)
+    bot.client = SimpleNamespace(compatibility={"ok": False, "commands": [{"command": "PROBE", "ok": False}]})
+    start = AsyncMock()
+    monkeypatch.setattr(EconomyAssistant, "on_start", start)
+    with pytest.raises(RuntimeError, match="Command compatibility failed: PROBE"):
+        asyncio.run(bot.on_start())
+    start.assert_not_awaited()
+    assert report.data["compatibility"]["ok"] is False
 
 
 @pytest.fixture
@@ -207,6 +275,7 @@ def test_failure_paths_are_reported(session_setup, failure):
 def test_runtime_bot_milestones_and_errors(monkeypatch, installation, tmp_path):
     report = runtime.RuntimeReport(tmp_path / "report.json", installation)
     bot = runtime.RuntimeAssistant(AssistantSettings(enabled=False), report)
+    bot.client = SimpleNamespace()
     bot.chat_send = AsyncMock()
     bot.state = SimpleNamespace(game_loop=224)
     monkeypatch.setattr(EconomyAssistant, "on_start", AsyncMock())

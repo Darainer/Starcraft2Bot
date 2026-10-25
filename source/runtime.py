@@ -9,6 +9,7 @@ import os
 import platform
 import re
 import sys
+import time
 from contextlib import asynccontextmanager, suppress
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -16,18 +17,145 @@ from importlib.metadata import version
 from pathlib import Path
 
 import aiohttp
+from google.protobuf.json_format import MessageToDict
 from loguru import logger
+from s2clientprotocol import data_pb2
 from s2clientprotocol import sc2api_pb2 as pb
 from sc2 import paths
 from sc2.client import Client
 from sc2.controller import Controller
 from sc2.data import Status
+from sc2.dicts.unit_research_abilities import RESEARCH_INFO
+from sc2.dicts.unit_train_build_abilities import TRAIN_INFO
+from sc2.game_data import AbilityData, GameData
+from sc2.ids.ability_id import AbilityId
+from sc2.ids.unit_typeid import UnitTypeId
+from sc2.ids.upgrade_id import UpgradeId
 from sc2.main import _play_game
 from sc2.protocol import ProtocolError
 from sc2.sc2process import SC2Process
 from sc2.versions import VERSIONS
 
-from source.economy_assistant import EconomyAssistant
+from source.economy_assistant import PRODUCERS, SPELLS, EconomyAssistant
+from source.local_control import consume_command
+from source.tactics import TacticalController
+
+
+@dataclass(frozen=True)
+class ObservedAbility:
+    """Opaque game ID: readable/countable, never a fabricated SDK command."""
+
+    value: int
+
+
+class ObservedAbilityData(AbilityData):
+    @property
+    def exact_id(self):
+        return ObservedAbility(self._proto.ability_id)
+
+    @property
+    def id(self):
+        value = self._proto.remaps_to_ability_id or self._proto.ability_id
+        known = AbilityId(value)
+        return known if known.value else ObservedAbility(value)
+
+
+class ObservationAbilities(dict):
+    """Preserve even order IDs missing from SC2's own metadata response."""
+
+    def __init__(self, game_data, unknown):
+        super().__init__(game_data.abilities)
+        self.game_data = game_data
+        self.unknown = unknown
+
+    def __missing__(self, key):
+        if not isinstance(key, int) or key <= 0:
+            raise KeyError(key)
+        self.unknown.append(key)
+        logger.warning("Observed undocumented SC2 order ID {}; preserving opaque identity", key)
+        value = ObservedAbilityData(self.game_data, data_pb2.AbilityData(ability_id=key))
+        self[key] = value
+        return value
+
+
+def compatible_game_data(data):
+    game_data = GameData(data)
+    aliases, opaque = [], []
+    for ability in data.abilities:
+        if ability.ability_id and ability.ability_id not in game_data.abilities:
+            canonical = game_data.abilities.get(ability.remaps_to_ability_id)
+            if canonical is not None:
+                game_data.abilities[ability.ability_id] = canonical
+                aliases.append(ability.ability_id)
+            else:
+                game_data.abilities[ability.ability_id] = ObservedAbilityData(game_data, ability)
+                opaque.append(ability.ability_id)
+    game_data.abilities = ObservationAbilities(game_data, opaque)
+    return game_data, aliases, opaque
+
+
+def audit_commands(data, game_data):
+    """Check every assistant command, including disabled optional features."""
+    abilities = {a.ability_id: a for a in data.abilities}
+    checks = []
+
+    def check(name, expected, actual=None):
+        proto = abilities.get(expected.value)
+        supported = proto is not None and expected.value in game_data.abilities
+        mapped = proto.remaps_to_ability_id or expected.value if proto else None
+        if actual is not None:
+            other = abilities.get(actual)
+            other_mapped = other.remaps_to_ability_id or actual if other else None
+            supported = supported and other is not None and mapped == other_mapped
+        checks.append({"command": name, "ability_id": expected.value, "ok": bool(supported)})
+
+    for producer, entries in TRAIN_INFO.items():
+        if producer not in {UnitTypeId.PROBE, UnitTypeId.NEXUS, *PRODUCERS}:
+            continue
+        for kind, info in entries.items():
+            if producer == UnitTypeId.PROBE and kind not in {
+                UnitTypeId.NEXUS,
+                UnitTypeId.PYLON,
+                UnitTypeId.ASSIMILATOR,
+                UnitTypeId.GATEWAY,
+                UnitTypeId.CYBERNETICSCORE,
+                UnitTypeId.ROBOTICSFACILITY,
+                UnitTypeId.TWILIGHTCOUNCIL,
+                UnitTypeId.TEMPLARARCHIVE,
+                UnitTypeId.ROBOTICSBAY,
+                UnitTypeId.STARGATE,
+                UnitTypeId.FORGE,
+            }:
+                continue
+            if producer in PRODUCERS and kind not in PRODUCERS[producer]:
+                continue
+            unit = game_data.units.get(kind.value)
+            check(f"{producer.name}:{kind.name}", info["ability"], unit._proto.ability_id if unit else -1)
+    upgrades = {
+        UpgradeId.PSISTORMTECH,
+        UpgradeId.BLINKTECH,
+        UpgradeId.PROTOSSGROUNDWEAPONSLEVEL1,
+        UpgradeId.PROTOSSGROUNDARMORSLEVEL1,
+        UpgradeId.PROTOSSSHIELDSLEVEL1,
+    }
+    for entries in RESEARCH_INFO.values():
+        for upgrade, info in entries.items():
+            if upgrade in upgrades:
+                item = game_data.upgrades.get(upgrade.value)
+                check(upgrade.name, info["ability"], item._proto.ability_id if item else -1)
+    for ability in {
+        *SPELLS,
+        AbilityId.EFFECT_CHRONOBOOSTENERGYCOST,
+        AbilityId.HARVEST_GATHER,
+        AbilityId.MOVE_MOVE,
+        AbilityId.ATTACK_ATTACK,
+    }:
+        check(ability.name, ability)
+    return {
+        "ok": all(c["ok"] for c in checks),
+        "commands": checks,
+        "scope": "Static game data and SDK mappings; execution and human controls unverified",
+    }
 
 
 @dataclass(frozen=True)
@@ -213,6 +341,30 @@ async def connection(installation, attach_port=None):
 class SharedClient(Client):
     """Preserve selection and check JoinGame errors before the SDK consumes them."""
 
+    async def get_game_data(self):
+        response = await self._execute(
+            data=pb.RequestData(
+                ability_id=True, unit_type_id=True, upgrade_id=True, buff_id=True, effect_id=True
+            )
+        )
+        game_data, aliases, opaque = compatible_game_data(response.data)
+        self.game_data_wire = response.data.SerializeToString()
+        self.compatibility = audit_commands(response.data, game_data)
+        self.compatibility.update(
+            declared_alias_ids=aliases,
+            opaque_order_ids=opaque,
+            sdk_version=version("burnysc2"),
+            protocol_version=version("pys2clientprotocol"),
+        )
+        logger.info(
+            "Startup compatibility: {} commands, {} failures, {} aliases, {} opaque order IDs",
+            len(self.compatibility["commands"]),
+            sum(not check["ok"] for check in self.compatibility["commands"]),
+            len(aliases),
+            len(opaque),
+        )
+        return game_data
+
     async def _execute(self, **kwargs):
         if "join_game" in kwargs:
             options = kwargs["join_game"].options
@@ -297,11 +449,33 @@ class RuntimeAssistant(EconomyAssistant):
         super().__init__(settings)
         self.report = report
         self._reported_observation = False
+        self._last_tactical_snapshot = float("-inf")
+        self.tactics = TacticalController()
 
     async def on_start(self):
         try:
+            audit = getattr(self.client, "compatibility", None)
+            if audit is not None:
+                self.report.update(compatibility=audit)
+                if not audit["ok"]:
+                    failures = [c["command"] for c in audit["commands"] if not c["ok"]]
+                    raise RuntimeError("Command compatibility failed: " + ", ".join(failures))
+            wire = getattr(self.client, "game_data_wire", None)
+            if wire is not None:
+                metadata = self.report.path.with_suffix(".game-data.pb")
+                metadata.write_bytes(wire)
+                self.report.update(game_data_snapshot=str(metadata))
             await super().on_start()
-            self.report.update(phase="bot_started", automation_paused=not self.settings.enabled)
+            game_info = getattr(getattr(self, "game_info", None), "_proto", None)
+            if game_info is not None:
+                map_info = self.report.path.with_suffix(".game-info.json")
+                map_info.write_text(
+                    json.dumps(MessageToDict(game_info, preserving_proto_field_name=True)), encoding="utf-8"
+                )
+                self.report.update(game_info_snapshot=str(map_info))
+            self.report.update(
+                phase="bot_started", automation_paused=not self.settings.enabled, local_control=True
+            )
             if not self.settings.enabled:
                 await self.chat_send(
                     "Automation PAUSED. Test controls, then type !assist resume", team_only=True
@@ -312,7 +486,36 @@ class RuntimeAssistant(EconomyAssistant):
 
     async def on_step(self, iteration):
         try:
+            selected = [unit.tag for unit in getattr(self, "all_own_units", ()) if unit.is_selected]
+            command = consume_command(self.report.path, self.control, selected)
+            if command:
+                self.report.update(last_control_command=command)
+                logger.info("Local control: {}", command)
             await super().on_step(iteration)
+            now = time.monotonic()
+            observation = getattr(self.state, "response_observation", None)
+            if observation is not None and now - self._last_tactical_snapshot >= 5:
+                self._last_tactical_snapshot = now
+                observed = MessageToDict(observation, preserving_proto_field_name=True)
+                decision = self.tactics.tick(self, observation=observed)
+                snapshot = {
+                    "schema_version": 1,
+                    "captured_utc": datetime.now(timezone.utc).isoformat(),
+                    "game_loop": self.state.game_loop,
+                    "visibility_scope": "player_observation_fog_of_war",
+                    "decision": decision,
+                    "observation": observed,
+                }
+                destination = self.report.path.with_suffix(".state.jsonl")
+                with destination.open("a", encoding="utf-8") as stream:
+                    stream.write(json.dumps(snapshot) + "\n")
+                self.report.update(
+                    state_snapshots=str(destination),
+                    last_game_loop=self.state.game_loop,
+                    strategy=decision["strategy"],
+                    strategy_reason=decision["reason"],
+                    automation_paused=not self.settings.enabled,
+                )
             if not self._reported_observation:
                 self.report.update(phase="observing", first_game_loop=self.state.game_loop)
                 self._reported_observation = True

@@ -1,4 +1,9 @@
 {
+  "enabled": true,
+  "attack": true,
+  "strategy": "auto",
+  "profile": "balanced",
+  "strategy_script": "",
   "workers": true,
   "allocation": true,
   "supply": true,
@@ -13,6 +18,7 @@
   "feedback": false,
   "guardian_shield": false,
   "voidray_alignment": false,
+  "hud": false,
   "reserve_minerals": 0,
   "reserve_gas": 0,
   "bases": 3,

@@ -54,7 +54,9 @@ coverage is not proof of actual gameplay quality.
 
 Preserve these rules in changes:
 
-1. Never issue an army move/attack order from macro code. Abilities that change
+1. Never issue an army move/attack order from macro code. The optional tactical
+   controller may issue these orders only while attack control and automation are enabled,
+   through the same selection/release ownership checks. Abilities that change
    position or interrupt orders must be opt-in and documented.
 2. Skip selected/released actors, honor resource reserves, and avoid two orders
    to the same actor in one observation. Do not bypass `issue`.
