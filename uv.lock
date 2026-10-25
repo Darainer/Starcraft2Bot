@@ -1479,11 +1479,13 @@ wheels = [
 
 [[package]]
 name = "starcraft2-economy-assistant"
-version = "0.1.0"
+version = "0.2.0"
 source = { editable = "." }
 dependencies = [
+    { name = "aiohttp" },
     { name = "burnysc2" },
     { name = "loguru" },
+    { name = "pys2clientprotocol" },
 ]
 
 [package.dev-dependencies]
@@ -1498,8 +1500,10 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "aiohttp", specifier = ">=3.11.10,<4" },
     { name = "burnysc2", specifier = "==7.3.0" },
     { name = "loguru", specifier = ">=0.7.3,<0.8" },
+    { name = "pys2clientprotocol", specifier = "==1.0.2" },
 ]
 
 [package.metadata.requires-dev]

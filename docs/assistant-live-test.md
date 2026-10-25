@@ -1,10 +1,15 @@
 # Live acceptance checklist — pending
 
+First follow [the Windows runbook](windows-install-and-play.md), especially its
+paused human-control checks. Save [an acceptance record](runtime-acceptance-template.md).
+
 No live SC2 match was available in the development environment. Record the
 SC2 version, OS, Python version, map, result and replay for these checks.
 
-1. Launch `python -m source.run_assistant --difficulty Easy`. Confirm a graphical
-   window, normal camera/mouse/hotkeys and real-time progression.
+1. Launch with the explicit map and command from runbook step 7. Confirm the
+   actual ping binary/data identity, graphical window, normal camera/mouse/
+   hotkeys/minimap/command-card input and real-time progression. Stop if any
+   human input is disabled; an API-only success does not pass.
 2. Select combat units and issue move/attack orders while probes and pylons are
    produced. Confirm selection and camera are retained.
 3. Run `!assist pause`. Confirm no new assistant commands after it is processed.

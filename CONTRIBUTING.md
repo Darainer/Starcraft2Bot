@@ -43,7 +43,12 @@ coverage is not proof of actual gameplay quality.
 - `assistant_control.py`: validated configuration, ownership and command parsing.
 - `economy_assistant.py`: SDK adapter, one paid macro action per 0.5 game seconds,
   worker allocation and optional abilities. All commands pass through `issue`.
-- `run_assistant.py`: configuration, logging, map selection and real-time launch.
+- `run_assistant.py`: CLI configuration, preflight/probe selection and reporting.
+- `runtime.py`: exact binary/data validation, process ownership, loopback attach,
+  raw shared-client configuration, match lifecycle and machine diagnostics.
+  Uses pinned BurnySC2 private `_play_game` / `_execute` / process methods;
+  `tests/test_runtime.py` exercises wire serialization and failure/cleanup paths.
+  Re-review these methods before changing the SDK pin.
 - `tests/conftest.py`: synthetic protobuf state plus real BurnySC2 units, actions
   and accounting; map/game queries are test doubles.
 
@@ -74,3 +79,19 @@ Complete [the live checklist](docs/assistant-live-test.md) and attach the releva
 log/replay when reporting a problem. Include OS, SC2 version, map, command,
 expected behavior and actual behavior. Keep credentials and unrelated personal
 information out of reports. There is no automatic telemetry upload.
+
+## Runtime review (2026-10-25)
+
+BurnySC2 7.3.0 and pys2clientprotocol 1.0.2 remain the current reviewed packages;
+there is no unsupported dependency bump just to match SC2's game version string.
+The protocol package is now an explicit dependency. Latest retail startup bypasses
+the SDK's older version-label registry; explicit legacy versions fail closed.
+Join options retain raw state/actions and human selection, without requesting
+hidden cloaked units. No feature-layer/screenshot control or undocumented UI fix
+is introduced. Unit/ability IDs and resource costs still come through the SDK and
+live game data, so actual action effects require acceptance on the chosen patch.
+
+The official protocol repository was version-bumped to 5.0.17.98310.0 on
+2026-10-08; this alone is not evidence of repaired human input. See the runbook's
+primary sources and version-specific acceptance template. This repository has
+no verified live binary yet; do not describe a hypothetical fallback as verified.

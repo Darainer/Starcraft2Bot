@@ -1,50 +1,54 @@
 # Starcraft2Bot — human economy assistant
 
-Play Protoss with your normal mouse and keyboard while an API bot manages your
-economy and build-out. Army movement, attacks, control groups and rally points
+An API assistant intended to manage Protoss economy and build-out while you
+control the army with normal mouse and keyboard. Army movement, attacks, control groups and rally points
 remain yours. No screen capture, LLM, cloud service or model training is needed.
 
-**Status:** implementation and automated tests; not yet validated in a live SC2
-client. This mode launches a local real-time match against Blizzard's computer
+**Status:** implementation and automated tests; no SC2 binary version has yet
+passed this project's live human-control acceptance. Some 5.0.x clients have
+[reported disabled UI controls](https://github.com/BurnySc2/python-sc2/pull/213).
+The current retail binary is a candidate, not a certified working version. This mode launches a local real-time match against Blizzard's computer
 opponent through the official SC2 API. It does not attach to Battle.net ladder,
 campaign or Co-op matchmaking. The original autonomous bots remain in `source/`.
 
 ## Setup and launch
 
-Use Python 3.10+ and a graphical Windows or macOS StarCraft II installation.
-Blizzard's native Linux API package is headless and cannot provide the normal
-human gameplay window. Linux + Wine is an unverified alternative; start with
-Windows for the simplest supported graphical path.
+Start with the **[Windows installation and game-start runbook](docs/windows-install-and-play.md)**.
+It provides every installation/download command, first launch, API probe, paused
+human-control test, normal startup, troubleshooting and an AI-agent procedure.
+Use native Windows PowerShell; WSL/headless Linux is rejected by this launcher.
+macOS is also allowed but not live-tested here.
 
-Install an SC2 API-compatible melee map under your SC2 installation's `Maps/`
-folder. The default is `AbyssalReefLE.SC2Map`; select another installed two-player
-melee map with `--map`. The name must match your actual map file.
+Once the runbook has installed the environment and test map:
 
-Install [uv](https://docs.astral.sh/uv/getting-started/installation/), then:
-
-```bash
-uv sync --locked
-uv run --locked sc2-assistant --check-config --config config/assistant.example.json
-uv run --locked sc2-assistant --map AbyssalReefLE --difficulty Medium --opponent Terran
+```powershell
+uv run --locked sc2-assistant --doctor --map-file maps/BelShirVestigeLE.SC2Map
+uv run --locked sc2-assistant --probe
+uv run --locked sc2-assistant --map-file maps/BelShirVestigeLE.SC2Map --start-paused --difficulty VeryEasy
 ```
 
-`uv` uses Python 3.12 by default and installs the locked dependencies. No manual
-virtual-environment activation is needed. A packaged `sc2-assistant` command and
-`python -m source.run_assistant` are both available. For pip-only use, install
-the project with `python -m pip install .` in a virtual environment.
+`--doctor` checks paths without launching. `--probe` launches/connects, records
+actual binary/data identity and exits without creating a match. Normal startup
+creates one shared Protoss participant and a computer opponent in real time.
+The assistant preserves human selection (`raw_affects_selection=False`) and does
+not request hidden cloaked units. `--start-paused` disables automation until you
+type `!assist resume`; the game clock still runs. Test manual input first.
 
-Run from the repository root. For a nonstandard installation, set `SC2PATH` to
-the game installation root before launching. Use
-`--config config/assistant.example.json` to load startup settings.
-`--replay replays/my-game.SC2Replay` selects an explicit replay destination;
-otherwise each match uses a unique timestamped filename under `replays/`.
-Rotating logs are written to `logs/assistant.log`; use `--log-level DEBUG` for
-detailed console output. Both destinations can be changed with CLI options.
+By default, `--sc2-version latest` selects the newest **installed** binary without
+using the SDK's outdated version-label registry. Explicit legacy labels require
+an installed binary and matching returned data hash; there is no silent fallback.
+`--sc2-path` overrides `SC2PATH`. `--map-file` sends a map's bytes to the game;
+`--map NAME` alternatively resolves an installed map under the SC2 Maps directory.
 
-The launcher starts **one shared Protoss participant**, not a separate allied
-bot. Click into the window and play. It uses `realtime=True` and
-`raw_affects_selection=False` so API actions restore your selection. Startup
-chat and the top-left HUD show the assistant state.
+A Battle.net-launched API client can be used with `--attach-port 5001`; follow the
+runbook's launch arguments. This mode refuses to replace an active game/replay
+and never kills the user's client. It is not an attachment to an ordinary match.
+
+Logs go to `logs/assistant.log`; machine reports and replays get unique timestamps
+under `logs/` and `replays/`. Override with `--log-file`, `--runtime-report` and
+`--replay`. Reports contain actual game identity, package versions, map hash and
+startup/error milestones; they never automatically certify human control.
+`--config config/assistant.example.json` loads startup policy settings.
 
 ## Default responsibilities
 
@@ -148,7 +152,8 @@ uv build
 
 Tests use synthetic protocol data and fake observations with the installed
 BurnySC2 SDK. They cannot establish graphical client compatibility or match
-performance. Complete the [live checklist](docs/assistant-live-test.md) before
+performance. Follow the [Windows runbook](docs/windows-install-and-play.md) and complete the
+[live checklist](docs/assistant-live-test.md) before
 treating this as ready for regular play.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for architecture, dependency updates,
