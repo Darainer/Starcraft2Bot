@@ -36,6 +36,8 @@ def consume_command(report_path, control, selected):
         command = payload["command"]
         if not isinstance(command, str) or not command.startswith("!assist "):
             raise ValueError("Expected an !assist command")
+        if command.strip().lower() == "!assist quit":
+            return {"command": command, "reply": "Leaving assistant match", "quit": True}
         return {"command": command, "reply": control.command(command, selected)}
     except (ValueError, KeyError, TypeError) as exc:
         return {"reply": f"Rejected mailbox command: {exc}"}

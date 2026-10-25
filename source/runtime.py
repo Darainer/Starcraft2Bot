@@ -36,7 +36,7 @@ from sc2.protocol import ProtocolError
 from sc2.sc2process import SC2Process
 from sc2.versions import VERSIONS
 
-from source.economy_assistant import PRODUCERS, SPELLS, EconomyAssistant
+from source.economy_assistant import AIR_UPGRADES, GROUND_UPGRADES, PRODUCERS, SPELLS, EconomyAssistant
 from source.local_control import consume_command
 from source.tactics import TacticalController
 
@@ -125,6 +125,7 @@ def audit_commands(data, game_data):
                 UnitTypeId.ROBOTICSBAY,
                 UnitTypeId.STARGATE,
                 UnitTypeId.FORGE,
+                UnitTypeId.FLEETBEACON,
             }:
                 continue
             if producer in PRODUCERS and kind not in PRODUCERS[producer]:
@@ -134,9 +135,8 @@ def audit_commands(data, game_data):
     upgrades = {
         UpgradeId.PSISTORMTECH,
         UpgradeId.BLINKTECH,
-        UpgradeId.PROTOSSGROUNDWEAPONSLEVEL1,
-        UpgradeId.PROTOSSGROUNDARMORSLEVEL1,
-        UpgradeId.PROTOSSSHIELDSLEVEL1,
+        *GROUND_UPGRADES,
+        *AIR_UPGRADES,
     }
     for entries in RESEARCH_INFO.values():
         for upgrade, info in entries.items():
@@ -491,6 +491,9 @@ class RuntimeAssistant(EconomyAssistant):
             if command:
                 self.report.update(last_control_command=command)
                 logger.info("Local control: {}", command)
+                if command.get("quit"):
+                    await self.client.leave()
+                    return
             await super().on_step(iteration)
             now = time.monotonic()
             observation = getattr(self.state, "response_observation", None)

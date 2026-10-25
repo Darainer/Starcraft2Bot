@@ -9,6 +9,7 @@ from sc2.ids.upgrade_id import UpgradeId as G
 from sc2.unit_command import UnitCommand
 
 from source.assistant_control import Control, within_budget
+from source.layout import find_spaced_placement
 
 ARMY_TARGETS = {
     U.ZEALOT: "zealots",
@@ -31,6 +32,16 @@ SPELLS = {
     A.GUARDIANSHIELD_GUARDIANSHIELD,
     A.EFFECT_VOIDRAYPRISMATICALIGNMENT,
 }
+GROUND_UPGRADES = tuple(
+    getattr(G, f"{family}{level}")
+    for level in range(1, 4)
+    for family in ("PROTOSSGROUNDWEAPONSLEVEL", "PROTOSSGROUNDARMORSLEVEL", "PROTOSSSHIELDSLEVEL")
+)
+AIR_UPGRADES = tuple(
+    getattr(G, f"{family}{level}")
+    for level in range(1, 4)
+    for family in ("PROTOSSAIRWEAPONSLEVEL", "PROTOSSAIRARMORSLEVEL")
+)
 
 
 def storm_target(caster, enemies, friends, existing):
@@ -63,6 +74,8 @@ class EconomyAssistant(BotAI):
         self._used = set()
         self._casts = {}
         self._storms = []
+        self._last_upgrade = -60.0
+        self._blocked_producers = {}
 
     @property
     def settings(self):
@@ -105,6 +118,8 @@ class EconomyAssistant(BotAI):
         live = {unit.tag for unit in self.all_own_units}
         self.control.released.intersection_update(live)
         for error in self.state.action_errors:
+            if error.result == 41:
+                self._blocked_producers[error.unit_tag] = self.time + 15
             logger.warning(
                 "SC2 rejected action: unit={} ability={} result={}",
                 error.unit_tag,
@@ -147,9 +162,7 @@ class EconomyAssistant(BotAI):
         worker = self.builder(near)
         if worker is None:
             return False
-        placement = await self.find_placement(
-            kind, near, max_distance=max_distance, random_alternative=False, placement_step=2
-        )
+        placement = await find_spaced_placement(self, kind, near, max_distance)
         if placement is None or not self.safe_at(placement):
             return False
         return self.issue(worker.build(kind, placement), paid=True)
@@ -275,6 +288,10 @@ class EconomyAssistant(BotAI):
                 expansion_reserve = 400
                 if await self.build_structure(U.NEXUS, location, max_distance=2):
                     return
+        # Periodically give research priority over additional production buildings.
+        # Worker/supply emergencies and explicit reserves still take precedence.
+        if s.upgrades and self.time - self._last_upgrade >= 30 and await self.upgrade(expansion_reserve):
+            return
         if s.construction and await self.construct(home, expansion_reserve):
             return
         if s.upgrades and await self.upgrade(expansion_reserve):
@@ -293,11 +310,12 @@ class EconomyAssistant(BotAI):
             (U.GATEWAY, 1, U.PYLON),
             (U.CYBERNETICSCORE, 1, U.GATEWAY),
             (U.ROBOTICSFACILITY, int(s.immortals > 0 or s.colossi > 0), U.CYBERNETICSCORE),
-            (U.TWILIGHTCOUNCIL, int(s.blink or s.high_templar > 0), U.CYBERNETICSCORE),
+            (U.FORGE, int(s.upgrades), U.CYBERNETICSCORE),
+            (U.TWILIGHTCOUNCIL, int(s.upgrades or s.blink or s.high_templar > 0), U.CYBERNETICSCORE),
             (U.TEMPLARARCHIVE, int(s.high_templar > 0), U.TWILIGHTCOUNCIL),
             (U.ROBOTICSBAY, int(s.colossi > 0), U.ROBOTICSFACILITY),
             (U.STARGATE, int(s.voidrays > 0), U.CYBERNETICSCORE),
-            (U.FORGE, int(s.upgrades), U.CYBERNETICSCORE),
+            (U.FLEETBEACON, int(s.voidrays > 0 and s.upgrades), U.STARGATE),
             (U.GATEWAY, min(6, 2 * self.townhalls.ready.amount), U.CYBERNETICSCORE),
         ]
         for kind, target, prerequisite in plan:
@@ -326,7 +344,11 @@ class EconomyAssistant(BotAI):
                 )
             )
             for building in self.structures(producer).ready.idle:
-                if not building.is_powered or not self.available(building):
+                if (
+                    self._blocked_producers.get(building.tag, 0) > self.time
+                    or not building.is_powered
+                    or not self.available(building)
+                ):
                     continue
                 for kind in candidates:
                     if self.tech_requirement_progress(kind) < 1 or not self.affordable(kind, reserve):
@@ -341,11 +363,9 @@ class EconomyAssistant(BotAI):
             plan.append((G.PSISTORMTECH, U.TEMPLARARCHIVE))
         if self.settings.blink:
             plan.append((G.BLINKTECH, U.TWILIGHTCOUNCIL))
-        plan += [
-            (G.PROTOSSGROUNDWEAPONSLEVEL1, U.FORGE),
-            (G.PROTOSSGROUNDARMORSLEVEL1, U.FORGE),
-            (G.PROTOSSSHIELDSLEVEL1, U.FORGE),
-        ]
+        if self.settings.voidrays:
+            plan += [(upgrade, U.CYBERNETICSCORE) for upgrade in AIR_UPGRADES]
+        plan += [(upgrade, U.FORGE) for upgrade in GROUND_UPGRADES]
         for upgrade, kind in plan:
             if self.already_pending_upgrade(upgrade) or not self.affordable(upgrade, reserve):
                 continue
@@ -353,8 +373,12 @@ class EconomyAssistant(BotAI):
                 if not building.is_powered or not self.available(building):
                     continue
                 ability = self.game_data.upgrades[upgrade.value].research_ability.id
-                if ability in await self.get_available_abilities(building):
-                    return self.issue(building.research(upgrade), paid=True)
+                if ability in await self.get_available_abilities(building) and self.issue(
+                    building.research(upgrade), paid=True
+                ):
+                    self._last_upgrade = self.time
+                    logger.info("Research queued: {} at {}", upgrade.name, building.tag)
+                    return True
         return False
 
     async def powers(self):

@@ -72,7 +72,7 @@ def bot():
         data_pb2.UpgradeData(
             upgrade_id=upgrade.value, ability_id=info["ability"].value, mineral_cost=100, vespene_cost=100
         )
-        for kind in (U.FORGE, U.TEMPLARARCHIVE, U.TWILIGHTCOUNCIL)
+        for kind in (U.FORGE, U.TEMPLARARCHIVE, U.TWILIGHTCOUNCIL, U.CYBERNETICSCORE)
         for upgrade, info in RESEARCH_INFO[kind].items()
     ]
     bot.game_data = GameData(sc2api_pb2.ResponseData(abilities=abilities, units=units, upgrades=upgrades))
