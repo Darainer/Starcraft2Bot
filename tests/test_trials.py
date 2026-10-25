@@ -153,7 +153,65 @@ def test_seeded_matrix_stops_when_initial_conditions_differ(monkeypatch, tmp_pat
     assert len(results) == 3 and all(not r["starting_conditions_match"] for r in results)
 
 
-@pytest.mark.parametrize("args", [["--repeat", "0"], ["--duration", "0"], ["--parallel", "4"]])
+def test_five_clients_overlap_scenarios_and_validate_each_triplet(monkeypatch, tmp_path):
+    monkeypatch.setattr(trials, "ROOT", tmp_path)
+    (tmp_path / ".local").mkdir()
+    (tmp_path / ".local/windows.json").write_text('{"sc2_path":"game","map_file":"map"}')
+    barrier, lock = threading.Barrier(5), threading.Lock()
+    active = peak = launched = 0
+    races = {}
+
+    def run(command, **kwargs):
+        nonlocal active, peak, launched
+        report = command[command.index("--runtime-report") + 1]
+        with lock:
+            launched += 1
+            index = launched
+            active += 1
+            peak = max(peak, active)
+            races[report] = command[command.index("--opponent") + 1]
+        if index <= 5:
+            barrier.wait(timeout=5)
+        with lock:
+            active -= 1
+        return SimpleNamespace(returncode=0)
+
+    monkeypatch.setattr(trials.subprocess, "run", run)
+    monkeypatch.setattr(
+        trials,
+        "summarize",
+        lambda path: {
+            "result": "Result.Victory",
+            "sampled_game_seconds": 600,
+            "initial_state_sha256": races[str(path)],
+            "initial_state": {"game_loop": 0},
+        },
+    )
+    trials.main(
+        [
+            "--profiles",
+            "pressure",
+            "--opponents",
+            "Terran",
+            "Zerg",
+            "--builds",
+            "Rush",
+            "--repeat",
+            "3",
+            "--parallel",
+            "5",
+            "--seed",
+            "42",
+        ]
+    )
+    results = json.loads((tmp_path / "logs/latest-trials.json").read_text())
+    assert peak == 5 and active == 0 and len(races) == len(results) == 6
+    assert [r["opponent"] for r in results] == ["Terran"] * 3 + ["Zerg"] * 3
+    assert all(r["starting_conditions_match"] and r["wall_seconds"] >= 0 for r in results)
+    assert all(r["game_seconds_per_wall_second"] > 0 for r in results)
+
+
+@pytest.mark.parametrize("args", [["--repeat", "0"], ["--duration", "0"], ["--parallel", "6"]])
 def test_trial_bounds(args):
     with pytest.raises(SystemExit) as exc:
         trials.main(args)

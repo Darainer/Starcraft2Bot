@@ -265,3 +265,11 @@ scheduling modes. Results and live confirmation of the fixes are pending.
 The recovery and early-warning revision passed 301 tests with 92.01% combined
 statement/branch coverage, locked dependency sync, Ruff lint/formatting, mypy,
 and wheel/sdist build before live launch.
+
+The five-client scheduler adds cross-scenario concurrency when `--parallel` is
+larger than `--repeat`. Fingerprints are still compared only within each scenario.
+Queued trials are cancelled on a mismatch; already running games finish and keep
+their individual evidence. Each result includes total process wall time and
+sampled game seconds per wall second (including launch/replay overhead).
+It passed 302 tests with 92.04% coverage and all other required gates. Gameplay
+remains revision `af603e0`; this scheduler change does not alter actions or settings.

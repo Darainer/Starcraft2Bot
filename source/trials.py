@@ -9,6 +9,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from itertools import product
 from pathlib import Path
+from time import perf_counter
 
 from sc2.data import AIBuild
 
@@ -20,6 +21,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def run_trial(args, settings, profile, opponent, build, trial_id, stamp):
+    started = perf_counter()
     report = ROOT / "logs" / f"runtime-{stamp}-{trial_id:03d}.json"
     report.parent.mkdir(parents=True, exist_ok=True)
     replay = ROOT / "replays" / f"assistant-{stamp}-{trial_id:03d}.SC2Replay"
@@ -79,6 +81,10 @@ def run_trial(args, settings, profile, opponent, build, trial_id, stamp):
         game_time_limit=args.duration,
         fast_step_size=None if args.realtime else args.fast_step_size,
         exit_code=completed.returncode,
+        wall_seconds=round(perf_counter() - started, 3),
+    )
+    result["game_seconds_per_wall_second"] = round(
+        result.get("sampled_game_seconds", 0) / max(0.001, result["wall_seconds"]), 3
     )
     return result
 
@@ -87,7 +93,12 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--profiles", nargs="+", choices=list(PROFILES), default=["pressure", "balanced"])
     parser.add_argument("--repeat", type=int, default=1)
-    parser.add_argument("--parallel", type=int, default=1, help="Concurrent games per scenario (1-3)")
+    parser.add_argument(
+        "--parallel",
+        type=int,
+        default=1,
+        help="Concurrent games (1-5); may overlap scenarios when greater than repeat count",
+    )
     parser.add_argument("--duration", type=int, default=1500)
     parser.add_argument("--fast-step-size", type=int, default=32)
     parser.add_argument(
@@ -107,8 +118,8 @@ def main(argv=None):
     args = parser.parse_args(argv)
     if not 1 <= args.repeat <= 10 or not 30 <= args.duration <= 3600:
         parser.error("Repeat must be 1-10; duration must be 30-3600 game seconds")
-    if not 1 <= args.parallel <= 3:
-        parser.error("Parallel games must be 1-3")
+    if not 1 <= args.parallel <= 5:
+        parser.error("Parallel games must be 1-5")
     if not 4 <= args.fast_step_size <= 64:
         parser.error("Fast-test step size must be between 4 and 64 simulation loops")
     try:
@@ -120,25 +131,31 @@ def main(argv=None):
     destination.parent.mkdir(parents=True, exist_ok=True)
     stamp = datetime.now().strftime("%Y%m%d-%H%M%S-%f")
     trial_id = 0
+    scenarios = list(product(args.profiles, args.opponents, args.builds))
+    batches = [scenarios] if args.parallel > args.repeat else [[scenario] for scenario in scenarios]
+    temporary = destination.with_suffix(destination.suffix + ".tmp")
+
+    def save():
+        results.sort(key=lambda item: item["trial_id"])
+        temporary.write_text(json.dumps(results, indent=2) + "\n", encoding="utf-8")
+        temporary.replace(destination)
+
     with ThreadPoolExecutor(max_workers=args.parallel) as pool:
-        for profile, opponent, build in product(args.profiles, args.opponents, args.builds):
-            # Complete all repeats of this scenario before moving to the next.
-            print(f"Starting {args.repeat} x {profile} vs {opponent} {build}; seed={args.seed}", flush=True)
-            pending = []
-            scenario_results = []
-            for _ in range(args.repeat):
-                trial_id += 1
-                pending.append(
-                    pool.submit(run_trial, args, settings, profile, opponent, build, trial_id, stamp)
-                )
+        for batch in batches:
+            pending = {}
+            scenario_results = {scenario: [] for scenario in batch}
+            for profile, opponent, build in batch:
+                print(f"Queued {args.repeat} x {profile} vs {opponent} {build}; seed={args.seed}", flush=True)
+                for _ in range(args.repeat):
+                    trial_id += 1
+                    future = pool.submit(run_trial, args, settings, profile, opponent, build, trial_id, stamp)
+                    pending[future] = (profile, opponent, build)
             for future in as_completed(pending):
                 result = future.result()
-                scenario_results.append(result)
+                group = scenario_results[pending[future]]
+                group.append(result)
                 results.append(result)
-                results.sort(key=lambda item: item["trial_id"])
-                temporary = destination.with_suffix(destination.suffix + ".tmp")
-                temporary.write_text(json.dumps(results, indent=2) + "\n", encoding="utf-8")
-                temporary.replace(destination)
+                save()
                 print(
                     json.dumps(
                         {
@@ -154,28 +171,36 @@ def main(argv=None):
                                 "initial_state_sha256",
                                 "error",
                                 "report",
+                                "wall_seconds",
+                                "game_seconds_per_wall_second",
                             )
                         }
                     ),
                     flush=True,
                 )
-            if args.seed is not None and not any(r["exit_code"] or r.get("error") for r in scenario_results):
-                signatures = {r.get("initial_state_sha256") for r in scenario_results}
-                identical = (
-                    len(signatures) == 1
-                    and None not in signatures
-                    and all(r.get("initial_state", {}).get("game_loop") == 0 for r in scenario_results)
-                )
-                for result in scenario_results:
-                    result["starting_conditions_match"] = identical
-                temporary.write_text(json.dumps(results, indent=2) + "\n", encoding="utf-8")
-                temporary.replace(destination)
-                if not identical:
-                    print(
-                        "Starting conditions differ or lack a loop-zero sample; stopping the matrix.",
-                        flush=True,
+                if (
+                    len(group) == args.repeat
+                    and args.seed is not None
+                    and not any(r["exit_code"] or r.get("error") for r in group)
+                ):
+                    signatures = {r.get("initial_state_sha256") for r in group}
+                    identical = (
+                        len(signatures) == 1
+                        and None not in signatures
+                        and all(r.get("initial_state", {}).get("game_loop") == 0 for r in group)
                     )
-                    raise SystemExit(1)
+                    for item in group:
+                        item["starting_conditions_match"] = identical
+                    save()
+                    if not identical:
+                        for queued in pending:
+                            queued.cancel()
+                        print(
+                            "Starting conditions differ or lack a loop-zero sample; stopping queued trials. "
+                            "Already running games will finish and retain their individual reports.",
+                            flush=True,
+                        )
+                        raise SystemExit(1)
     if any(r["exit_code"] or r.get("error") for r in results):
         raise SystemExit(1)
 

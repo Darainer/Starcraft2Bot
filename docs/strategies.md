@@ -266,7 +266,10 @@ it is not evidence that the opponent defeated the bot.
 
 The trial runner launches owned clients with bounded game duration and saves
 separate reports, logs and replays. `--parallel 3` runs three repeats of a scenario
-concurrently before starting the next scenario. `--opponents` and `--builds` expand
+concurrently before starting the next scenario when `--repeat 3` is selected.
+`--parallel 5 --repeat 3` overlaps scenarios, with at most five clients active and
+three repeats of every scenario. Results include wall time and simulation throughput.
+`--opponents` and `--builds` expand
 the matrix; `--output` chooses its aggregate JSON. Use `--seed` and an explicit
 build to fix SC2/Python randomness. Seeded scenarios must have matching loop-zero
 starting-state fingerprints or the runner stops. The default remains sequential.
