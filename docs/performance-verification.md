@@ -1,50 +1,65 @@
 # Performance verification — 2026-10-25
 
-**Status:** tactical CPU cost measured on recorded retail observations; new match
-performance remains unverified because SC2 exits before API startup in the agent's
-Windows session. No new wins, losses, or win-rate improvement are claimed.
+**Status:** Full Access resolved the native startup blocker. Independent SC2
+instances can run concurrently, with separate API ports, runtime reports, logs
+and replays. The first pressure match beat VeryHard Terran; the first balanced
+match lost. Further repetitions are in progress. These are smoke results, not a
+reliable win-rate estimate.
 
-## Live attempt
+## Live environment and initial results
 
-Attempted pressure versus VeryHard Terran on Bel'Shir Vestige LE, bounded to
-1,500 game seconds with eight game loops per observation. Installation/map
-preflight passed. The installed binary is Base98310; no older binary was selected.
+Current implementation: `05f3b5c`, branch `feat/adaptive-pressure-tactics`.
+Opponent: VeryHard Terran. Map: Bel'Shir Vestige LE. Fast stepping: eight loops
+(approximately 0.357 game seconds per observation), bounded to 1,500 game seconds.
+Optional combat spells remain disabled. No fixed seed or opponent build matching
+is claimed. Two concurrent matches successfully completed and saved replays.
 
-SC2 exited before the API connection with code **536936448 (0x20010000)**. The
-runtime report records `phase: failed`, not a match result. No current ping identity,
-game observations, or replay were produced. Loopback bind/connect testing passed.
-The execution account is the isolated Codex sandbox account, and no fresh normal
-game log appeared in the user's game-log directory. Those facts do not establish
-the precise cause of the native exit.
+Exact live ping identity:
 
-The next live attempt requires launching from the user's normal desktop account.
-The existing Python environment and trial runner are ready; no dependency change
-or reinstall was made. Human input acceptance remains separate, under the
-[Windows runbook](windows-install-and-play.md).
+- Game version: `5.0.17.98310`
+- Base/data build: `98310` / `98310`
+- Data version: `9C1F3D3D30CA252E33FC67CA05CBE1EA`
+- Map SHA256: `9cb078a287c76c0b55e3bc137b0e4590415231367d7c5724ab1bfd24a06a1d1e`
+- Startup command audit: 59 commands, zero failures in both matches.
 
-Local diagnostics are in `logs/performance-pressure-terran-01.json` and its `.log`.
-Logs and personal installation paths remain uncommitted.
+| Profile/run | Result | Last sampled game time | First offensive advance | First completed Stalker | Supply block estimate | Sampled tactical p95 |
+| --- | --- | ---: | ---: | ---: | ---: | ---: |
+| Pressure 01 | Victory | 755.4 s | 290.4 s | 200.4 s | 5 s | 4.110 ms |
+| Balanced 01 | Defeat | 970.4 s | 340.4 s | 190.4 s | 25 s | 3.583 ms |
 
-### Comparison with the successful session
+Local evidence uses `logs/performance-v1-<profile>-terran-01.json`, its matching
+`.state.jsonl`/metadata files and `.log`, and
+`replays/performance-v1-<profile>-terran-01.SC2Replay`. Logs and replays remain
+uncommitted. The displayed duration is the last five-second observation sample,
+not an exact end-of-match timestamp. Sampled tactical timings exclude macro/API
+latency and run under concurrent game load.
 
-The pre-overhaul commit `f55dc1b` was checked out separately and launched with the
-same existing interpreter and installed binary. Its API probe failed with the
-same `536936448` exit before connecting; the current branch was left intact.
-The `LocalProcess`, `connection`, and `run_session` implementations are unchanged
-between that commit and this branch, as verified by comparing their parsed code.
-The CLI, launcher scripts and dependency pins are also unchanged.
+The pressure game reached 56 workers and sustained a growing army. The balanced
+loss included repeated defensive withdrawals, then a collapse from 96 assigned
+combat supply around 795 seconds to six around 825 seconds while returning to
+defend. That identifies defensive transitions and retreat routes for investigation;
+it does not establish a single cause from sampled observations. Neither first
+match recorded action rejections. Repetitions are needed before profile selection
+or a claim that the bot consistently beats VeryHard.
 
-The earlier successful Codex session used the same `.venv` interpreter and
-`source.trials` entry point. Its recorded execution context was
-`danger-full-access`; this session's attempted launches ran as the restricted
-`codexsandboxoffline` account. This isolates the failure from the tactical-code
-changes and identifies an execution-context difference worth correcting first.
-It does not identify the exact internal SC2 failure behind that native exit code.
+Human input acceptance remains separate and unverified under the
+[Windows runbook](windows-install-and-play.md). Autonomous games verify API
+startup and gameplay, not keyboard/mouse sharing.
 
-After the user enabled Full Access, the immediate retry still reported the
-restricted account and failed before API connection. The effective command
-runner must reflect the permission change before further live testing. This
-requirement is now recorded in [AGENTS.md](../AGENTS.md).
+### Resolved permission blocker
+
+The restricted Codex account exited SC2 before API connection with
+`536936448` (`0x20010000`). The pre-overhaul commit `f55dc1b`, launched separately
+with the same interpreter and binary, failed identically. Parsed comparisons
+showed `LocalProcess`, `connection`, and `run_session` unchanged; the CLI, launcher
+scripts and dependency pins were also unchanged.
+
+The earlier successful Codex session used `danger-full-access`. The first retry
+after user approval still ran under `codexsandboxoffline`; once the permission
+change reached the actual runner and it used the normal desktop account, both
+current games launched and finished. No launch-code workaround or downgrade was
+needed. [AGENTS.md](../AGENTS.md) records the required execution context and says
+not to request permission again after the user has approved it.
 
 ## Retail-observation verification
 

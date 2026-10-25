@@ -3,11 +3,13 @@
 Date: 2026-10-25. Branch: `feat/adaptive-pressure-tactics`.
 
 Follow-up: [performance verification](performance-verification.md) records the
-native startup attempt, a retail-metadata fix, and measured controller CPU costs.
+resolved permission blocker, retail-metadata fix, controller CPU measurements,
+and current live match results.
 
 The initial hard-coded overhaul is implemented. No model provider is connected.
 This record distinguishes executable behavior from gameplay evidence. New
-VeryHard wins and human-control compatibility have **not** been established.
+VeryHard results are now recorded in the follow-up; human-control compatibility
+remains unverified.
 
 ## Delivered implementation
 
@@ -64,18 +66,12 @@ An earlier full run hit the existing one-second external script startup timeout
 while other checks were running. A sequential full run passed. The production
 script timeout was retained; failed scripts continue to fail closed.
 
-The required locked-environment and package gates remain **unverified**:
-
-- The installed `uv` executable is inaccessible in this environment, so
-  `uv sync --locked` and the `uv run --locked` gates could not be completed.
-- The environment lacks `hatchling`; `python -m build --no-isolation` confirms
-  that the build backend cannot be imported. Installing missing build tooling
-  was blocked by the environment's network restrictions.
-- No dependency pins or lockfile contents were changed to work around this.
-
-Run the repository's normal locked checks and `uv build` in an unrestricted
-development environment or CI before publication. Local commits are checkpoints,
-not proof that these remaining gates passed.
+The initial restricted environment could not run the locked/package checks.
+After the user enabled Full Access, `uv sync --locked`, `uv run --locked ruff
+check .`, `uv run --locked ruff format --check .`, `uv run --locked mypy`, and
+`uv build` passed using the installed uv executable. The sdist and wheel were
+built without changing dependency pins or the lockfile. A fresh locked coverage
+run is recorded in the follow-up performance record when complete.
 
 ## Gameplay evidence and next evaluation
 
@@ -85,14 +81,14 @@ games. That motivated opening/production repairs. Those matches do not evaluate
 this branch. Their research context and limitations are recorded in the
 [architecture plan](tactical-architecture-plan.md).
 
-No desktop control tool is available in this session. The Windows runbook requires
-manual handoffs and actual human input checks; consequently no new gameplay or
-human-control acceptance is claimed. Follow
+Autonomous gameplay now runs successfully with the approved Full Access context;
+see the follow-up for observed match results. No desktop control tool is available
+to verify human input, so human-control acceptance remains pending. Follow
 [install and play](windows-install-and-play.md) and complete the
 [acceptance record](runtime-acceptance-template.md), using the exact ping identity.
 An API probe cannot substitute for that record.
 
-Once that environment is accepted, compare the baseline commit with this branch
+For broader performance evaluation, compare the baseline commit with this branch
 on the same map, opponent race/build, difficulty, profile and available seed
 controls. Start with bounded smoke matches, then repeated VeryHard trials across
 Terran, Zerg and Protoss. Use at least five matches per chosen comparison cell;
