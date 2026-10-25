@@ -25,8 +25,8 @@ def assessment():
         rally=(8, 8),
         threat=None,
         targets=(
-            Opportunity("natural", (80, 80), 100, True, True, 65, 0, 2, 40),
-            Opportunity("third", (60, 60), 100, True, True, 60, 0, 2, 45),
+            Opportunity("natural", (80, 80), 100, True, True, 65, 0, 2, 40, expansion=True),
+            Opportunity("third", (60, 60), 100, True, True, 60, 0, 2, 45, expansion=True),
         ),
         intel_age=0,
         minerals=400,

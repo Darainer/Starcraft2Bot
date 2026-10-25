@@ -33,13 +33,21 @@ def candidates(state: Assessment, continuing=False):
             result.append(Candidate("contain", target.id, 15, "Avoid fortified approach; scout and contain"))
             continue
         score += 8 if state.profile == "pressure" else -5 if state.profile == "fortress" else 0
+        score += 18 if target.expansion else 0
         score += 6 if state.timing_ready else 0
         objective = "counterattack" if state.recently_defended else "pressure"
         # Cleanup requires recent winning trades, not merely few visible buildings.
         if state.local_advantage >= 3 and state.army_supply >= 60 and state.cleanup_ready:
             objective = "finish"
         result.append(
-            Candidate(objective, target.id, score, "Exploit reachable economic value and local strength")
+            Candidate(
+                objective,
+                target.id,
+                score,
+                "Deny a scouted expansion"
+                if target.expansion
+                else "Exploit reachable economic value and local strength",
+            )
         )
     return result
 
@@ -80,18 +88,23 @@ def compose(state, choice, plan_id, ranked):
         # The mission executor chooses a safe offset; retain the evidence target.
         mode = "move"
     if objective in {"pressure", "counterattack", "contain", "finish"} and not state.threat_supply:
+        budget = min(12, remaining * 0.25)
         alternatives = [
             target
             for target in state.targets
             if target.id != choice.target_id
             and target.economic
+            and target.expansion
             and target.visible
-            and target.defense == 0
+            and not target.static_defense
+            and (
+                target.defense == 0
+                or (0 < target.defender_supply <= budget * 0.5 and target.advantage >= 1.5)
+            )
             and any(candidate.target_id == target.id for candidate in ranked)
         ]
-        if alternatives and remaining >= 48:
+        if alternatives and remaining >= 32:
             target = max(alternatives, key=lambda target: target.value - target.travel * 0.15)
-            budget = min(12, remaining * 0.2)
             missions.append(
                 MissionSpec("denial", "deny", target.id, target.position, budget, 6, 60, require_visible=True)
             )

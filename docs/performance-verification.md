@@ -3,8 +3,9 @@
 **Status:** Full Access resolved the native startup blocker. Independent SC2
 instances can run concurrently, with separate API ports, runtime reports, logs
 and replays. Four initial matches finished: pressure won one of two; balanced lost both.
-The loss-counter correction below is being evaluated separately. These are smoke
-results, not a reliable win-rate estimate.
+The subsequent loss-counter-only pair also lost. The expansion-denial revision
+passes offline checks and is ready for its separate three-game batch. These are
+smoke results, not a reliable win-rate estimate.
 
 ## Live environment and initial results
 
@@ -64,6 +65,34 @@ trigger recovery. This fixes false retreats without changing force thresholds.
 It remains an estimate: actual losses can be recognized late while the raw total
 is below its previous maximum. Terrain, retreat routes and defensive commitment
 still need broader evaluation; this correction does not solve those problems.
+
+### Follow-up revision and batch protocol
+
+The loss-score-only revision `66dd9c0` completed one pressure and one balanced
+match before the user requested the three-game protocol. Both lost: pressure at
+last sample 1,035.4 seconds and balanced at 335.4 seconds. Neither recorded action
+rejections. These two games cannot establish the correction's effect on win rate;
+opponent builds were not matched. Evidence is under
+`performance-v2-<profile>-terran-01` in the local logs/replays directories.
+
+The expansion-denial revision changes site inspection scheduling, stable base
+identity through fog, expansion priority and small-squad eligibility. **284 tests
+passed with 91.58% coverage**; locked sync, lint, formatting, mypy and package
+build all passed. Reconstructing both initial pressure recordings processed 417
+snapshots and proposed 6,858 orders without duplicate/ownership violations.
+Controller total p95 was 7.853 and 12.243 ms; the largest sample was 71.458 ms.
+These are offline CPU costs, not game response times or simulated match outcomes.
+
+From this revision onward, run **three concurrent pressure-versus-VeryHard-Terran
+games per gameplay change**, with the same map and eight-loop step size. Freeze
+the committed gameplay code for the complete batch, assess all three outcomes,
+and only then tune again. This is recorded in [AGENTS.md](../AGENTS.md). Each game
+gets its own report, log and replay; the sequential `source.trials` runner is not
+launched concurrently because it shares an aggregate output and default log.
+
+Expansion metrics distinguish Observer travel, inspected sites, known enemy
+expansions, an advancing force assigned to an expansion, and allocated denial
+squads. They measure selected behavior; they do not certify economic damage.
 
 ### Resolved permission blocker
 

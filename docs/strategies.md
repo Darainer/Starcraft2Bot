@@ -59,8 +59,12 @@ probabilities or a claim of professional-level play.
 A plan can combine main-army pressure with a small home response or a separate
 expansion-denial squad. All missions share a force budget and have disjoint actor
 assignments. A home response requires credible local strength; denial requires a
-currently visible, undefended economic target, at least 48 total combat supply,
-and a six-supply minimum detachment. A failed raid recovers independently. Losing
+currently visible expansion, at least 32 total combat supply, and a six-supply
+minimum detachment. The detachment uses at most 12 supply or one quarter of the
+army, prefers Zealots/Stalkers, and leaves heavy units with the main force. Light
+guards can be challenged when their supply is at most half the raid budget and
+the observed force comparison is favorable; static defenses prohibit a side raid.
+Local fight checks can still abort it. A failed raid recovers independently. Losing
 the main force causes a global reassessment and cancels exposed side operations.
 Manual strategies and script targets take precedence over automatic missions.
 
@@ -68,14 +72,23 @@ Manual strategies and script targets take precedence over automatic missions.
 
 An eligible Probe scouts the enemy natural and main after 12 workers, then
 returns to mining. The reserved scout cannot receive economy orders. An Observer
-visits enemy expansions and home approaches, and can check the approach to the
-main mission's target. It withdraws from observed anti-air or serious damage.
+prioritizes overdue expansion inspections: occupied sites become due after 20
+seconds without vision, empty/unknown sites after 45. It finishes its selected
+inspection, favors likely enemy expansion locations and previously occupied
+sites, and backs off a threatened route for 30 seconds while checking others.
+These are scheduling targets, not guaranteed revisit intervals. When inspections
+are current it checks home approaches or the main mission's route. It withdraws
+from observed anti-air or serious damage.
 Selection and release retain human ownership of both scouts.
 
 Enemy unit memory is keyed by tag, drops observed deaths, and expires after 90
 game seconds. Base and tech memory expire after 180 seconds; visible empty base
 sites are removed immediately. Strategic base targets use at most 90 seconds of
-memory. Fog targets are reconnaissance opportunities, never confirmed free bases.
+memory. Visible and remembered bases retain the same target identity. Expansions
+receive higher target priority than the main base; unfinished bases and nearby
+workers increase the opportunity value. Remembered defenders remain a reason to
+rescout. Recently inspected empty sites do not attract an army. Fog targets are
+reconnaissance opportunities, never confirmed free bases.
 Air-heavy armies raise Stalker targets; armored air adds Void Rays. Armored ground
 raises Immortal demand; light ground adds Colossi/Zealots. These temporary targets
 preserve configured values and expire with their evidence. Use

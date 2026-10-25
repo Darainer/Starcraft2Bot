@@ -18,6 +18,9 @@ def summarize(report_path):
     metrics = {"sampled_supply_block_seconds": 0.0, "sampled_idle_facility_seconds": 0.0}
     previous = None
     banks, timings, objectives, outcomes = [], [], Counter(), Counter()
+    expansion_scout_samples, expansion_target_samples, denial_samples = 0, 0, 0
+    inspected_sites = set()
+    peak_known_expansions = 0
     seen_events = set()
     production = {"GATEWAY", "ROBOTICSFACILITY", "STARGATE"}
     with report_path.with_suffix(".state.jsonl").open(encoding="utf-8") as stream:
@@ -51,6 +54,36 @@ def summarize(report_path):
             if "controller_ms" in decision:
                 timings.append(decision["controller_ms"])
             objective = decision.get("plan", {}).get("objective")
+            scouting = row.get("scouting", {})
+            intel = scouting.get("intel", {})
+            expansion_scout_samples += scouting.get("observer", {}).get("phase") == "scouting_expansion"
+            inspected_sites.update(
+                tuple(site["position"])
+                for site in intel.get("expansion_sites", [])
+                if site.get("last_checked", -999) >= 0
+            )
+            peak_known_expansions = max(
+                peak_known_expansions,
+                sum(base.get("expansion", False) for base in intel.get("known_enemy_bases", [])),
+            )
+            expansion_ids = {
+                target["id"]
+                for target in decision.get("assessment", {}).get("targets", [])
+                if target.get("expansion")
+            }
+            advancing_expansion = any(
+                mission.get("target_id") in expansion_ids
+                and mission.get("supply", 0) > 0
+                and mission["phase"] in {"advance", "engage", "travel"}
+                for mission in decision.get("missions", {}).values()
+            )
+            expansion_target_samples += advancing_expansion
+            denial_samples += any(
+                mission.get("role") == "deny" and mission.get("supply", 0) > 0
+                for mission in decision.get("missions", {}).values()
+            )
+            if advancing_expansion:
+                metrics.setdefault("first_expansion_advance_seconds", round(seconds, 1))
             if objective:
                 objectives[objective] += 1
                 phases = {m["phase"] for m in decision.get("missions", {}).values()}
@@ -87,6 +120,11 @@ def summarize(report_path):
         else None,
         objective_samples=dict(objectives),
         mission_outcomes=dict(outcomes),
+        expansion_scout_samples=expansion_scout_samples,
+        expansion_target_samples=expansion_target_samples,
+        denial_squad_samples=denial_samples,
+        inspected_expansion_sites=len(inspected_sites),
+        peak_known_enemy_expansions=peak_known_expansions,
     )
     return {
         "report": str(report_path),

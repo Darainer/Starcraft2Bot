@@ -19,6 +19,11 @@ retail binary first. Preserve local changes when updating the checkout.
   Verify that it has reached the actual command runner; a still-restricted
   process means the change has not taken effect there. Report that distinction
   and resume live trials once the approved execution context is active.
+- After each gameplay revision, evaluate three concurrent games against the same
+  opponent race/difficulty, map, profile and step size. Freeze the gameplay code
+  for the complete batch, retain separate logs/reports/replays, and assess all
+  three outcomes before tuning again. Record results by revision; do not merge
+  different revisions into one win rate or react to one game in isolation.
 - Do not call `--probe` a gameplay acceptance test. Never infer human input works
   from an API response, a replay, a test pass or a bot match result.
 - Record the exact ping binary/data identity and live checklist results. If the

@@ -692,3 +692,29 @@ The user authorized implementation after review. The initial hard-coded backend
 is implemented. Stages 8 and 9 remain subsequent model-evaluation milestones;
 no model provider or alternate game environment is connected. Live stage-7
 acceptance remains pending. See [validation and scope](overhaul-validation.md).
+
+
+## Live follow-up: targeted expansion pressure
+
+The user requested more deliberate expansion denial after the first live trials.
+This revision connects the existing scout, assessment, director and mission
+boundaries instead of adding a separate all-army override:
+
+1. Record occupied/empty/unknown expansion sites and inspection times. Schedule
+   overdue Observer visits with persistent destinations and threat backoff.
+2. Distinguish enemy expansions from the starting main. Keep a base's tag through
+   fog, retain observed defenders, and favor vulnerable expansions and construction.
+3. Use the main force against the highest-value safe expansion, or detach a bounded
+   mobile squad for a second visible expansion. Preserve the main army's heavy
+   units and abort raids that encounter unfavorable local resistance.
+4. Log expansion inspection, advancing force and denial-squad samples separately.
+   Movement and target-clearance evidence do not by themselves prove economic damage.
+5. Freeze one committed gameplay revision for three concurrent pressure-versus-
+   VeryHard-Terran matches on the same map and eight-loop step. Assess the full
+   batch before changing tactics; preserve separate results for each revision.
+
+Synthetic cases cover loss of vision, empty-site revisits, threatened scout
+routes, light versus fortified guards, and heavy-unit retention. Human ownership
+and individually opt-in abilities continue to apply. Self-play is a possible
+later evaluation mode: the installed SDK supports two bots, but this runtime
+currently controls one participant and needs a separate multi-client lifecycle.

@@ -162,7 +162,16 @@ def test_observer_answers_pending_attack_question(bot, make_unit, populate):
     bot.is_visible = lambda point: False
     state = GameAssessment().observe(bot, bot.units(U.STALKER))
     bot.strategic_plan = StrategicDirector().decide(state)
-    result = ScoutController()._observer_tick(bot)
+    scout = ScoutController()
+    # The expansion patrol is up to date, leaving the Observer free to check
+    # the pending attack route.
+    for site in bot.expansion_locations_list:
+        scout.expansion_checks[tuple(site)] = {
+            "position": list(site),
+            "last_checked": bot.time,
+            "status": "empty",
+        }
+    result = scout._observer_tick(bot)
     assert result["phase"] == "scouting_mission_approach"
     main = bot.strategic_plan.missions[-1]
     assert Point2(result["target"]).distance_to(Point2(main.target)) <= 8.1

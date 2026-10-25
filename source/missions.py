@@ -2,6 +2,7 @@
 
 from collections import deque
 
+from sc2.ids.unit_typeid import UnitTypeId as U
 from sc2.position import Point2
 
 from source.action_intents import ActionExecutor, ActionIntent
@@ -45,6 +46,8 @@ class MissionPlanner:
             old = self.records.get(spec.id, {})
             target = Point2(spec.target)
             candidates = available.filter(lambda u: u.tag in remaining)
+            if spec.role == "deny":
+                candidates = candidates.of_type({U.ZEALOT, U.STALKER, U.ADEPT})
             if spec.role != "main":
                 threats = contacts.closer_than(20, target)
                 candidates = candidates.filter(

@@ -7,6 +7,7 @@ from sc2.position import Point2
 from source.combat_assessment import home_threats, observed_supply, power, visible_threats
 from source.composition import composition_targets
 from source.endgame_sweep import BASE_TYPES
+from source.expansion_intel import is_expansion
 from source.strategic_plan import Assessment, Opportunity
 from source.strategy_profiles import PROFILES
 
@@ -81,7 +82,16 @@ class GameAssessment:
             if building.is_flying and not any(unit.can_attack_air for unit in fighters):
                 continue
             economic = building.type_id in BASE_TYPES
+            expansion = economic and is_expansion(bot, building.position)
             defenders_at_target = contacts.closer_than(20, building)
+            base_info = next(
+                (
+                    info
+                    for info in bot.scout_report.get("enemy_bases", [])
+                    if info.get("tag") == str(building.tag)
+                ),
+                {},
+            )
             targets.append(
                 Opportunity(
                     str(building.tag),
@@ -89,12 +99,18 @@ class GameAssessment:
                     bot.time,
                     True,
                     economic,
-                    (65 if economic else 28) + (12 if building.build_progress < 1 else 0),
+                    (65 if economic else 28)
+                    + (20 if economic and building.build_progress < 1 else 0)
+                    + min(12, base_info.get("workers_nearby", 0)),
                     power(defenders_at_target, fighters),
                     ratio(fighters, defenders_at_target),
                     min(
                         (unit.distance_to(building) for unit in fighters), default=front.distance_to(building)
                     ),
+                    expansion=expansion,
+                    defender_supply=sum(observed_supply(bot, u) for u in defenders_at_target),
+                    static_defense=any(u.is_structure and u.can_attack_ground for u in defenders_at_target)
+                    or base_info.get("visible_defense_buildings", 0) > 0,
                 )
             )
         for info in bot.scout_report.get("known_enemy_bases", []):
@@ -104,18 +120,22 @@ class GameAssessment:
             if bot.time - info["seen_seconds"] <= 90 and not bot.is_visible(point):
                 targets.append(
                     Opportunity(
-                        f"memory:{point}",
+                        info.get("tag", f"memory:{point}"),
                         tuple(point),
                         info["seen_seconds"],
                         False,
                         True,
                         55,
-                        0,
+                        float(info.get("visible_defenders", 0) + info.get("visible_defense_buildings", 0)),
                         1,
                         front.distance_to(point),
+                        expansion=info.get("expansion", is_expansion(bot, point)),
+                        defender_supply=info.get("defender_supply", 0),
+                        static_defense=info.get("visible_defense_buildings", 0) > 0,
                     )
                 )
         sites = list(bot.enemy_start_locations) + list(bot.expansion_locations_list)
+        checked = {tuple(info["position"]): info for info in bot.scout_report.get("expansion_sites", [])}
         for index, site in enumerate(sites):
             if any(base.distance_to(site) < 12 for base in bases):
                 continue
@@ -124,6 +144,9 @@ class GameAssessment:
             if any(site.distance_to(Point2(t.position)) < 10 for t in targets):
                 continue
             if bot.time - self.visited.get(tuple(site), -999) < 60:
+                continue
+            inspection = checked.get(tuple(site), {})
+            if inspection.get("status") == "empty" and bot.time - inspection["last_checked"] < 45:
                 continue
             targets.append(
                 Opportunity(

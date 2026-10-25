@@ -6,6 +6,7 @@ from sc2.position import Point2
 from source.combat_assessment import home_threats, observed_supply, visible_threats
 from source.composition import composition_targets
 from source.endgame_sweep import BASE_TYPES, DEFENSE_TYPES
+from source.expansion_intel import expansion_sites, is_expansion
 
 WORKERS = {U.PROBE, U.SCV, U.DRONE}
 
@@ -22,6 +23,50 @@ class ScoutController:
         self.opening_complete = False
         self.returning = False
         self.observer_visits = {}
+        self.expansion_checks = {}
+        self.observer_blocked = {}
+        self.observer_goal = None
+
+    def _update_expansion_sites(self, bot):
+        bases = bot.enemy_structures.filter(lambda u: u.is_visible and u.type_id in BASE_TYPES)
+        sites = expansion_sites(bot)
+        for site in sites:
+            key = tuple(site)
+            info = self.expansion_checks.setdefault(
+                key, {"position": list(site), "last_checked": -999, "status": "unknown"}
+            )
+            if bot.is_visible(site):
+                info.update(
+                    last_checked=bot.time,
+                    status="occupied" if bases.closer_than(8, site) else "empty",
+                )
+        return [self.expansion_checks[tuple(site)] for site in sites]
+
+    def _expansion_target(self, bot, observer, sites):
+        due = [
+            info
+            for info in sites
+            if bot.time - info["last_checked"] >= (20 if info["status"] == "occupied" else 45)
+            and bot.time >= self.observer_blocked.get(tuple(info["position"]), 0)
+        ]
+        if not due:
+            self.observer_goal = None
+            return None
+        # Finish the chosen inspection before reprioritizing; a moving Observer
+        # must not oscillate between equally old sites.
+        current = next((info for info in due if tuple(info["position"]) == self.observer_goal), None)
+        enemy = bot.enemy_start_locations[0] if bot.enemy_start_locations else bot.game_info.map_center
+        chosen = current or max(
+            due,
+            key=lambda info: (
+                min(120, bot.time - info["last_checked"]) * 0.3
+                + (30 if info["status"] == "occupied" else 0)
+                - enemy.distance_to(Point2(info["position"])) * 0.4
+                - observer.distance_to(Point2(info["position"])) * 0.2
+            ),
+        )
+        self.observer_goal = tuple(chosen["position"])
+        return Point2(self.observer_goal)
 
     def _observer_route(self, bot):
         return self._patrol_route(bot, include_enemy_expansions=True)
@@ -74,6 +119,7 @@ class ScoutController:
     def _observer_tick(self, bot):
         if not bot.settings.enabled or not bot.settings.attack or not bot.settings.scouting:
             return {"phase": "disabled"}
+        sites = self._update_expansion_sites(bot)
         all_observers = bot.units(U.OBSERVER).ready
         observer = all_observers.find_by_tag(next((u.tag for u in all_observers if bot.available(u)), -1))
         if observer is None:
@@ -91,24 +137,39 @@ class ScoutController:
         )
         damaged = observer.health + observer.shield < (observer.health_max + observer.shield_max) * 0.55
         if air_threats or damaged:
+            if self.observer_goal is not None:
+                self.observer_blocked[self.observer_goal] = bot.time + 30
+                self.observer_goal = None
             target = home
             phase = "retreating_from_air_threat" if air_threats else "retreating_damaged"
         else:
-            route = self._observer_route(bot)
+            route = [
+                point
+                for point in self._observer_route(bot)
+                if bot.time >= self.observer_blocked.get(tuple(point), 0)
+            ] or [home]
             self.observer_route_index %= len(route)
             if observer.distance_to(route[self.observer_route_index]) < 6:
                 self.observer_route_index = (self.observer_route_index + 1) % len(route)
             target = route[self.observer_route_index]
             phase = "patrolling_approach"
+            expansion = self._expansion_target(bot, observer, sites)
+            if expansion is not None:
+                target, phase = expansion, "scouting_expansion"
             plan = getattr(bot, "strategic_plan", None)
             if (
-                plan is not None
+                expansion is None
+                and plan is not None
                 and plan.expires_at > bot.time
                 and plan.objective in {"pressure", "contain", "counterattack"}
             ):
                 main = next(m for m in plan.missions if m.role == "main")
                 goal = Point2(main.target)
-                if not bot.is_visible(goal) and bot.time - self.observer_visits.get(tuple(goal), -999) >= 20:
+                if (
+                    not bot.is_visible(goal)
+                    and bot.time - self.observer_visits.get(tuple(goal), -999) >= 20
+                    and bot.time >= self.observer_blocked.get(tuple(goal), 0)
+                ):
                     target = goal.towards(home, min(8, goal.distance_to(home)))
                     phase = "scouting_mission_approach"
                     if observer.distance_to(target) < 4:
@@ -134,8 +195,12 @@ class ScoutController:
         defenses = buildings.filter(lambda unit: unit.type_id in DEFENSE_TYPES)
         report["enemy_bases"] = [
             {
+                "tag": str(base.tag),
                 "unit_type": base.type_id.name,
                 "position": list(base.position),
+                "expansion": is_expansion(bot, base.position),
+                "build_progress": base.build_progress,
+                "defender_supply": sum(observed_supply(bot, u) for u in combat.closer_than(20, base)),
                 "visible_defenders": len(combat.closer_than(18, base)),
                 "visible_defense_buildings": len(defenses.closer_than(22, base)),
                 "workers_nearby": len(
@@ -213,6 +278,7 @@ class ScoutController:
                 enemy_buildings=len(buildings),
             )
         self._remember(bot, combat, buildings, report)
+        report["expansion_sites"] = self._update_expansion_sites(bot)
         bot.scout_report = report
         targets = composition_targets(bot)
         report["production_targets"] = targets

@@ -19,6 +19,9 @@ class Opportunity:
     defense: float
     advantage: float
     travel: float
+    expansion: bool = False
+    defender_supply: float = 0
+    static_defense: bool = False
 
 
 @dataclass(frozen=True)
