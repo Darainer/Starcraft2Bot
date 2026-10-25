@@ -41,8 +41,19 @@ coverage is not proof of actual gameplay quality.
 ## Architecture and invariants
 
 - `assistant_control.py`: validated configuration, ownership and command parsing.
-- `economy_assistant.py`: SDK adapter, one paid macro action per 0.5 game seconds,
+- `economy_assistant.py`: SDK adapter, one paid macro action per 0.25 game seconds,
   worker allocation and optional abilities. All commands pass through `issue`.
+- `game_assessment.py` / `scouting.py`: current-player facts and expiring intelligence.
+- `strategic_plan.py` / `strategy_director.py` / `strategy_policies.py`: immutable
+  contracts, validated plans, bounded asynchronous policy seam, and initial rules.
+- `missions.py` / `action_intents.py`: disjoint persistent squads, local aborts,
+  assignment revocation and short-lived movement intents.
+- `tactics.py` / `army_waves.py`: tactical integration, combat micro and cohesion.
+- `composition.py`: reversible scouting-driven production targets.
+- `replay_strategy.py` / `analyze_session.py`: offline decisions and sampled metrics.
+- `opponent_strategy.py`: observational strategy beliefs from player-visible evidence.
+- `session_review.py` / `evaluate_matches.py`: trade/movement diagnostics and
+  offline classification evaluation; see `docs/evaluation-journal.md`.
 - `run_assistant.py`: CLI configuration, preflight/probe selection and reporting.
 - `runtime.py`: exact binary/data validation, process ownership, loopback attach,
   raw shared-client configuration, match lifecycle and machine diagnostics.

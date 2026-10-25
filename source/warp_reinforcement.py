@@ -6,6 +6,10 @@ from sc2.ids.ability_id import AbilityId as A
 from sc2.ids.unit_typeid import UnitTypeId as U
 from sc2.ids.upgrade_id import UpgradeId as G
 
+from source.combat_assessment import observed_supply
+from source.combat_assessment import visible_threats as combat_threats
+from source.composition import production_target
+
 WARP_UNITS = {
     U.STALKER: (A.WARPGATETRAIN_STALKER, "stalkers"),
     U.ZEALOT: (A.WARPGATETRAIN_ZEALOT, "zealots"),
@@ -49,8 +53,8 @@ class WarpReinforcement:
         allowed = await bot.can_place(ability, points)
         return next((point for point, valid in zip(points, allowed, strict=False) if valid), None)
 
-    async def tick(self, bot, waves):
-        if not bot.settings.attack or not bot.settings.warp_reinforcement:
+    async def tick(self, bot, waves, allow_spending=True):
+        if not bot.settings.enabled or not bot.settings.attack or not bot.settings.warp_reinforcement:
             self.last_report = {"phase": "disabled"}
             return
         if G.WARPGATERESEARCH not in bot.state.upgrades:
@@ -63,13 +67,10 @@ class WarpReinforcement:
         prism_types = {U.WARPPRISM, U.WARPPRISMPHASING}
         prisms = bot.units.of_type(prism_types).ready
         home = bot.start_location
-        workers = {U.SCV, U.PROBE, U.DRONE}
-        visible_threats = bot.enemy_units.filter(
-            lambda unit: unit.is_visible and unit.can_attack and unit.type_id not in workers
-        )
+        visible_threats = combat_threats(bot)
         bases = bot.townhalls.ready
         base_threats = visible_threats.filter(lambda unit: any(unit.distance_to(base) < 22 for base in bases))
-        raid_supply = sum(bot.calculate_supply_cost(unit.type_id) for unit in base_threats)
+        raid_supply = sum(observed_supply(bot, unit) for unit in base_threats)
         small_raid = len(base_threats) <= 6 and raid_supply <= 12
         emergency_raid = bool(base_threats and getattr(bot, "economic_emergency", False))
         defense_base = None
@@ -91,7 +92,7 @@ class WarpReinforcement:
         phase = "home_warp_in"
         if prisms:
             prism = prisms.first
-            threats = bot.enemy_units.filter(
+            threats = visible_threats.filter(
                 lambda u: u.is_visible and u.can_attack_air and u.distance_to(prism) < 11
             )
             exposed = (
@@ -141,7 +142,7 @@ class WarpReinforcement:
             else:
                 preferred = (U.ZEALOT, U.STALKER)
             defense_kind = next(
-                (kind for kind in preferred if getattr(bot.settings, WARP_UNITS[kind][1]) > 0),
+                (kind for kind in preferred if production_target(bot, WARP_UNITS[kind][1]) > 0),
                 None,
             )
         self.last_report = {
@@ -159,18 +160,18 @@ class WarpReinforcement:
             else None,
             "defense_warp_in_skipped": bool(defense_threat is not None and not defense_anchor_available),
         }
-        if anchor is None or bot.supply_left < 6:
+        if anchor is None or bot.supply_left < 2 or not bot.settings.production or not allow_spending:
             return
         choices = [
             kind
             for kind, (_, setting) in WARP_UNITS.items()
-            if getattr(bot.settings, setting) > 0
-            and bot.units(kind).amount + bot.already_pending(kind) < getattr(bot.settings, setting)
+            if production_target(bot, setting) > 0
+            and bot.units(kind).amount + bot.already_pending(kind) < production_target(bot, setting)
         ]
         choices.sort(
             key=lambda kind: (
                 (bot.units(kind).amount + bot.already_pending(kind))
-                / getattr(bot.settings, WARP_UNITS[kind][1])
+                / production_target(bot, WARP_UNITS[kind][1])
             )
         )
         if (
@@ -178,7 +179,7 @@ class WarpReinforcement:
             and defense_anchor_available
             and self.defense_supply_queued < defense_limit
             and defense_kind in WARP_UNITS
-            and getattr(bot.settings, WARP_UNITS[defense_kind][1]) > 0
+            and production_target(bot, WARP_UNITS[defense_kind][1]) > 0
         ):
             choices = [defense_kind]
         for gate in bot.structures(U.WARPGATE).ready.idle:
@@ -189,7 +190,7 @@ class WarpReinforcement:
                 ability = WARP_UNITS[kind][0]
                 if (
                     ability not in abilities
-                    or not bot.affordable(kind)
+                    or not bot.affordable(kind, getattr(bot, "_macro_reserve", 0))
                     or bot.tech_requirement_progress(kind) < 1
                 ):
                     continue

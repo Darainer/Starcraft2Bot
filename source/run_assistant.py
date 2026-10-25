@@ -4,13 +4,14 @@ import argparse
 import asyncio
 import json
 import os
+import random
 import sys
 from datetime import datetime
 from importlib.metadata import version
 from pathlib import Path
 
 from loguru import logger
-from sc2.data import Difficulty, Race
+from sc2.data import AIBuild, Difficulty, Race
 from sc2.player import Bot, Computer
 
 from source.assistant_control import AssistantSettings
@@ -25,12 +26,23 @@ def port_number(value):
     return number
 
 
+def game_seed(value):
+    number = int(value)
+    if not 0 <= number <= 0xFFFFFFFF:
+        raise argparse.ArgumentTypeError("Seed must be an unsigned 32-bit integer")
+    return number
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--map", default="AbyssalReefLE", help="Installed .SC2Map name (without extension)")
     parser.add_argument("--map-file", type=Path, help="Explicit .SC2Map file; takes precedence over --map")
     parser.add_argument("--difficulty", choices=[d.name for d in Difficulty], default="Medium")
     parser.add_argument("--opponent", choices=["Terran", "Protoss", "Zerg", "Random"], default="Terran")
+    parser.add_argument("--opponent-build", choices=[b.name for b in AIBuild], default="RandomBuild")
+    parser.add_argument(
+        "--seed", type=game_seed, help="Fixed SC2 and Python random seed for repeatable trials"
+    )
     parser.add_argument("--config", type=Path, help="Optional JSON settings file")
     parser.add_argument("--profile", choices=list(PROFILES), help="Army setup and tactical thresholds")
     parser.add_argument("--strategy", choices=["auto", "defend", "regroup", "push", "retreat"])
@@ -124,20 +136,30 @@ def main(argv=None):
     args.runtime_report = args.runtime_report or Path("logs") / f"runtime-{stamp}.json"
     args.replay.parent.mkdir(parents=True, exist_ok=True)
     report = RuntimeReport(args.runtime_report, install, game_map, args.attach_port)
-    report.update(opponent_difficulty=args.difficulty, game_time_limit=args.game_time_limit)
+    report.update(
+        opponent_difficulty=args.difficulty,
+        opponent_race=args.opponent,
+        opponent_build=args.opponent_build,
+        random_seed=args.seed,
+        game_time_limit=args.game_time_limit,
+    )
+    if args.seed is not None:
+        random.seed(args.seed)
     if args.fast_test:
         report.update(fast_test=True, fast_step_size=args.fast_step_size)
     assistant = RuntimeAssistant(settings, report)
     assistant.opponent_difficulty = args.difficulty
     players = [
         Bot(Race.Protoss, assistant, fullscreen=False),
-        Computer(Race[args.opponent], Difficulty[args.difficulty]),
+        Computer(Race[args.opponent], Difficulty[args.difficulty], ai_build=AIBuild[args.opponent_build]),
     ]
     logger.info(
         "Runtime report: {}. Human control remains unverified until the live checklist passes.", report.path
     )
     try:
         test_options = {}
+        if args.seed is not None:
+            test_options["random_seed"] = args.seed
         if args.fast_test:
             test_options["realtime"] = False
         if args.game_time_limit is not None:

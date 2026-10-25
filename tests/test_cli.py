@@ -123,6 +123,27 @@ def test_fast_test_has_explicit_bounded_runtime(installed):
     assert installed.call_args.args[4].data["fast_test"]
 
 
+def test_repeatable_game_records_and_passes_seed_and_build(installed, monkeypatch):
+    seed = Mock()
+    monkeypatch.setattr(run_assistant.random, "seed", seed)
+    run_assistant.main(["--fast-test", "--seed", "20261025", "--opponent-build", "Macro"])
+    assert installed.call_args.kwargs["random_seed"] == 20261025
+    args = installed.call_args.args
+    assert args[2][1].ai_build.name == "Macro"
+    assert args[4].data["random_seed"] == 20261025
+    assert args[4].data["opponent_build"] == "Macro"
+    assert args[4].data["opponent_race"] == "Terran"
+    seed.assert_called_once_with(20261025)
+
+
+@pytest.mark.parametrize("seed", ["-1", "4294967296", "invalid"])
+def test_invalid_game_seed_does_not_launch(installed, seed):
+    with pytest.raises(SystemExit) as exc:
+        run_assistant.main(["--seed", seed])
+    assert exc.value.code == 2
+    installed.assert_not_called()
+
+
 @pytest.mark.parametrize("args", [["--game-time-limit", "0"], ["--fast-test", "--attach-port", "5001"]])
 def test_invalid_fast_test_arguments(args):
     with pytest.raises(SystemExit) as exc:

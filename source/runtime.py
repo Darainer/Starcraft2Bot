@@ -17,7 +17,7 @@ from importlib.metadata import version
 from pathlib import Path
 
 import aiohttp
-from google.protobuf.json_format import MessageToDict
+from google.protobuf.json_format import MessageToDict, ParseDict
 from loguru import logger
 from s2clientprotocol import data_pb2, query_pb2
 from s2clientprotocol import sc2api_pb2 as pb
@@ -138,6 +138,8 @@ def audit_commands(data, game_data):
         UpgradeId.PSISTORMTECH,
         UpgradeId.BLINKTECH,
         UpgradeId.WARPGATERESEARCH,
+        UpgradeId.CHARGE,
+        UpgradeId.EXTENDEDTHERMALLANCE,
         *GROUND_UPGRADES,
         *AIR_UPGRADES,
     }
@@ -417,18 +419,22 @@ class SharedClient(Client):
         return response
 
 
-def create_request(map_path, players, realtime=True):
+def create_request(map_path, players, realtime=True, random_seed=None):
     # Inline map data avoids game-process path resolution / protected-folder differences.
     request = pb.RequestCreateGame(
         local_map=pb.LocalMap(map_path=map_path.name, map_data=map_path.read_bytes()),
         realtime=realtime,
         disable_fog=False,
     )
+    if random_seed is not None:
+        request.random_seed = random_seed
     for player in players:
         setup = request.player_setup.add(type=player.type.value)
         if player.type.name == "Computer":
             setup.race = player.race.value
             setup.difficulty = player.difficulty.value
+            if player.ai_build is not None:
+                setup.ai_build = player.ai_build.value
     return request
 
 
@@ -443,6 +449,7 @@ async def run_session(
     attach_port=None,
     realtime=True,
     game_time_limit=None,
+    random_seed=None,
 ):
     try:
         async with connection(installation, attach_port) as server:
@@ -466,7 +473,9 @@ async def run_session(
                 raise RuntimeError(
                     "Client is not idle/launched. Refusing to replace an existing game or replay."
                 )
-            result = await server._execute(create_game=create_request(map_path, players, realtime))
+            result = await server._execute(
+                create_game=create_request(map_path, players, realtime, random_seed)
+            )
             if not result.HasField("create_game") or result.create_game.HasField("error"):
                 raise RuntimeError(f"CreateGame failed: {result.create_game}")
             report.update(phase="created", replay_target=str(replay))
@@ -495,6 +504,62 @@ async def run_session(
         raise
 
 
+def recorded_observations(report_path):
+    """Rehydrate sampled player observations without a client or API connection.
+
+    Dynamic pathing changes between snapshots are unavailable. Actions accumulate
+    only in memory; callers must never attach a live client to this replay bot.
+    Recorded script paths are deliberately not executed during offline analysis.
+    """
+    from sc2.game_info import GameInfo
+    from sc2.game_state import GameState
+
+    from source.assistant_control import AssistantSettings
+
+    path = Path(report_path)
+    report = json.loads(path.read_text(encoding="utf-8-sig"))
+    data = pb.ResponseData.FromString(path.with_suffix(".game-data.pb").read_bytes())
+    info = ParseDict(
+        json.loads(path.with_suffix(".game-info.json").read_text(encoding="utf-8")), pb.ResponseGameInfo()
+    )
+    game_data = compatible_game_data(data)[0]
+    bot = None
+    previous_loop = -1
+    with path.with_suffix(".state.jsonl").open(encoding="utf-8") as stream:
+        for line in stream:
+            row = json.loads(line)
+            settings = AssistantSettings(**{**row["settings"], "strategy_script": ""}).validate()
+            state = GameState(ParseDict(row["observation"], pb.ResponseObservation()))
+            if state.game_loop <= previous_loop:
+                raise ValueError("Recorded observations must advance monotonically")
+            previous_loop = state.game_loop
+            first = bot is None
+            if first:
+                bot = EconomyAssistant(settings)
+                bot._prepare_start(
+                    None,
+                    state.common.player_id,
+                    GameInfo(info),
+                    game_data,
+                    base_build=report["ping"]["base_build"],
+                )
+                bot.unit_supplies = {
+                    kind: entry._proto.food_required for kind, entry in game_data.units.items()
+                }
+                bot.opponent_difficulty = report.get("opponent_difficulty", "Unknown")
+            bot.control.settings = settings
+            bot.control.released = set(row.get("released_unit_tags", []))
+            bot._prepare_step(state, pb.Response(game_info=info))
+            if first:
+                if not bot.townhalls:
+                    raise ValueError("Recording must begin with an owned starting base")
+                bot._prepare_first_step()
+            bot._used.clear()
+            bot.actions.clear()
+            bot.unit_tags_received_action.clear()
+            yield bot, row
+
+
 class RuntimeAssistant(EconomyAssistant):
     """Expose live milestones and errors that the SDK may otherwise turn into defeat."""
 
@@ -505,6 +570,13 @@ class RuntimeAssistant(EconomyAssistant):
         self._last_tactical_snapshot = float("-inf")
         self.tactics = TacticalController()
         self._last_micro = float("-inf")
+        self._last_tactics = float("-inf")
+        self._last_decision = None
+        self._last_scouting = {}
+        self._last_script_context = float("-inf")
+        self._script_observation = None
+        self._script_abilities = {}
+        self._tactical_ms = 0.0
         self._micro_decisions = []
         self.scouting = ScoutController()
         self.reinforcement = WarpReinforcement()
@@ -519,6 +591,9 @@ class RuntimeAssistant(EconomyAssistant):
                 if not audit["ok"]:
                     failures = [c["command"] for c in audit["commands"] if not c["ok"]]
                     raise RuntimeError("Command compatibility failed: " + ", ".join(failures))
+            self.unit_supplies = {
+                kind: data._proto.food_required for kind, data in self.game_data.units.items()
+            }
             wire = getattr(self.client, "game_data_wire", None)
             if wire is not None:
                 metadata = self.report.path.with_suffix(".game-data.pb")
@@ -542,6 +617,30 @@ class RuntimeAssistant(EconomyAssistant):
         except Exception as exc:
             self.report.update(bot_error=f"on_start: {type(exc).__name__}: {exc}")
             raise
+
+    async def on_tactical_step(self):
+        observation = getattr(self.state, "response_observation", None)
+        if observation is None:
+            return
+        started = time.perf_counter()
+        changed = getattr(self, "_tactical_settings", None) != asdict(self.settings)
+        self._tactical_settings = asdict(self.settings)
+        if self.time - self._last_tactics >= 1 or changed:
+            self._last_tactics = self.time
+            self._last_scouting = self.scouting.tick(self)
+            if self.settings.strategy_script and self.time - self._last_script_context >= 5:
+                self._last_script_context = self.time
+                self._script_observation = MessageToDict(observation, preserving_proto_field_name=True)
+                query = getattr(getattr(self, "client", None), "available_ability_snapshot", None)
+                self._script_abilities = await query(self.all_own_units) if query is not None else {}
+            self._last_decision = self.tactics.tick(
+                self, observation=self._script_observation, available_abilities=self._script_abilities
+            )
+        if self.time - self._last_micro >= 0.125:
+            self._last_micro = self.time
+            self._micro_decisions.extend(self.tactics.micro(self))
+            self._micro_decisions = self._micro_decisions[-512:]
+        self._tactical_ms = round((time.perf_counter() - started) * 1000, 3)
 
     async def on_step(self, iteration):
         try:
@@ -570,12 +669,14 @@ class RuntimeAssistant(EconomyAssistant):
             if observation is not None and now - self._last_tactical_snapshot >= 5:
                 self._last_tactical_snapshot = now
                 observed = MessageToDict(observation, preserving_proto_field_name=True)
-                scouting = self.scouting.tick(self)
+                if self._last_decision is None:
+                    await self.on_tactical_step()
                 abilities = {}
                 query = getattr(getattr(self, "client", None), "available_ability_snapshot", None)
                 if query is not None:
                     abilities = await query(getattr(self, "all_own_units", ()))
-                decision = self.tactics.tick(self, observation=observed, available_abilities=abilities)
+                decision = dict(self._last_decision)
+                decision["controller_ms"] = self._tactical_ms
                 decision["micro_since_last_sample"] = self._micro_decisions
                 self._micro_decisions = []
                 snapshot = {
@@ -592,7 +693,7 @@ class RuntimeAssistant(EconomyAssistant):
                     "settings": asdict(self.settings),
                     "released_unit_tags": sorted(self.control.released),
                     "observed_action_rejections": dict(self.action_rejections),
-                    "scouting": scouting,
+                    "scouting": self._last_scouting,
                     "reinforcement": self.reinforcement.last_report,
                 }
                 destination = self.report.path.with_suffix(".state.jsonl")
@@ -605,9 +706,6 @@ class RuntimeAssistant(EconomyAssistant):
                     strategy_reason=decision["reason"],
                     automation_paused=not self.settings.enabled,
                 )
-            if observation is not None and now - self._last_micro >= 0.5:
-                self._last_micro = now
-                self._micro_decisions.extend(self.tactics.micro(self))
             if not self._reported_observation:
                 self.report.update(phase="observing", first_game_loop=self.state.game_loop)
                 self._reported_observation = True

@@ -104,6 +104,29 @@ def test_construct_gateway_prerequisite(bot, make_unit, populate):
     assert bot.actions[0].ability == A.PROTOSSBUILD_GATEWAY
 
 
+def test_opening_defense_adds_gateway_before_robotics_tech(bot, make_unit, populate):
+    nexus = make_unit(U.NEXUS)
+    populate(
+        nexus, make_unit(U.PROBE), make_unit(U.PYLON), make_unit(U.GATEWAY), make_unit(U.CYBERNETICSCORE)
+    )
+    bot.settings.attack = bot.settings.scouting = True
+    bot.minerals = 300
+    assert run(bot.construct(nexus, 0, army_only=True))
+    assert bot.actions[0].ability == A.PROTOSSBUILD_GATEWAY
+
+
+def test_small_emergency_army_does_not_spend_on_prism(bot, make_unit, populate):
+    populate(make_unit(U.ROBOTICSFACILITY))
+    bot.settings.attack = bot.settings.warp_reinforcement = True
+    bot.settings.scouting = False
+    bot.settings.immortals = bot.settings.colossi = 0
+    bot.economic_emergency = True
+    assert not bot.produce(0)
+    bot.economic_emergency = False
+    assert bot.produce(0)
+    assert bot.actions[-1].ability == A.ROBOTICSFACILITYTRAIN_WARPPRISM
+
+
 def test_production_honors_selected_building_and_supply(bot, make_unit, populate):
     gateway = make_unit(U.GATEWAY, is_selected=True)
     populate(gateway)
@@ -289,7 +312,15 @@ def test_gas_build_and_worker_allocation(bot, make_unit, populate):
     bot.actions.clear()
     bot._used.clear()
     gas = make_unit(U.ASSIMILATOR, (3, 0), ideal_harvesters=3, vespene_contents=1000)
-    populate(nexus, probe, gas)
+    mineral = make_unit(U.MINERALFIELD, (3, 3), alliance=3, mineral_contents=1000)
+    miners = [
+        make_unit(
+            U.PROBE,
+            orders=[raw_pb2.UnitOrder(ability_id=A.HARVEST_GATHER.value, target_unit_tag=mineral.tag)],
+        )
+        for _ in range(16)
+    ]
+    populate(nexus, probe, gas, mineral, *miners)
     run(bot.allocate_workers())
     assert bot.actions[0].target.tag == gas.tag
 
@@ -300,9 +331,49 @@ def test_borrow_mineral_worker_to_fill_gas(bot, make_unit, populate):
         U.PROBE, orders=[raw_pb2.UnitOrder(ability_id=A.HARVEST_GATHER.value, target_unit_tag=mineral.tag)]
     )
     gas = make_unit(U.ASSIMILATOR, (4, 0), ideal_harvesters=3, vespene_contents=1000)
-    populate(make_unit(U.NEXUS, ideal_harvesters=16, assigned_harvesters=16), worker, gas, mineral)
+    miners = [
+        make_unit(
+            U.PROBE,
+            orders=[raw_pb2.UnitOrder(ability_id=A.HARVEST_GATHER.value, target_unit_tag=mineral.tag)],
+        )
+        for _ in range(15)
+    ]
+    populate(make_unit(U.NEXUS, ideal_harvesters=16, assigned_harvesters=16), worker, gas, mineral, *miners)
     run(bot.allocate_workers())
     assert bot.actions[0].target.tag == gas.tag
+
+
+@pytest.mark.parametrize("workers,gas_count,expected_moved", [(3, 1, 3), (10, 2, 4)])
+def test_worker_loss_immediately_releases_gas_for_mineral_recovery(
+    bot, make_unit, populate, workers, gas_count, expected_moved
+):
+    gases = [
+        make_unit(U.ASSIMILATOR, (4, i), ideal_harvesters=3, assigned_harvesters=3, vespene_contents=1000)
+        for i in range(gas_count)
+    ]
+    mineral = make_unit(U.MINERALFIELD, (3, 3), alliance=3, mineral_contents=1000)
+    probes = [
+        make_unit(
+            U.PROBE,
+            orders=[
+                raw_pb2.UnitOrder(
+                    ability_id=A.HARVEST_GATHER.value,
+                    target_unit_tag=gases[i // 3].tag if i < gas_count * 3 else mineral.tag,
+                )
+            ],
+        )
+        for i in range(workers)
+    ]
+    populate(
+        make_unit(U.NEXUS, ideal_harvesters=16, assigned_harvesters=workers - 3 * gas_count),
+        mineral,
+        *gases,
+        *probes,
+    )
+    bot.minerals, bot.vespene = 15, 73
+    run(bot.allocate_workers())
+    assert len(bot.actions) == expected_moved
+    assert all(action.target.tag == mineral.tag for action in bot.actions)
 
 
 def test_expansion_saving_blocks_lower_priority_production(bot, make_unit, populate):

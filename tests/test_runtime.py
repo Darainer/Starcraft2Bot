@@ -271,6 +271,20 @@ def test_probe_does_not_create_game(session_setup):
     assert args[-1].data["phase"] == "probe_ok"
 
 
+@pytest.mark.parametrize("seed", [0, 20261025])
+def test_seed_and_opponent_build_reach_create_game_protocol(session_setup, seed):
+    from sc2.data import AIBuild
+
+    args, server, _, _ = session_setup
+    args[2][1].ai_build = AIBuild.Macro
+    asyncio.run(runtime.run_session(*args, realtime=False, random_seed=seed))
+    request = server._execute.call_args.kwargs["create_game"]
+    copied = pb.RequestCreateGame.FromString(request.SerializeToString())
+    assert copied.HasField("random_seed") and copied.random_seed == seed
+    assert copied.player_setup[1].ai_build == AIBuild.Macro.value
+    assert not copied.realtime and not copied.disable_fog
+
+
 @pytest.mark.parametrize("failure", ["busy", "create", "play", "bot", "version"])
 def test_failure_paths_are_reported(session_setup, failure):
     args, server, client, play = session_setup
@@ -299,6 +313,8 @@ def test_runtime_bot_milestones_and_errors(monkeypatch, installation, tmp_path):
     report = runtime.RuntimeReport(tmp_path / "report.json", installation)
     bot = runtime.RuntimeAssistant(AssistantSettings(enabled=False), report)
     bot.client = SimpleNamespace()
+    # Retail game data can include metadata IDs absent from the pinned SDK enum.
+    bot.game_data = SimpleNamespace(units={2005: SimpleNamespace(_proto=SimpleNamespace(food_required=0))})
     bot.chat_send = AsyncMock()
     bot.state = SimpleNamespace(game_loop=224)
     monkeypatch.setattr(EconomyAssistant, "on_start", AsyncMock())
@@ -306,6 +322,7 @@ def test_runtime_bot_milestones_and_errors(monkeypatch, installation, tmp_path):
     monkeypatch.setattr(EconomyAssistant, "on_step", step)
     asyncio.run(bot.on_start())
     assert report.data["automation_paused"] is True
+    assert bot.unit_supplies[2005] == 0
     asyncio.run(bot.on_step(0))
     asyncio.run(bot.on_step(1))
     assert report.data["first_game_loop"] == 224

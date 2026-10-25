@@ -82,6 +82,40 @@ def test_air_profile_requires_air_core(bot, make_unit, populate):
     assert not state["composition_ready"] and state["phase"] == "assemble"
 
 
+def test_wave_cohesion_has_hysteresis_and_holds_front_without_marching_back(bot, make_unit, populate):
+    original = setup_wave(bot, make_unit, populate, count=20)
+    waves = ArmyWaves()
+    objective, rally, policy = Point2((100, 10)), Point2((10, 10)), PROFILES["balanced"]
+    waves.plan(bot, bot.units, objective, rally, policy)
+
+    def place(near):
+        army = [
+            make_unit(U.STALKER, (12, 10) if i < near else (0, 10), tag=u.tag) for i, u in enumerate(original)
+        ]
+        populate(*army)
+        return army
+
+    place(15)  # 75% stays advancing instead of flipping around the old 80% cutoff.
+    assert waves.plan(bot, bot.units, objective, rally, policy)[1]["phase"] == "advance"
+    army = place(13)
+    orders, state = waves.plan(bot, bot.units, objective, rally, policy)
+    assert state["phase"] == "regroup"
+    assert orders[army[0].tag][1] == army[0].position
+    assert orders[army[-1].tag][1] == Point2((12, 10))
+    place(15)
+    assert waves.plan(bot, bot.units, objective, rally, policy)[1]["phase"] == "regroup"
+    place(16)
+    assert waves.plan(bot, bot.units, objective, rally, policy)[1]["phase"] == "advance"
+
+
+def test_support_supply_does_not_inflate_cohesion_or_readiness(bot, make_unit, populate):
+    army = setup_wave(bot, make_unit, populate)
+    bot.game_data.units[U.WARPPRISM.value]._proto.ClearField("weapons")
+    populate(*army, make_unit(U.WARPPRISM, (10, 10)))
+    _, state = ArmyWaves().plan(bot, bot.units, Point2((100, 100)), Point2((10, 10)), PROFILES["balanced"])
+    assert state["assembled_fraction"] == state["cohesion_fraction"] == 1
+
+
 def test_air_core_satisfies_hard_difficulty_heavy_gate(bot, make_unit, populate):
     voidrays = [make_unit(U.VOIDRAY, (10, 10)) for _ in range(4)]
     stalkers = [make_unit(U.STALKER, (10, 10)) for _ in range(20)]

@@ -25,7 +25,7 @@ Use `Start.ps1 -ManualArmy` or `!assist attack off` for manual army control.
 | air | 24 / 16 | 8 Zealots, 12 Stalkers, 14 Void Rays | Air tech |
 
 These are build targets subject to resources, tech and supply. Profiles also vary
-health/strength retreat thresholds and rally distance. They preserve your optional
+health retreat thresholds and rally distance. They preserve your optional
 spell toggles. Switching a profile changes future build targets, not existing units
 or queued production. Overrides in a JSON config take precedence over that config's
 profile defaults; an explicit launch `-Profile` applies that profile's composition.
@@ -48,115 +48,121 @@ Press Enter, type one command, then Enter again:
 !assist resume
 ```
 
-Auto prioritizes retreat when depleted/locally outmatched, then base defense,
-then attacking above the profile's supply threshold, otherwise regrouping. A
-lower continuation threshold avoids repeatedly switching an attacking army home.
-When an already launched wave is near the enemy base and a local base is raided,
-auto mode detaches a small attack-capable squad to respond while the main wave
-continues its objective. Without an active wave, auto defense still gathers the
-available army. Strength is a health-times-DPS heuristic, not a combat simulator.
-No terrain-aware formation planner or full opponent model is claimed. Visible enemy buildings are
-attack objectives; otherwise it checks the enemy spawn and then known expansion
-locations. Retreat/regroup issue move orders; defend/push issue attack-move orders.
-Nonattacking support units move with the group. Workers are never recruited.
+Auto uses a shared game assessment to choose and combine operations: develop,
+stabilize, pressure, contain, counterattack, recover, and finish. Profiles set
+composition and risk preferences. The director ranks visible economic targets,
+travel cost, evidence age, local strength, and recent upgrades. It retains a
+reasonable choice for eight game seconds, interrupts for danger, and avoids a
+failed target for 30 seconds. These are tunable heuristics, not calibrated win
+probabilities or a claim of professional-level play.
+
+A plan can combine main-army pressure with a small home response or a separate
+expansion-denial squad. All missions share a force budget and have disjoint actor
+assignments. A home response requires credible local strength; denial requires a
+currently visible expansion, at least 32 total combat supply, and a six-supply
+minimum detachment. The detachment uses at most 12 supply or one quarter of the
+army, prefers Zealots/Stalkers, and leaves heavy units with the main force. Light
+guards can be challenged when their supply is at most half the raid budget and
+the observed force comparison is favorable; static defenses prohibit a side raid.
+Local fight checks can still abort it. A failed raid recovers independently. Losing
+the main force causes a global reassessment and cancels exposed side operations.
+Manual strategies and script targets take precedence over automatic missions.
 
 ### Scout, compose, assemble, advance, reinforce
 
-Autonomous mode assigns one eligible Probe to scouting after reaching 12 workers.
-That Probe is reserved from economic orders and returns after acquiring enemy
-information or meeting a threat. Human selection/release still takes precedence.
-Visible enemy combat composition can raise Stalker, Immortal or Colossus targets;
-disable this with `!assist adaptive_composition off` to retain fixed targets.
+An eligible Probe scouts the enemy natural and main after 12 workers, then
+returns to mining. The reserved scout cannot receive economy orders. An Observer
+prioritizes overdue expansion inspections: occupied sites become due after 20
+seconds without vision, empty/unknown sites after 45. It finishes its selected
+inspection, favors likely enemy expansion locations and previously occupied
+sites, and backs off a threatened route for 30 seconds while checking others.
+These are scheduling targets, not guaranteed revisit intervals. When inspections
+are current it checks home approaches or the main mission's route. It withdraws
+from observed anti-air or serious damage.
+Selection and release retain human ownership of both scouts.
 
-An attack request now passes a separate **wave assembly gate**: at least 24 actual
-combat-unit supply (or the profile's larger threshold), 8 units for pressure or
-10 for other profiles, 80% of supply assembled near the rally point, and acquired
-scouting information. Robotics requires a heavy unit; air requires four Void Rays.
-Known enemy air also requires an anti-air component. Global supply and units still
-in production do not satisfy these gates. Small forces wait rather than stream
-individually toward the enemy.
+Enemy unit memory is keyed by tag, drops observed deaths, and expires after 90
+game seconds. Base and tech memory expire after 180 seconds; visible empty base
+sites are removed immediately. Strategic base targets use at most 90 seconds of
+memory. Visible and remembered bases retain the same target identity. Expansions
+receive higher target priority than the main base; unfinished bases and nearby
+workers increase the opportunity value. Remembered defenders remain a reason to
+rescout. Recently inspected empty sites do not attract an army. Fog targets are
+reconnaissance opportunities, never confirmed free bases.
+Air-heavy armies raise Stalker targets; armored air adds Void Rays. Armored ground
+raises Immortal demand; light ground adds Colossi/Zealots. These temporary targets
+preserve configured values and expire with their evidence. Use
+`!assist adaptive_composition off` to restore fixed production targets.
 
-Launched waves retain membership, move through common short waypoints, and wait
-for stragglers when cohesion drops. Zealots occupy forward slots; ranged units
-follow; support/casters take rear slots. Remote reinforcements assemble in groups
-of at least six/12 supply before moving toward the core. Nearby safe arrivals can
-join directly. Pause, selection and release still prevent new delegated orders.
+Wave launch requires at least **max(16, profile attack supply)**, six combat units
+for pressure or eight for other profiles, and 80% assembly near the rally point.
+Robotics requires a heavy unit; air requires four Void Rays. Recent substantial
+enemy air requires an anti-air component. Scouting gates the opening, with a
+120-game-second timeout to avoid indefinite waiting. Difficulty no longer adds
+40-96 supply gates. Actual eligible units determine readiness. Global supply,
+selected units, and unfinished units cannot satisfy it. Active pressure uses the
+lower profile continuation threshold, with an eight-supply floor in the director.
 
-Against MediumHard, Hard and VeryHard opponents, wave launch gates scale from 40
-to 64/72/96 supply and require 10/16/18/24 units; Hard and above also wait for
-at least two configured high-tech units. The Probe and Observer patrol the
-approaches to each ready Nexus; the Observer also visits every expansion that is
-not one of our bases. Visible groups of at least three combat units and six
-supply within 120 of a ready Nexus are logged with visible unit counts, type
-composition, air/ground supply and estimated strength. Auto compares the visible
-attack group with defenders near it and requires about a 1.3–1.5× local force
-advantage before continuing an engagement; when locally outmatched, it pulls the army
-back to regroup and starts a 45-second build-up emergency. During that emergency,
-worker production, new bases, gas expansion, upgrades and non-army construction
-pause; supply, combat production and production-building construction continue.
-Air-heavy enemies raise Stalker targets and armored air adds Void Rays, while
-armored ground and light-ground compositions raise Immortal and Colossus targets
-respectively. Wave launch waits for a meaningful enemy combat-group sighting in
-the last 90 seconds. Auto compares army resources lost with enemy army
-resources killed; a poor recent trade also triggers a 60-second retreat and
-combat-production emergency. The strongest recent sighting (up to 180 seconds old)
-sets an additional enemy-force gate, capped at 120 supply; a new wave requires force
-intel from the last 90 seconds. If force intel is still incomplete after 15 minutes,
-a reserve meeting the current supply gate may launch while scouting continues.
-The Observer retreats toward home when it detects
-nearby anti-air or takes heavy damage. The whole army remains in one wave while
-engaging the main enemy force. In the final cleanup phase, after the army meets its
-difficulty wave gate and four or fewer enemy structures are visible, the force may
-split 60/20/20: the main group attacks the most exposed visible resource center;
-two groups search distinct expansion sites across the map, skipping only our
-Nexuses. After visiting every site, those groups hold open enemy-side expansions
-to deny a rebuild. Visible enemy workers and bases are logged with defender counts
-and exposure scores. The endgame groups return to wave assembly if supply falls
-below its gate. Site sweeps use current vision; stale enemy building memories are
-not treated as confirmed. Mineral stock is not exposed by the SC2 API; destroying
-resource centers and nearby workers denies future income instead.
+Cohesive waves advance through short common waypoints. Zealots lead, ranged units
+follow, and support stays behind. Remote reinforcements gather in groups of six
+and 12 supply; nearby arrivals can join directly. Main pressure may contain outside
+known weapon ranges while a bounded detachment attacks an exposed expansion.
+Recovering squads move toward the safest current base. Cleanup dispersal requires
+strong recent winning trades and fresh evidence of a depleted opposing army;
+few visible buildings alone are insufficient.
 
-Supply construction keeps a larger reserve (20–40 supply, scaled with bases and
-army size). Once three Nexuses are ready, it queues up to three Pylons at a time
-until supply cap reaches 200. Once a stable game passes 900 seconds, macro can add
-one Nexus beyond the profile target and raise the worker ceiling by up to 12;
-emergency retreat still pauses economic expansion while it rebuilds the army.
+Fight assessment compares nearby health/shields and target-compatible DPS,
+including visible defensive structures and conservative Bunker occupancy. It
+cannot model every spell, terrain feature, or hidden reinforcement. Micro focuses
+reachable targets, reduces obvious overkill, kites shorter-range threats during
+weapon cooldown, and resumes firing afterward. Matching standing orders are kept.
+Critical units withdraw individually. Spells remain individually opt-in.
 
-Macro targets at least three Nexuses, starts expanding after 14 workers, and
-continues at roughly 12 workers per base. After 900 seconds, it can take one more
-safe local expansion and raise the worker cap by up to 12. If every current base is
-under threat, it can still build a Nexus at a nearby safe site; a direct emergency
-attack remains the first priority.
+### Economy and reinforcement
 
-The production plan builds at least five Gateways/Warpgates total, scaling up to
-ten based on base count and Stalker demand. It builds this initial production
-capacity before starting the remaining upgrade lines, so army reinforcement can
-keep pace with the VeryHard force size. It also places one Shield Battery at each
-safe Nexus with nearby Pylon power, including during a defensive emergency.
+Opening spending prioritizes a Gateway and Cybernetics Core, gas, early combat
+units, then a supportable natural. Further bases require workers and protection;
+configured base/worker ceilings remain authoritative throughout the game.
+Emergency production comes before new investment, while recovery still permits
+workers and gas. Unsafe bases and expansion sites are avoided.
 
-Warpgate research and eligible Gateway conversion support reinforcement. A Warp
-Prism follows behind a deployed wave, phases at a visible rear position, and
-unphases/repositions when exposed to anti-air, damaged, or left behind. Warpgates
-use queried available abilities and legal warp-in placement checks. Before Prism
-deployment, safe home Pylons provide warp-in power so assembly does not deadlock.
-Warp-ins explicitly debit live unit prices/supply and preserve resource reserves.
-Queued warp-in orders are telemetry, not a count of confirmed completed units.
-Placement uses current Psionic Matrix coverage and a batched legal-placement
-query. It avoids occupied/reserved warp points and temporarily excludes rejected
-locations instead of repeating them. Immediate action-response rejections and
-later observation errors are both captured.
+Supply buffers scale with bases and production capacity, from four to 20 supply,
+and count pending Pylons. Macro does not build to 200 simply because three bases
+exist. Production rotates across Gateway, Robotics, and Stargate facilities and
+balances unit deficits against composition targets. Infrastructure scales with
+bases and mineral availability; upgrades get periodic spending opportunities.
+Charge and Thermal Lance are considered when the army needs them. Ground and air
+upgrade chains and all existing spell opt-ins remain available.
 
-Use `!assist scouting off`, `!assist army_waves off`, or
-`!assist warp_reinforcement off` to disable individual parts. Disabling waves
-restores direct attack-move behavior and should be used deliberately. Movement
-and warp positioning are heuristic; this is not a terrain-perfect formation or
-transport-drop planner. The Prism is a mobile reinforcement platform, not a cargo
-drop script. Wave, scouting and Prism phases are recorded with every snapshot.
+Warpgate research/conversion and legal warp-ins support reinforcement. A Prism
+follows behind the main wave, phases at a visible rear position, and moves or
+unphases when exposed. It remains responsive even when macro has spent that tick.
+Safe home Pylons provide power before deployment. Warp-ins use queried abilities,
+legal placement, live costs, user reserves, and macro reservations for expansion, critical supply, and opening tech.
+Issued warp-ins are requests, not confirmed completed units. Rejected locations
+back off rather than being retried continuously.
 
-Selection and explicit release exclude units from tactical orders. Use
-`!assist release` to retain manual ownership after deselecting. Disabling attacks
-or pausing stops new orders; already issued movement/attacks continue until you
-override them. Combat spells remain separately opt-in.
+`!assist scouting off`, `!assist army_waves off`, and
+`!assist warp_reinforcement off` disable individual controllers. Disabling waves
+uses direct mission movement. The Prism is a reinforcement platform; transport
+drop juggling and additional spell controllers are outside this baseline.
+
+### Control cadence
+
+| Work | Game-time interval, subject to fresh observations |
+| --- | --- |
+| Ownership, commands, action errors | Every observation |
+| Combat micro | 0.125 seconds |
+| Macro and reinforcement | 0.25 seconds |
+| Assessment, scouting, mission execution | 1 second; settings changes immediately |
+| Director | 2 seconds; material changes or invalid plans immediately |
+| Full snapshots | 5 seconds: wall time in real-time games, game time in fast tests |
+
+All orders pass through the existing ownership and resource-accounting boundary.
+An actor receives at most one assistant order per observation. Assignment changes
+revoke old movement intents; expired, unsupported, or out-of-map intents are
+rejected. Selection/release and pause prevent new orders. Existing orders continue
+until replaced by the player or a later permitted command.
 
 ## Local Python interface
 
@@ -173,7 +179,7 @@ mailbox rather than trying to connect a second client. For the latest session:
 
 Only one command may be pending; wait for `last_control_command` in the runtime
 report before sending another. Commands normally apply on the next observation;
-tactical orders are reevaluated at the next five-second sample. To address an
+settings changes trigger tactical reevaluation on that observation. To address an
 exact session, add `-Report logs/runtime-<session>.json`. A legacy running session
 without the mailbox is explicitly rejected. A queued command is not proof of
 execution. This local interface has the same command validation and ownership
@@ -223,15 +229,17 @@ print(json.dumps({"strategy": strategy, "reason": "Protect home"}))
 ```
 
 Input contains `schema_version`, the full player `observation`, summarized
-`situation`, raw `available_abilities`, profile thresholds, and `previous_strategy`. Output accepts
+`situation`, raw `available_abilities`, profile thresholds, `previous_strategy`,
+and the immutable `assessment`. Output accepts
 `strategy` (defend/regroup/push/retreat), `reason` (up to 500 characters), and an
 optional `target: [x, y]` within the playable map. The script overrides the selected
 built-in strategy until disabled. It cannot submit arbitrary SC2 orders through
 this plan contract. Use stderr for debugging. Script processes execute local
 Python code with normal user permissions; this is not a sandbox.
 
-Each evaluation launches a fresh process with a one-second timeout, so edits
-are loaded on the next sample. State that must persist is provided in context
+Scripts are evaluated at most every five game seconds, or when their file changes.
+Each evaluation launches a fresh process with a one-second timeout. The last valid
+result is reused between evaluations. State that must persist is provided in context
 or must be explicitly stored by the script. Failures, invalid output and out-of-map
 targets produce a diagnostic and no new tactical orders for that sample; economy
 automation continues and existing unit orders are not cancelled. Script path and
@@ -256,19 +264,19 @@ sampled build milestones, completed upgrades, composition, resources, strategy
 history and the recorded result. A deliberately stopped test records a defeat;
 it is not evidence that the opponent defeated the bot.
 
-The trial runner launches owned local clients sequentially, with bounded game
-durations, snapshots and replays per trial. The default duration is 1500 game
-seconds (25 minutes); set `--duration` to change it. It records the comparison in
-`logs/latest-trials.json`. Do not run it concurrently with a match you want to keep.
-By default it uses accelerated non-real-time API games with 32 game loops per API
-turn (`--fast-step-size`, allowed 4–64). This reduces API round trips for faster
-evaluation; it also lowers response resolution to about 1.4 game seconds per bot
-turn. Strategic decisions sample every five game seconds and combat micro runs
-once per API turn. Reduce the step size when evaluating fine-grained reactions.
-64 loops is faster but coarser and lost a Hard trial before the default 32-loop
-trial could finish; use 32 for strategy comparisons.
-Add `--realtime` to watch at normal speed. A time-limit result is a tie, not a win.
-Single-game CLI equivalents are `--fast-test --game-time-limit 600`.
+The trial runner launches owned clients with bounded game duration and saves
+separate reports, logs and replays. `--parallel 3` runs three repeats of a scenario
+concurrently before starting the next scenario when `--repeat 3` is selected.
+`--parallel 5 --repeat 3` overlaps scenarios, with at most five clients active and
+three repeats of every scenario. Results include wall time and simulation throughput.
+`--opponents` and `--builds` expand
+the matrix; `--output` chooses its aggregate JSON. Use `--seed` and an explicit
+build to fix SC2/Python randomness. Seeded scenarios must have matching loop-zero
+starting-state fingerprints or the runner stops. The default remains sequential.
+
+```powershell
+python -m source.trials --profiles pressure --opponents Terran Zerg --builds Rush Timing Power Macro Air --repeat 3 --parallel 3 --seed 20261025 --difficulty VeryHard --fast-step-size 8 --duration 1500 --output logs/expansion-matrix-fixed.json
+```
 
 Building placement reserves two-tile aisles, mining routes and production exit
 corridors, and checks nearby ground connectivity before placing structures. It
@@ -288,7 +296,7 @@ parallel Forges for research.
 Research periodically takes precedence over additional production buildings.
 Ground weapon/armor/shield and air weapon/armor chains support levels 1–3; tech,
 resources, selection, reserves and ability availability still gate research.
-Between five-second strategic decisions, micro checks every half second for
+Between strategic decisions, micro checks every 0.125 game seconds for
 critical-health retreats, visible in-range focus fire and pathable kiting against
 shorter-range ground threats. These orders retain the same ownership rules and
 are disabled when a strategy script fails or attack control is off.
@@ -297,3 +305,34 @@ Startup checks metadata mappings, including movement and attack commands. The
 test suite exercises strategies, scripts, bounds, ownership and snapshot cadence
 without launching SC2. New tactics still require live acceptance on your installed
 game version; passing these tests does not establish tactical quality.
+
+## Offline director inspection and future models
+
+```powershell
+python -m source.replay_strategy logs/runtime-<session>.state.jsonl --output .local/policy-review.json
+```
+
+This runs saved assessments through the hard-coded director without opening SC2
+or issuing actions. Legacy samples without assessments are counted and skipped.
+It supports decision comparison, not counterfactual match simulation.
+
+The session analyzer now reports sampled supply-block and idle-facility seconds,
+resource-bank statistics, first offensive advance, controller time, objective
+counts, and deduplicated mission outcomes. Idle facility seconds sum idle ready
+Gateway/Robotics/Stargate time; they exclude Warpgates because absence of an order
+does not establish cooldown readiness. Sampled estimates can miss intervening
+changes. Controller times measure the control hook, excluding full serialization.
+
+`StrategicPlan` and `Assessment` are independent of SC2 and model providers.
+`DeferredPolicy` provides one bounded asynchronous request at a time, timeout,
+request count limits, cancellation, and validation on arrival. No model service
+is configured. Later LLM-PySC2-inspired experiments can replace observation,
+planning, or specialist execution boundaries after shadow evaluation. See the
+[architecture plan](tactical-architecture-plan.md) and
+[implementation validation record](overhaul-validation.md).
+
+For tactical CPU measurements on saved raw observations, use
+`python -m source.benchmark_controllers logs/runtime-<session>.json --repeat 3`.
+This requires the matching metadata/snapshot files and never connects to SC2.
+See [performance verification](performance-verification.md) for measured results
+and the distinction between CPU cost and live gameplay performance.
