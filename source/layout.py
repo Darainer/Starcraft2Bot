@@ -22,9 +22,15 @@ def segment_distance(point, start, end):
 
 def layout_clear(bot, kind, point):
     radius = half_size(kind)
-    for building in bot.structures:
-        clearance = radius + half_size(building.type_id) + 2
-        if abs(point.x - building.position.x) < clearance and abs(point.y - building.position.y) < clearance:
+    footprints = [(b.type_id, b.position) for b in bot.structures]
+    footprints += [
+        (kind, position)
+        for kind, position, expiry in bot.construction_reservations.values()
+        if expiry > bot.time
+    ]
+    for other_kind, position in footprints:
+        clearance = radius + half_size(other_kind) + 2
+        if abs(point.x - position.x) < clearance and abs(point.y - position.y) < clearance:
             return False
     for base in bot.townhalls:
         resources = list(bot.mineral_field.closer_than(12, base))

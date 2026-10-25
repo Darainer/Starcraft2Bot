@@ -77,6 +77,8 @@ class EconomyAssistant(BotAI):
         self._last_upgrade = -60.0
         self._blocked_producers = {}
         self.action_rejections = {}
+        self._production_cursor = 0
+        self.construction_reservations = {}
 
     @property
     def settings(self):
@@ -168,7 +170,17 @@ class EconomyAssistant(BotAI):
         placement = await find_spaced_placement(self, kind, near, max_distance)
         if placement is None or not self.safe_at(placement):
             return False
-        return self.issue(worker.build(kind, placement), paid=True)
+        workers = self.workers.filter(
+            lambda unit: self.available(unit) and (unit.is_idle or unit.is_gathering)
+        ).sorted_by_distance_to(placement)
+        query = getattr(self.client, "query_pathing", None)
+        for candidate in workers[:4]:
+            if (
+                query is None or candidate.distance_to(placement) < 3 or await query(candidate, placement)
+            ) and self.issue(candidate.build(kind, placement), paid=True):
+                self.construction_reservations[candidate.tag] = (kind, placement, self.time + 45)
+                return True
+        return False
 
     async def allocate_workers(self):
         """Only idle/gathering probes; never pull a scouting, fighting or building probe."""
@@ -317,12 +329,21 @@ class EconomyAssistant(BotAI):
         plan = [
             (U.GATEWAY, 1, U.PYLON),
             (U.CYBERNETICSCORE, 1, U.GATEWAY),
-            (U.ROBOTICSFACILITY, int(s.immortals > 0 or s.colossi > 0), U.CYBERNETICSCORE),
-            (U.FORGE, int(s.upgrades), U.CYBERNETICSCORE),
+            (
+                U.ROBOTICSFACILITY,
+                int(s.immortals > 0 or s.colossi > 0)
+                + int(s.immortals + s.colossi >= 8 and self.townhalls.ready.amount >= 2),
+                U.CYBERNETICSCORE,
+            ),
+            (
+                U.FORGE,
+                int(s.upgrades) * (1 + int(self.supply_army >= 24) + int(self.supply_army >= 60)),
+                U.CYBERNETICSCORE,
+            ),
             (U.TWILIGHTCOUNCIL, int(s.upgrades or s.blink or s.high_templar > 0), U.CYBERNETICSCORE),
             (U.TEMPLARARCHIVE, int(s.high_templar > 0), U.TWILIGHTCOUNCIL),
             (U.ROBOTICSBAY, int(s.colossi > 0), U.ROBOTICSFACILITY),
-            (U.STARGATE, int(s.voidrays > 0), U.CYBERNETICSCORE),
+            (U.STARGATE, min(3, (s.voidrays + 5) // 6, self.townhalls.ready.amount), U.CYBERNETICSCORE),
             (U.FLEETBEACON, int(s.voidrays > 0 and s.upgrades), U.STARGATE),
             (U.GATEWAY, min(6, 2 * self.townhalls.ready.amount), U.CYBERNETICSCORE),
         ]
@@ -339,7 +360,9 @@ class EconomyAssistant(BotAI):
         return False
 
     def produce(self, reserve):
-        for producer, kinds in PRODUCERS.items():
+        producers = list(PRODUCERS.items())
+        order = producers[self._production_cursor :] + producers[: self._production_cursor]
+        for producer, kinds in order:
             candidates = [
                 kind
                 for kind in kinds
@@ -364,6 +387,7 @@ class EconomyAssistant(BotAI):
                     if self.tech_requirement_progress(kind) < 1 or not self.affordable(kind, reserve):
                         continue
                     if self.issue(building.train(kind), paid=True, supply=True):
+                        self._production_cursor = (list(PRODUCERS).index(producer) + 1) % len(PRODUCERS)
                         return True
         return False
 

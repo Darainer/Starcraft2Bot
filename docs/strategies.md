@@ -173,6 +173,14 @@ aligns odd-width buildings to half-tile centers so spacing can coexist with
 pylon power. These conservative constraints can reject cramped layouts; they
 are not a guarantee against every terrain/unit collision. A rejected production
 spawn backs off for 15 game seconds instead of retrying every macro tick.
+Workers are chosen again at the final placement and checked for a path before
+receiving a build order. Accepted footprints are reserved while workers travel,
+so another planned building cannot claim the same space before construction starts.
+
+Production rotates between Gateway, Robotics and Stargate classes instead of
+letting the first class starve the others. High-tech setups scale Robotics
+facilities and Stargates with composition/base count, and larger armies add
+parallel Forges for research.
 
 Research periodically takes precedence over additional production buildings.
 Ground weapon/armor/shield and air weapon/armor chains support levels 1–3; tech,

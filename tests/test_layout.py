@@ -113,3 +113,30 @@ def test_supply_tries_another_base_when_main_layout_is_full(bot, make_unit, popu
     bot.build_structure = AsyncMock(side_effect=[False, True])
     asyncio.run(bot.macro())
     assert bot.build_structure.await_count == 2
+
+
+def test_pending_build_footprint_is_reserved_until_expiry(bot):
+    bot.construction_reservations[1] = (U.GATEWAY, Point2((10, 10)), 45)
+    assert not layout_clear(bot, U.PYLON, Point2((10, 10)))
+    bot.state.game_loop = 22.4 * 60
+    assert layout_clear(bot, U.PYLON, Point2((10, 10)))
+
+
+def test_builder_must_reach_placement(bot, make_unit, populate):
+    populate(make_unit(U.PROBE))
+    bot.client.query_pathing = AsyncMock(return_value=None)
+    assert not asyncio.run(bot.build_structure(U.PYLON, Point2((10, 10))))
+    assert not bot.actions
+    bot.client.query_pathing = AsyncMock(return_value=14)
+    assert asyncio.run(bot.build_structure(U.PYLON, Point2((10, 10))))
+    assert bot.construction_reservations
+
+
+def test_gateway_production_does_not_starve_stargates(bot, make_unit, populate):
+    populate(make_unit(U.GATEWAY), make_unit(U.STARGATE))
+    bot.settings.voidrays = 5
+    assert bot.produce(0)
+    assert bot.actions[-1].unit.type_id == U.GATEWAY
+    bot._used.clear()
+    assert bot.produce(0)
+    assert bot.actions[-1].unit.type_id == U.STARGATE

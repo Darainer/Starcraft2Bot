@@ -33,6 +33,7 @@ pys2clientprotocol 1.0.2. Map: BelShirVestigeLE.
 | 144451-625652 | pressure / Medium Terran, accelerated, 900s bound | Victory near 10:45; replay saved; no runtime error | 130 used supply; all three level-1 ground upgrades completed |
 | 144609-480602 | balanced / Medium Terran, accelerated, 900s bound | Victory near 11:25; replay saved; no runtime error | Three-base economy, upgrades and mixed army produced |
 | 144827-628075 | robotics / Medium Terran, accelerated, 900s bound | Victory near 10:05; replay saved; no runtime error | Ground tech profile completed a full match; one rejected build action recorded |
+| 144941-731526 | air / Medium Terran, accelerated, 900s bound | Time-limit tie; replay saved; no runtime error | Air/ground upgrades through level 2 completed; too few Void Rays despite a resource bank |
 
 The research failure was an exact-versus-generic ability-ID mismatch: availability
 queries returned exact research IDs, while the planner compared generic remaps.
