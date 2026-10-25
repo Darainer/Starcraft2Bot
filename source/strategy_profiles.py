@@ -8,6 +8,7 @@ PROFILES = {
         "danger_ratio": 1.5,
         "rally_distance": 5,
         "bases": 3,
+        "max_workers": 70,
         "zealots": 12,
         "stalkers": 40,
         "immortals": 6,
@@ -20,7 +21,8 @@ PROFILES = {
         "retreat_health": 0.25,
         "danger_ratio": 1.8,
         "rally_distance": 9,
-        "bases": 2,
+        "bases": 3,
+        "max_workers": 56,
         "zealots": 16,
         "stalkers": 28,
         "immortals": 2,
@@ -34,6 +36,7 @@ PROFILES = {
         "danger_ratio": 1.2,
         "rally_distance": 2,
         "bases": 3,
+        "max_workers": 70,
         "zealots": 8,
         "stalkers": 32,
         "immortals": 10,
@@ -47,11 +50,12 @@ PROFILES = {
         "danger_ratio": 1.4,
         "rally_distance": 5,
         "bases": 3,
-        "zealots": 8,
-        "stalkers": 24,
+        "max_workers": 56,
+        "zealots": 10,
+        "stalkers": 28,
         "immortals": 8,
         "voidrays": 0,
-        "colossi": 3,
+        "colossi": 4,
     },
     "air": {
         "attack_supply": 24,
@@ -60,6 +64,7 @@ PROFILES = {
         "danger_ratio": 1.3,
         "rally_distance": 5,
         "bases": 3,
+        "max_workers": 70,
         "zealots": 8,
         "stalkers": 12,
         "immortals": 0,
@@ -68,4 +73,4 @@ PROFILES = {
     },
 }
 
-COMPOSITION = ("bases", "zealots", "stalkers", "immortals", "voidrays", "colossi")
+COMPOSITION = ("bases", "max_workers", "zealots", "stalkers", "immortals", "voidrays", "colossi")

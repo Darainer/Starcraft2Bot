@@ -19,9 +19,9 @@ Use `Start.ps1 -ManualArmy` or `!assist attack off` for manual army control.
 | Setup | Attack / continue army supply | Composition targets | Intent |
 | --- | --- | --- | --- |
 | balanced | 20 / 12 | 12 Zealots, 40 Stalkers, 6 Immortals | General purpose |
-| pressure | 10 / 6 | 16 Zealots, 28 Stalkers, 2 Immortals, 2 bases | Earlier aggression |
+| pressure | 10 / 6 | 16 Zealots, 28 Stalkers, 2 Immortals, 3 bases, 56 worker cap | Earlier aggression with sustained production |
 | fortress | 50 / 30 | 8 Zealots, 32 Stalkers, 10 Immortals | More cautious engagements |
-| robotics | 35 / 22 | 8 Zealots, 24 Stalkers, 8 Immortals, 3 Colossi | Ground tech |
+| robotics | 35 / 22 | 10 Zealots, 28 Stalkers, 8 Immortals, 4 Colossi, 3 bases, 56 worker cap | Larger ground-tech army |
 | air | 24 / 16 | 8 Zealots, 12 Stalkers, 14 Void Rays | Air tech |
 
 These are build targets subject to resources, tech and supply. Profiles also vary
