@@ -273,3 +273,34 @@ their individual evidence. Each result includes total process wall time and
 sampled game seconds per wall second (including launch/replay overhead).
 It passed 302 tests with 92.04% coverage and all other required gates. Gameplay
 remains revision `af603e0`; this scheduler change does not alter actions or settings.
+
+### First replacement triplet and five-client trial
+
+Gameplay `af603e0` completed three identical Terran Rush defeats at 845.4 sampled
+seconds, compared with 705.4 previously. Evidence is
+`runtime-20261025-213313-223739-<001|002|003>` and local aggregate
+`logs/recovery-matrix-first-three.json`. All starting fingerprints match the prior
+Rush triplet; all three have replays and no recorded action rejections.
+
+The economy recovered from two workers around 300 seconds to fifteen at 480,
+instead of remaining at three workers with 15 minerals. That confirms removal
+of the gas allocation stall in these runs. It does not establish successful rush
+defense: the warning first appeared at 190.4 seconds and home threats at 195.4,
+only one five-second sample apart. The opening scout had already returned home
+around 60 seconds after seeing one Barracks, leaving a substantial scouting gap
+before the Observer arrived. All eight expansion sites were inspected later,
+with ten samples of expansion-directed advances per game.
+
+Runner `5225d82` then launched five clients successfully. Initial startup took
+about 21 seconds per client, versus 16 in the three-client Rush triplet. Working
+sets totaled about 7.2 GiB in the first large-army phase. Games remained active
+and repeat trajectories matched despite concurrent scenarios. Individual game
+speed drops as armies grow; different scenarios cannot establish a controlled
+three-versus-five throughput improvement.
+
+The replacement Terran Timing triplet lost at 1130.4 seconds, whereas the previous
+revision won all three at 830.4. Initial fingerprints match across revisions.
+The new warning appears around 235.4 seconds; the first sampled resource mismatch
+is at 245.4, and the first army-supply mismatch is at 260.4. This makes the early
+defense response a regression candidate, not proof that concurrency caused it.
+The full matrix remains frozen and in progress before further tactical changes.
