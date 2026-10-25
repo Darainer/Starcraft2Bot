@@ -1,6 +1,6 @@
 # Adaptive strategy and tactics overhaul
 
-**Status: draft for review; implementation paused.**  
+**Status: initial hard-coded implementation delivered; live evaluation pending.**
 **Branch:** `feat/adaptive-pressure-tactics`  
 **Date:** 2026-10-25
 
@@ -10,7 +10,8 @@ as a potential template for more than the director: observation translation,
 specialist controllers, action translation, and orchestration may also change.
 Keep the advanced strategic responsibilities below in scope. Model integration
 is a later evaluation milestone, not a dependency of the first playable version.
-Code implementation remains paused during architecture review.
+Implementation was authorized after review. The initial backend and execution
+modules are implemented; see [validation and scope](overhaul-validation.md).
 
 ## Goal
 
@@ -597,11 +598,12 @@ They can expose false alarms, incorrect target selection, and idle production,
 but cannot simulate the counterfactual outcome of issuing different actions.
 
 Run the repository's required lint, formatting, type, coverage, packaging, and
-runtime checks. The pre-overhaul suite passed **195 tests** using a repository-local
-temporary directory; this does not validate the subsequent draft edits. The
+runtime checks. The pre-overhaul suite passed **195 tests**. The implemented
+baseline passes **274 tests with 91.10% coverage** using a repository-local
+temporary directory; see the [validation record](overhaul-validation.md). The
 current environment denied execution of the installed `uv` binary, and the
-existing environment lacks `hatchling`. Resolve these tooling constraints before
-claiming locked-environment and packaging validation.
+existing environment lacks `hatchling`. Locked-environment and packaging
+validation remain pending.
 
 For new matches, compare a fixed matrix of map, opponent race/build, difficulty,
 profile, and available seed controls. Use repeated runs rather than a single win.
@@ -686,4 +688,7 @@ hard-coded strategic director and persistent missions. Ownership and action
 guarantees remain mandatory even when their implementation changes. Initial
 policy rules are the first backend and future fallback, not a permanent
 architectural restriction.
-Implementation remains paused for review of this document.
+The user authorized implementation after review. The initial hard-coded backend
+is implemented. Stages 8 and 9 remain subsequent model-evaluation milestones;
+no model provider or alternate game environment is connected. Live stage-7
+acceptance remains pending. See [validation and scope](overhaul-validation.md).

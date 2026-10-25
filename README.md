@@ -139,9 +139,10 @@ enabled spell can interrupt its current attack/movement order. Storm avoidance
 only knows current positions: allies can still move into a storm. These are
 conservative heuristics, not expert micro or guarantees of good play.
 
-This version does not automate Warp Gate morphing/warp-ins, Force Fields,
-Disruptor Novas, Oracle abilities, Archon merging or higher-tier weapon upgrades.
-Manually morphed Warp Gates remain human-managed.
+Warp Gate morphing/warp-ins, Prism reinforcement, and level 1-3 weapon upgrades
+are supported. Force Fields, Disruptor Novas, Oracle abilities, Archon merging,
+and transport-drop micro remain unsupported. See the
+[adaptive tactics architecture](docs/tactical-architecture-plan.md).
 
 ## Validation
 
