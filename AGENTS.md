@@ -2,9 +2,9 @@
 
 For installation, launch or live validation, follow
 [docs/windows-install-and-play.md](docs/windows-install-and-play.md) in order.
-It contains PowerShell commands, expected results, exit handling and explicit
-human interaction boundaries. Target native Windows and the newest installed
-retail binary first. Preserve local changes when updating this branch.
+It calls Setup.ps1 and Start.ps1, with explicit manual handoffs between stages.
+Detailed exit handling is in docs/windows-troubleshooting.md. Target native Windows and the newest installed
+retail binary first. Preserve local changes when updating the checkout.
 
 - Do not call `--probe` a gameplay acceptance test. Never infer human input works
   from an API response, a replay, a test pass or a bot match result.

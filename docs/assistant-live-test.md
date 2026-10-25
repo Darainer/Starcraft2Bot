@@ -6,7 +6,7 @@ paused human-control checks. Save [an acceptance record](runtime-acceptance-temp
 No live SC2 match was available in the development environment. Record the
 SC2 version, OS, Python version, map, result and replay for these checks.
 
-1. Launch with the explicit map and command from runbook step 7. Confirm the
+1. Launch with the explicit map and command from the runbook's first-game stage. Confirm the
    actual ping binary/data identity, graphical window, normal camera/mouse/
    hotkeys/minimap/command-card input and real-time progression. Stop if any
    human input is disabled; an API-only success does not pass.

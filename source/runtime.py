@@ -93,14 +93,13 @@ def resolve_map(installation, name, map_file=None):
     if map_file:
         candidates = [Path(map_file).expanduser().resolve()]
     else:
-        candidates = [
-            p
-            for folder in (installation.root / "Maps", installation.root / "maps")
-            if folder.is_dir()
-            for p in folder.rglob("*.SC2Map")
-            if p.stem == name
-        ]
-        candidates = list({p.resolve() for p in candidates})
+        candidates = []
+        for folder in (installation.root / "Maps", installation.root / "maps"):
+            if folder.is_dir():
+                for candidate in folder.rglob("*.SC2Map"):
+                    # macOS may resolve Maps/maps to the same file without normalizing case.
+                    if candidate.stem == name and not any(candidate.samefile(p) for p in candidates):
+                        candidates.append(candidate.resolve())
     if len(candidates) != 1 or not candidates[0].is_file() or candidates[0].suffix.lower() != ".sc2map":
         raise ValueError(
             f"Map {map_file or name!s} missing or ambiguous. Use --map-file with an existing .SC2Map."

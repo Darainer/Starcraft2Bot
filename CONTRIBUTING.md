@@ -95,3 +95,14 @@ The official protocol repository was version-bumped to 5.0.17.98310.0 on
 2026-10-08; this alone is not evidence of repaired human input. See the runbook's
 primary sources and version-specific acceptance template. This repository has
 no verified live binary yet; do not describe a hypothetical fallback as verified.
+
+## Windows entry-point tests
+
+`tests/test_windows_scripts.py` runs Setup.ps1 and Start.ps1 in native Windows
+PowerShell 5.1 during the existing Windows CI job. It substitutes uv/game calls,
+so it can verify argument quoting, saved paths, repeat setup, failure exit codes,
+corrupt-map rejection and execution from another directory without launching SC2
+or installing software. These tests are skipped on other operating systems.
+Installer/download success and actual gameplay still require the manual stages
+in the Windows runbook. Setup tools installation uses WinGet; it exits 3010 after
+a new install to signal the terminal/reboot handoff, then Configure can resume.

@@ -46,8 +46,8 @@ jobs:
         with:
           enable-cache: true
       - run: uv sync --locked --python ${{ matrix.python }}
-      - run: uv run --locked pytest --cov --cov-report=term-missing --cov-report=xml
-      - run: uv run --locked sc2-assistant --help
+      - run: uv run --locked --python ${{ matrix.python }} pytest --cov --cov-report=term-missing --cov-report=xml
+      - run: uv run --locked --python ${{ matrix.python }} sc2-assistant --help
       - uses: actions/upload-artifact@v4
         with:
           name: coverage-${{ matrix.os }}-${{ matrix.python }}

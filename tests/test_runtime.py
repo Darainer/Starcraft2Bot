@@ -301,3 +301,15 @@ def test_owned_process_cleanup_on_entry_failure_and_normal_exit(monkeypatch, ins
         asyncio.run(check())
     process._close_connection.assert_awaited_once()
     process._clean.assert_called_once()
+
+
+def test_map_lookup_deduplicates_same_file(installation):
+    import os
+
+    first = installation.root / "Maps/one/Test.SC2Map"
+    second = installation.root / "Maps/two/Test.SC2Map"
+    first.parent.mkdir(parents=True)
+    second.parent.mkdir(parents=True)
+    first.write_bytes(b"map")
+    os.link(first, second)
+    assert runtime.resolve_map(installation, "Test").samefile(first)

@@ -14,17 +14,18 @@ campaign or Co-op matchmaking. The original autonomous bots remain in `source/`.
 ## Setup and launch
 
 Start with the **[Windows installation and game-start runbook](docs/windows-install-and-play.md)**.
-It provides every installation/download command, first launch, API probe, paused
-human-control test, normal startup, troubleshooting and an AI-agent procedure.
+Use `Setup.ps1 -Stage Tools`, reopen PowerShell, complete SC2 first launch,
+then run `Setup.ps1`. Use `Start.ps1` for subsequent games. The short runbook
+separates these script calls from the manual steps and links troubleshooting.
 Use native Windows PowerShell; WSL/headless Linux is rejected by this launcher.
 macOS is also allowed but not live-tested here.
 
 Once the runbook has installed the environment and test map:
 
 ```powershell
-uv run --locked sc2-assistant --doctor --map-file maps/BelShirVestigeLE.SC2Map
-uv run --locked sc2-assistant --probe
-uv run --locked sc2-assistant --map-file maps/BelShirVestigeLE.SC2Map --start-paused --difficulty VeryEasy
+.\Start.ps1 -CheckOnly
+.\Start.ps1 -Probe
+.\Start.ps1 -StartPaused -Difficulty VeryEasy
 ```
 
 `--doctor` checks paths without launching. `--probe` launches/connects, records
@@ -41,7 +42,7 @@ an installed binary and matching returned data hash; there is no silent fallback
 `--map NAME` alternatively resolves an installed map under the SC2 Maps directory.
 
 A Battle.net-launched API client can be used with `--attach-port 5001`; follow the
-runbook's launch arguments. This mode refuses to replace an active game/replay
+[troubleshooting guide's launch arguments](docs/windows-troubleshooting.md). This mode refuses to replace an active game/replay
 and never kills the user's client. It is not an attachment to an ordinary match.
 
 Logs go to `logs/assistant.log`; machine reports and replays get unique timestamps
