@@ -25,10 +25,12 @@ retail binary first. Preserve local changes when updating the checkout.
   do not mix random builds or spawn conditions when comparing revisions.
 - The current requested suite is pressure versus VeryHard Terran and Zerg, three
   repeats of each explicit build (Rush, Timing, Power, Macro, Air): 30 games with
-  three clients for the first Rush batch, then try five concurrent clients to
-  speed up the remaining scenarios (user instruction). Keep three repeats per
-  scenario; concurrency may cross scenario boundaries. Verify launch reliability
-  and wall-clock throughput before retaining five. Finish the matrix before tuning.
+  three clients for the first Rush batch, then five concurrent clients for the
+  remaining scenarios (user instruction). Five live Windows clients were verified
+  on 2026-10-25; use up to five subsequently, keeping three repeats per scenario.
+  Concurrency may cross scenario boundaries. Individual games slow under load;
+  do not claim a net speedup without a matched throughput comparison. Finish the
+  matrix before tuning.
   Retain separate logs/reports/replays and record results by gameplay revision.
   Repeated fixed-seed starts measure reproducibility, not 30 independent scenarios.
 - Do not call `--probe` a gameplay acceptance test. Never infer human input works

@@ -303,4 +303,49 @@ revision won all three at 830.4. Initial fingerprints match across revisions.
 The new warning appears around 235.4 seconds; the first sampled resource mismatch
 is at 245.4, and the first army-supply mismatch is at 260.4. This makes the early
 defense response a regression candidate, not proof that concurrency caused it.
-The full matrix remains frozen and in progress before further tactical changes.
+The full matrix stayed frozen until all 30 games completed, before further tactical changes.
+
+### Completed replacement matrix
+
+All 30 games completed without a launch failure or runtime exception. All ten
+triplets had matching loop-zero fingerprints and matching outcomes/times within
+their scenario. Every replay is present. The combined local evidence is
+`logs/recovery-matrix-complete.json` with its adjacent manifest.
+
+| Opponent | Build | Wins | Defeats | Timeouts | Last sampled game time |
+| --- | --- | ---: | ---: | ---: | ---: |
+| Terran | Rush | 0 | 3 | 0 | 845.4 s |
+| Terran | Timing | 0 | 3 | 0 | 1130.4 s |
+| Terran | Power | 0 | 0 | 3 | 1495.4 s |
+| Terran | Macro | 0 | 0 | 3 | 1495.4 s |
+| Terran | Air | 3 | 0 | 0 | 1450.4 s |
+| Zerg | Rush | 0 | 3 | 0 | 265.4 s |
+| Zerg | Timing | 0 | 3 | 0 | 465.4 s |
+| Zerg | Power | 0 | 3 | 0 | 775.4 s |
+| Zerg | Macro | 3 | 0 | 0 | 1090.4 s |
+| Zerg | Air | 3 | 0 | 0 | 730.4 s |
+
+Total: **9 wins, 15 defeats, 6 timeouts**. Timeouts are the deliberate 1500-second
+bound, not genuine draws; the last snapshot precedes the cutoff. These are ten
+fixed scenarios repeated three times, not thirty independent win-rate samples.
+The results demonstrate reliable five-client execution but do not establish a
+net throughput gain against a matched three-client run. Per-report sampled
+tactical p95 was 1.616–12.797 ms; total trial wall time includes startup and replay
+overhead. Different army sizes and changing active-client counts affect these rates.
+
+The runtime groups were `213313-223739` (Terran Rush), `213509-949405` (other
+Terran builds), `214718-656639` (Zerg Rush), `214838-225430` (Zerg Timing), and
+`215011-754440` (other Zerg builds), all under the `runtime-20261025-` prefix.
+Zerg Rush/Timing used free slots while the final two Terran Air repeats finished;
+the total never exceeded five clients. Gameplay stayed at `af603e0` throughout.
+
+Rush defense is not validated: Zerg Rush's first warning was at 135.4 seconds,
+after the first home-threat sample at 125.4. Its opening scout returned without
+identifying production tech. The code also treats returning after danger as a
+completed opening scout, even if inspection was interrupted. This needs a
+separate scouting follow-up. Terran Timing's regression remains unresolved.
+
+The user observed units reversing direction in midfield while expansion attacks
+worked well. Recordings confirm rapid switches among search sites and expansion
+targets, as well as advance/regroup transitions. Movement stability is the next
+isolated change; expansion scouting and economic-target preference are retained.
