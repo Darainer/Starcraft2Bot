@@ -11,6 +11,17 @@ def center(units):
     return Point2((median(u.position.x for u in units), median(u.position.y for u in units)))
 
 
+def staging_slot(index, total, rally):
+    """Place a unit in a compact, centered square staging formation."""
+    columns = max(1, int(total**0.5))
+    if columns * columns < total:
+        columns += 1
+    rows = (total + columns - 1) // columns
+    column = index % columns
+    row = index // columns
+    return rally.offset(((column - (columns - 1) / 2) * 1.8, (row - (rows - 1) / 2) * 1.8))
+
+
 class ArmyWaves:
     def __init__(self):
         self.members = set()
@@ -64,9 +75,12 @@ class ArmyWaves:
             bot.settings.profile != "robotics" or bool(units.of_type({U.IMMORTAL, U.COLOSSUS}))
         ) and (bot.settings.profile != "air" or units(U.VOIDRAY).amount >= 4)
         if hard_supply:
+            air_core_ready = bot.settings.profile == "air" and units(U.VOIDRAY).amount >= 4
             heavy_ready = (
-                bot.settings.immortals > 0 and units(U.IMMORTAL).amount >= min(2, bot.settings.immortals)
-            ) or (bot.settings.colossi > 0 and units(U.COLOSSUS).amount >= min(2, bot.settings.colossi))
+                air_core_ready
+                or (bot.settings.immortals > 0 and units(U.IMMORTAL).amount >= min(2, bot.settings.immortals))
+                or (bot.settings.colossi > 0 and units(U.COLOSSUS).amount >= min(2, bot.settings.colossi))
+            )
             composition_ok = composition_ok and heavy_ready
         intel = getattr(bot, "scout_report", {})
         force_intel = intel.get("peak_enemy_force") or intel.get("last_enemy_force") or {}
@@ -97,7 +111,13 @@ class ArmyWaves:
             or (not hard_supply and bool(intel.get("enemy_seen")))
             or scouting_timeout
         )
-        readiness = sum(bot.calculate_supply_cost(u.type_id) for u in units if u.distance_to(rally) <= 10)
+        ordered_units = sorted(units, key=lambda u: u.tag)
+        readiness = sum(
+            bot.calculate_supply_cost(unit.type_id)
+            for index, unit in enumerate(ordered_units)
+            if unit.distance_to(rally) <= 10
+            or unit.distance_to(staging_slot(index, len(ordered_units), rally)) <= 3
+        )
         fraction = readiness / max(1, supply(units))
         reason = "Assemble a complete, scouted attack wave"
         cohesion_fraction = 0
@@ -120,8 +140,8 @@ class ArmyWaves:
         destinations = {}
         if not core:
             self.phase = "assemble"
-            for index, unit in enumerate(sorted(units, key=lambda u: u.tag)):
-                destinations[unit.tag] = ("move", rally.offset(((index % 5 - 2) * 1.8, (index // 5) * 1.8)))
+            for index, unit in enumerate(ordered_units):
+                destinations[unit.tag] = ("move", staging_slot(index, len(ordered_units), rally))
         else:
             anchor = center(core)
             self.center = anchor

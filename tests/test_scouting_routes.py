@@ -24,6 +24,7 @@ def test_routes_screen_bases_clamp_and_include_enemy_expansions(bot, make_unit, 
 def test_observer_waits_respects_human_and_retreats_when_damaged(bot, make_unit, populate):
     scout = ScoutController()
     bot.settings.scouting = True
+    bot.settings.attack = True
     populate()
     assert scout._observer_tick(bot)["phase"] == "waiting_for_observer"
 
@@ -38,6 +39,20 @@ def test_observer_waits_respects_human_and_retreats_when_damaged(bot, make_unit,
     result = scout._observer_tick(bot)
     assert result["phase"] == "retreating_damaged"
     assert bot.actions[-1].target == bot.start_location
+
+
+def test_observer_does_not_move_when_automation_or_attack_is_off(bot, make_unit, populate):
+    observer = make_unit(U.OBSERVER, (20, 20))
+    populate(observer)
+    controller = ScoutController()
+    bot.settings.scouting = True
+
+    bot.settings.enabled = False
+    assert controller._observer_tick(bot)["phase"] == "disabled"
+    bot.settings.enabled = True
+    bot.settings.attack = False
+    assert controller._observer_tick(bot)["phase"] == "disabled"
+    assert not bot.actions
 
 
 def test_worker_scout_returns_home_and_releases_assignment(bot, make_unit, populate):

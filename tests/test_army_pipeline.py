@@ -8,7 +8,7 @@ from sc2.ids.upgrade_id import UpgradeId as G
 from sc2.position import Point2
 from sc2.units import Units
 
-from source.army_waves import ArmyWaves
+from source.army_waves import ArmyWaves, staging_slot
 from source.scouting import ScoutController
 from source.strategy_profiles import PROFILES
 from source.warp_reinforcement import WarpReinforcement
@@ -80,6 +80,42 @@ def test_air_profile_requires_air_core(bot, make_unit, populate):
     waves = ArmyWaves()
     state = waves.plan(bot, bot.units, Point2((100, 100)), Point2((10, 10)), PROFILES["air"])[1]
     assert not state["composition_ready"] and state["phase"] == "assemble"
+
+
+def test_air_core_satisfies_hard_difficulty_heavy_gate(bot, make_unit, populate):
+    voidrays = [make_unit(U.VOIDRAY, (10, 10)) for _ in range(4)]
+    stalkers = [make_unit(U.STALKER, (10, 10)) for _ in range(20)]
+    populate(*voidrays, *stalkers)
+    bot.settings.profile = "air"
+    bot.settings.scouting = False
+    bot.opponent_difficulty = "MediumHard"
+    waves = ArmyWaves()
+    assert voidrays[0].distance_to(Point2((10, 10))) < 1
+
+    _, state = waves.plan(bot, bot.units, Point2((100, 100)), Point2((10, 10)), PROFILES["air"])
+    assert state["composition_ready"]
+    assert state["phase"] == "advance"
+
+
+def test_large_wave_reaches_assembly_readiness_at_its_staging_slots(bot, make_unit, populate):
+    rally = Point2((40, 40))
+    army = [make_unit(U.STALKER, (0, 0)) for _ in range(48)]
+    populate(*army)
+    bot.settings.scouting = False
+    waves = ArmyWaves()
+
+    destinations, state = waves.plan(bot, bot.units, Point2((100, 100)), rally, PROFILES["balanced"])
+    assert state["phase"] == "assemble"
+    assert len({tuple(target) for mode, target in destinations.values()}) == 48
+
+    staged = [
+        make_unit(U.STALKER, staging_slot(index, len(army), rally), tag=unit.tag)
+        for index, unit in enumerate(sorted(army, key=lambda unit: unit.tag))
+    ]
+    populate(*staged)
+    _, state = waves.plan(bot, bot.units, Point2((100, 100)), rally, PROFILES["balanced"])
+    assert state["assembled_fraction"] == 1
+    assert state["phase"] == "advance"
 
 
 def test_scout_is_reserved_from_economy_but_retains_human_ownership(bot, make_unit, populate):

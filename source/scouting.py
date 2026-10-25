@@ -61,6 +61,8 @@ class ScoutController:
         return route or [bot.game_info.map_center]
 
     def _observer_tick(self, bot):
+        if not bot.settings.enabled or not bot.settings.attack or not bot.settings.scouting:
+            return {"phase": "disabled"}
         all_observers = bot.units(U.OBSERVER).ready
         observer = all_observers.find_by_tag(next((u.tag for u in all_observers if bot.available(u)), -1))
         if observer is None:
