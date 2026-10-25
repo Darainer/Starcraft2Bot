@@ -16,7 +16,7 @@ def test_routes_screen_bases_clamp_and_include_enemy_expansions(bot, make_unit, 
 
     worker_route = scout._worker_route(bot)
     observer_route = scout._observer_route(bot)
-    assert len(worker_route) == 3
+    assert worker_route == [Point2((80, 80)), Point2((90, 90))]
     assert len(observer_route) > len(worker_route)
     assert all(2 <= point.x <= 98 and 2 <= point.y <= 98 for point in observer_route)
 

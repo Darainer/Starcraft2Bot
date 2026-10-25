@@ -26,6 +26,8 @@ def bot():
     bot.state = SimpleNamespace(game_loop=224, chat=[], action_errors=[], upgrades=set())
     bot.state.psionic_matrix = SimpleNamespace(covers=lambda point: True)
     bot.game_info = SimpleNamespace(player_start_location=Point2((0, 0)), map_center=Point2((40, 40)))
+    bot.game_info.start_locations = [Point2((100, 100))]
+    bot._expansion_positions_list = [Point2((30, 0)), Point2((80, 80))]
     bot.player_id = 1
     bot.race = Race.Protoss
     bot._distances_override_functions(0)
@@ -56,7 +58,19 @@ def bot():
         U.HIGHTEMPLAR: (50, 150, 2),
     }
     units = []
-    kinds = set(creation) | {U.MARINE, U.GHOST, U.MINERALFIELD, U.VESPENEGEYSER, U.WARPGATE}
+    kinds = set(creation) | {
+        U.MARINE,
+        U.GHOST,
+        U.MINERALFIELD,
+        U.VESPENEGEYSER,
+        U.WARPGATE,
+        U.BUNKER,
+        U.MUTALISK,
+        U.SIEGETANK,
+        U.ZERGLING,
+        U.ROACH,
+        U.PHOTONCANNON,
+    }
     for kind in kinds:
         m, g, supply = costs.get(kind, (100, 100, 2))
         units.append(
@@ -76,10 +90,11 @@ def bot():
         data_pb2.UpgradeData(
             upgrade_id=upgrade.value, ability_id=info["ability"].value, mineral_cost=100, vespene_cost=100
         )
-        for kind in (U.FORGE, U.TEMPLARARCHIVE, U.TWILIGHTCOUNCIL, U.CYBERNETICSCORE)
+        for kind in (U.FORGE, U.TEMPLARARCHIVE, U.TWILIGHTCOUNCIL, U.CYBERNETICSCORE, U.ROBOTICSBAY)
         for upgrade, info in RESEARCH_INFO[kind].items()
     ]
     bot.game_data = GameData(sc2api_pb2.ResponseData(abilities=abilities, units=units, upgrades=upgrades))
+    bot.unit_supplies = {U(kind): data._proto.food_required for kind, data in bot.game_data.units.items()}
     bot.minerals, bot.vespene, bot.supply_left = 1000, 1000, 20
     return bot
 
@@ -127,6 +142,8 @@ def populate(bot):
             U.ROBOTICSBAY,
             U.STARGATE,
             U.FORGE,
+            U.BUNKER,
+            U.PHOTONCANNON,
         }
         own = [u for u in units if u.is_mine]
         bot.all_own_units = Units(own, bot)
@@ -135,7 +152,8 @@ def populate(bot):
         bot.workers = bot.units(U.PROBE)
         bot.townhalls = bot.structures(U.NEXUS)
         bot.gas_buildings = bot.structures(U.ASSIMILATOR)
-        bot.enemy_units = Units([u for u in units if u.is_enemy], bot)
+        bot.enemy_units = Units([u for u in units if u.is_enemy and u.type_id not in structures], bot)
+        bot.enemy_structures = Units([u for u in units if u.is_enemy and u.type_id in structures], bot)
         bot.mineral_field = Units([u for u in units if u.type_id == U.MINERALFIELD], bot)
         bot.vespene_geyser = Units([u for u in units if u.type_id == U.VESPENEGEYSER], bot)
 

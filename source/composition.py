@@ -32,4 +32,15 @@ def composition_targets(bot):
 
 
 def production_target(bot, name):
+    plan = getattr(bot, "strategic_plan", None)
+    if (
+        plan is not None
+        and plan.expires_at > bot.time
+        and bot.settings.enabled
+        and bot.settings.attack
+        and bot.settings.adaptive_composition
+    ):
+        targets = dict(plan.production)
+        if name in targets:
+            return targets[name]
     return composition_targets(bot).get(name, getattr(bot.settings, name))

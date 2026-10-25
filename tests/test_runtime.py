@@ -299,6 +299,7 @@ def test_runtime_bot_milestones_and_errors(monkeypatch, installation, tmp_path):
     report = runtime.RuntimeReport(tmp_path / "report.json", installation)
     bot = runtime.RuntimeAssistant(AssistantSettings(enabled=False), report)
     bot.client = SimpleNamespace()
+    bot.game_data = SimpleNamespace(units={})
     bot.chat_send = AsyncMock()
     bot.state = SimpleNamespace(game_loop=224)
     monkeypatch.setattr(EconomyAssistant, "on_start", AsyncMock())

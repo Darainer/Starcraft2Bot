@@ -138,6 +138,8 @@ def audit_commands(data, game_data):
         UpgradeId.PSISTORMTECH,
         UpgradeId.BLINKTECH,
         UpgradeId.WARPGATERESEARCH,
+        UpgradeId.CHARGE,
+        UpgradeId.EXTENDEDTHERMALLANCE,
         *GROUND_UPGRADES,
         *AIR_UPGRADES,
     }
@@ -505,6 +507,13 @@ class RuntimeAssistant(EconomyAssistant):
         self._last_tactical_snapshot = float("-inf")
         self.tactics = TacticalController()
         self._last_micro = float("-inf")
+        self._last_tactics = float("-inf")
+        self._last_decision = None
+        self._last_scouting = {}
+        self._last_script_context = float("-inf")
+        self._script_observation = None
+        self._script_abilities = {}
+        self._tactical_ms = 0.0
         self._micro_decisions = []
         self.scouting = ScoutController()
         self.reinforcement = WarpReinforcement()
@@ -519,6 +528,9 @@ class RuntimeAssistant(EconomyAssistant):
                 if not audit["ok"]:
                     failures = [c["command"] for c in audit["commands"] if not c["ok"]]
                     raise RuntimeError("Command compatibility failed: " + ", ".join(failures))
+            self.unit_supplies = {
+                UnitTypeId(kind): data._proto.food_required for kind, data in self.game_data.units.items()
+            }
             wire = getattr(self.client, "game_data_wire", None)
             if wire is not None:
                 metadata = self.report.path.with_suffix(".game-data.pb")
@@ -542,6 +554,30 @@ class RuntimeAssistant(EconomyAssistant):
         except Exception as exc:
             self.report.update(bot_error=f"on_start: {type(exc).__name__}: {exc}")
             raise
+
+    async def on_tactical_step(self):
+        observation = getattr(self.state, "response_observation", None)
+        if observation is None:
+            return
+        started = time.perf_counter()
+        changed = getattr(self, "_tactical_settings", None) != asdict(self.settings)
+        self._tactical_settings = asdict(self.settings)
+        if self.time - self._last_tactics >= 1 or changed:
+            self._last_tactics = self.time
+            self._last_scouting = self.scouting.tick(self)
+            if self.settings.strategy_script and self.time - self._last_script_context >= 5:
+                self._last_script_context = self.time
+                self._script_observation = MessageToDict(observation, preserving_proto_field_name=True)
+                query = getattr(getattr(self, "client", None), "available_ability_snapshot", None)
+                self._script_abilities = await query(self.all_own_units) if query is not None else {}
+            self._last_decision = self.tactics.tick(
+                self, observation=self._script_observation, available_abilities=self._script_abilities
+            )
+        if self.time - self._last_micro >= 0.125:
+            self._last_micro = self.time
+            self._micro_decisions.extend(self.tactics.micro(self))
+            self._micro_decisions = self._micro_decisions[-512:]
+        self._tactical_ms = round((time.perf_counter() - started) * 1000, 3)
 
     async def on_step(self, iteration):
         try:
@@ -570,12 +606,14 @@ class RuntimeAssistant(EconomyAssistant):
             if observation is not None and now - self._last_tactical_snapshot >= 5:
                 self._last_tactical_snapshot = now
                 observed = MessageToDict(observation, preserving_proto_field_name=True)
-                scouting = self.scouting.tick(self)
+                if self._last_decision is None:
+                    await self.on_tactical_step()
                 abilities = {}
                 query = getattr(getattr(self, "client", None), "available_ability_snapshot", None)
                 if query is not None:
                     abilities = await query(getattr(self, "all_own_units", ()))
-                decision = self.tactics.tick(self, observation=observed, available_abilities=abilities)
+                decision = dict(self._last_decision)
+                decision["controller_ms"] = self._tactical_ms
                 decision["micro_since_last_sample"] = self._micro_decisions
                 self._micro_decisions = []
                 snapshot = {
@@ -592,7 +630,7 @@ class RuntimeAssistant(EconomyAssistant):
                     "settings": asdict(self.settings),
                     "released_unit_tags": sorted(self.control.released),
                     "observed_action_rejections": dict(self.action_rejections),
-                    "scouting": scouting,
+                    "scouting": self._last_scouting,
                     "reinforcement": self.reinforcement.last_report,
                 }
                 destination = self.report.path.with_suffix(".state.jsonl")
@@ -605,9 +643,6 @@ class RuntimeAssistant(EconomyAssistant):
                     strategy_reason=decision["reason"],
                     automation_paused=not self.settings.enabled,
                 )
-            if observation is not None and now - self._last_micro >= 0.5:
-                self._last_micro = now
-                self._micro_decisions.extend(self.tactics.micro(self))
             if not self._reported_observation:
                 self.report.update(phase="observing", first_game_loop=self.state.game_loop)
                 self._reported_observation = True
