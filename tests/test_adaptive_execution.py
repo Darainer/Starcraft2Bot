@@ -273,3 +273,20 @@ def test_micro_kites_and_resumes_fire_without_extra_spells(bot, make_unit, popul
     populate(moved, enemy)
     bot._used.clear()
     assert controller.micro(bot)[0]["action"] == "resume_attack"
+
+
+def test_assembly_does_not_cancel_local_fire_but_manual_regroup_does(bot, make_unit, populate):
+    setup_army(bot, make_unit, populate, count=4)
+    own = list(bot.all_own_units)
+    enemy = make_unit(U.MARINE, (12, 10), alliance=4)
+    populate(*own, enemy)
+    controller = TacticalController()
+    controller.tick(bot)
+    assert not bot.actions
+    assert controller.micro(bot)
+    bot.actions.clear()
+    bot._used.clear()
+    bot.settings.strategy = "regroup"
+    controller.tick(bot)
+    assert bot.actions and all(action.ability in {A.MOVE, A.MOVE_MOVE} for action in bot.actions)
+    assert controller.micro(bot) == []

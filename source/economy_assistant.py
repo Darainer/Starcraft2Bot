@@ -368,6 +368,7 @@ class EconomyAssistant(BotAI):
             if await self.build_supply_pylons(anchors, pylon_target):
                 return
             if not self.already_pending(U.PYLON) and not self.affordable(U.PYLON):
+                self._macro_reserve = self.calculate_cost(U.PYLON).minerals
                 return  # Save for supply instead of repeatedly spending on probes.
         if s.construction:
             for kind, prerequisite in ((U.GATEWAY, U.PYLON), (U.CYBERNETICSCORE, U.GATEWAY)):
@@ -377,6 +378,7 @@ class EconomyAssistant(BotAI):
                     and not self.already_pending(kind)
                     and self.structures(prerequisite).ready
                 ):
+                    self._macro_reserve = self.calculate_cost(kind).minerals
                     pylons = self.structures(U.PYLON).ready
                     if pylons and await self.build_structure(kind, pylons.closest_to(home).position):
                         return

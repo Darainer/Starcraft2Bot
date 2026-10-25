@@ -243,3 +243,22 @@ def test_async_policy_timeout_error_and_revocation(assessment):
         assert broken.last_error == "bad backend"
 
     asyncio.run(scenario())
+
+
+def test_async_plan_rejected_after_material_threat_or_missing_target(assessment):
+    async def scenario():
+        class Backend:
+            async def propose(self, state):
+                return StrategicDirector().decide(state)
+
+        policy = DeferredPolicy(Backend())
+        for state in (
+            replace(assessment, threat_supply=20, threat=(4, 4)),
+            replace(assessment, targets=()),
+            replace(assessment, profile="air"),
+        ):
+            policy.request(assessment)
+            await policy.pending
+            assert policy.poll(state) is None and policy.last_error
+
+    asyncio.run(scenario())

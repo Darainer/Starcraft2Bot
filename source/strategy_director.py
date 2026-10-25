@@ -69,6 +69,7 @@ class DeferredPolicy:
         self.max_requests = max_requests
         self.requests = 0
         self.pending = None
+        self.requested_state = None
         self.last_error = None
 
     def request(self, state):
@@ -78,6 +79,7 @@ class DeferredPolicy:
             self.last_error = "Request budget exhausted"
             return False
         self.requests += 1
+        self.requested_state = state
         self.pending = asyncio.create_task(self._propose(state))
         return True
 
@@ -95,7 +97,16 @@ class DeferredPolicy:
             return None
         task, self.pending = self.pending, None
         try:
-            result = validate_plan(task.result(), state)
+            proposal = task.result()
+            origin = self.requested_state
+            if (
+                state.profile != origin.profile
+                or state.threat_supply > max(origin.threat_supply * 1.5, origin.threat_supply + 4)
+                or (state.trade_bad and not origin.trade_bad)
+                or state.army_supply < origin.army_supply * 0.7
+            ):
+                raise ValueError("Assessment superseded by a material event")
+            result = validate_plan(proposal, state)
         except (Exception, asyncio.CancelledError) as exc:
             self.last_error = str(exc) or "Request cancelled"
             return None

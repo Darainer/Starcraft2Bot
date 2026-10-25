@@ -72,9 +72,11 @@ class TacticalController:
         self._script_plan = None
         self._last_director = -999
         self._signature = None
+        self._micro_allowed = True
 
     def tick(self, bot, observation=None, available_abilities=None):
         self.active_mode = "manual"
+        self._micro_allowed = False
         if not bot.settings.enabled or not bot.settings.attack:
             self.missions.reset()
             self.waves.reset()
@@ -229,7 +231,10 @@ class TacticalController:
             )
         bot.strategic_plan = plan
         bot.economic_emergency = requested == "auto" and state.threat_supply >= 8
-        result = self.missions.execute(bot, army, plan, state, self.waves)
+        self._micro_allowed = requested not in {"retreat", "regroup"}
+        result = self.missions.execute(
+            bot, army, plan, state, self.waves, preserve_combat=self._micro_allowed
+        )
         for event in result["events"]:
             if event["time"] == bot.time and event["result"] == "unfavorable_fight":
                 self.director.report_failure(event["target_id"], bot.time)
@@ -257,6 +262,7 @@ class TacticalController:
         if (
             not bot.settings.enabled
             or not bot.settings.attack
+            or not self._micro_allowed
             or bot.settings.strategy in {"retreat", "regroup"}
         ):
             return []

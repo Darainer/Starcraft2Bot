@@ -23,7 +23,7 @@ class MissionPlanner:
         self.executor.assign({})
         self.sweep.active = False
 
-    def execute(self, bot, army, plan, state, waves):
+    def execute(self, bot, army, plan, state, waves, preserve_combat=True):
         available = army.filter(bot.control.eligible)
         contacts = visible_threats(bot)
         remaining = set(available.tags)
@@ -161,10 +161,14 @@ class MissionPlanner:
             unit = available.find_by_tag(tag)
             if unit is None:
                 continue
-            if unit.health + unit.shield < (unit.health_max + unit.shield_max) * 0.25:
+            critical = unit.health + unit.shield < (unit.health_max + unit.shield_max) * 0.25
+            if critical:
                 mode, target = "move", Point2(state.home)
             # Preserve weapon execution between tactical updates.
-            if mode == "attack" and any(unit.target_in_range(enemy) for enemy in contacts):
+            fighting = mode == "attack" or (
+                preserve_combat and not critical and not assignments[tag].endswith(":True")
+            )
+            if fighting and any(unit.target_in_range(enemy) for enemy in contacts):
                 continue
             intent = ActionIntent(
                 tag,

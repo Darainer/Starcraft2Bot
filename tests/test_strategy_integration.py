@@ -122,6 +122,15 @@ def test_reserved_expansion_money_cannot_be_spent_on_warpin(bot, make_unit, popu
     assert bot.actions and bot.minerals == 400
 
 
+def test_critical_supply_reservation_blocks_cheap_warpin(bot, make_unit, populate):
+    populate(make_unit(U.NEXUS), make_unit(U.PROBE), make_unit(U.WARPGATE), make_unit(U.PYLON))
+    bot.control.command("!assist economy off")
+    bot.settings.attack = bot.settings.supply = True
+    bot.minerals, bot.supply_cap, bot.supply_left = 75, 40, 4
+    asyncio.run(bot.macro())
+    assert bot._macro_reserve == 100 and not bot.actions
+
+
 def test_prism_can_escape_even_when_macro_spends(bot, make_unit, populate):
     prism = make_unit(U.WARPPRISM, (50, 50), is_flying=True, health=10, shield=0)
     populate(prism)
