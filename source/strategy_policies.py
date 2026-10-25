@@ -19,8 +19,12 @@ def candidates(state: Assessment, continuing=False):
     result = [Candidate("develop", "rally", 10, "Assemble, scout, and develop sustainable production")]
     if state.threat_supply:
         result.append(Candidate("stabilize", "threat", 100, "Protect a threatened base"))
+    elif state.rush_warning:
+        result.append(Candidate("stabilize", "rally", 100, "Prepare defenders for scouted early aggression"))
     if state.health < policy["retreat_health"] or state.local_advantage < 0.85 or state.trade_bad:
         result.append(Candidate("recover", "home", 120, "Recover from an unfavorable engagement"))
+    if state.rush_warning:
+        return result
     threshold = max(8, policy["continue_supply"]) if continuing else max(16, policy["attack_supply"])
     if state.army_supply < threshold or state.army_count < (4 if continuing else 6):
         return result
@@ -62,6 +66,8 @@ def compose(state, choice, plan_id, ranked):
     # and the allocated response can each do useful work.
     split = (
         defending
+        and not state.rush_warning
+        and state.threat_supply > 0
         and state.threat_supply <= min(12, remaining * 0.2)
         and remaining >= 40
         and state.home_advantage >= 1.2
@@ -119,7 +125,7 @@ def compose(state, choice, plan_id, ranked):
         objective,
         tuple(missions),
         state.production,
-        not state.threat_supply and objective != "recover",
+        not state.threat_supply and not state.rush_warning and objective != "recover",
         choice.reason,
         tuple((f"{c.objective}:{c.target_id}", round(c.score, 2)) for c in ranked),
     )

@@ -47,6 +47,16 @@ def test_pressure_and_denial_share_budget(assessment):
     assert plan.expand
 
 
+def test_rush_warning_interrupts_expansion_pressure_without_invalid_defense_target(assessment):
+    director = StrategicDirector()
+    assert director.decide(assessment).objective == "pressure"
+    state = replace(assessment, time=101, rush_warning=True)
+    plan = director.decide(state)
+    assert plan.objective == "stabilize" and not plan.expand
+    assert len(plan.missions) == 1 and plan.missions[0].target_id == "rally"
+    assert validate_plan(plan, state) is plan
+
+
 @pytest.mark.parametrize(
     "change,objective",
     [

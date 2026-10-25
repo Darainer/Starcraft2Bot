@@ -2,7 +2,51 @@ from sc2.ids.unit_typeid import UnitTypeId as U
 from sc2.position import Point2
 from sc2.units import Units
 
+from source.game_assessment import GameAssessment
 from source.scouting import ScoutController
+from source.strategy_director import StrategicDirector
+
+
+def test_early_approach_warns_before_home_contact_and_expires(bot, make_unit, populate):
+    populate(make_unit(U.NEXUS))
+    bot.state.game_loop = 2240
+    bot.enemy_units = Units([make_unit(U.STALKER, (50 + i, 0), alliance=4) for i in range(2)], bot)
+    scout = ScoutController()
+    scout.tick(bot)
+    state = GameAssessment().observe(bot, bot.units)
+    assert state.rush_warning and state.threat_supply == 0
+    plan = StrategicDirector().decide(state)
+    assert plan.objective == "stabilize" and not plan.expand
+    assert plan.missions[-1].target_id == "rally"
+    bot.enemy_units = Units([], bot)
+    bot.state.game_loop = 2912  # 130s: temporary loss of vision preserves warning.
+    scout.tick(bot)
+    assert bot.scout_report["rush_warning"]["active"]
+    bot.state.game_loop = 3584  # 160s: no fresh evidence, warning expires.
+    scout.tick(bot)
+    assert not GameAssessment().observe(bot, bot.units).rush_warning
+
+
+def test_early_production_and_proxy_are_evidence_but_fog_is_not(bot, make_unit, populate):
+    populate(make_unit(U.NEXUS))
+    bot.state.game_loop = 2240
+    gates = [make_unit(U.GATEWAY, (90 + i, 90), alliance=4) for i in range(2)]
+    bot.enemy_structures = Units(gates, bot)
+    scout = ScoutController()
+    scout.tick(bot)
+    assert "production" in bot.scout_report["rush_warning"]["reason"]
+    bot.scout_report.clear()
+    gates[1] = make_unit(U.GATEWAY, (91, 90), alliance=4, display_type=2)
+    bot.enemy_structures = Units(gates, bot)  # Fresh SDK observation of a snapshot in fog.
+    scout.tick(bot)
+    assert not bot.scout_report["rush_warning"]["active"]
+    bot.enemy_structures = Units([make_unit(U.BUNKER, (35, 0), alliance=4)], bot)
+    scout.tick(bot)
+    assert bot.scout_report["rush_warning"]["active"]
+    bot.scout_report.clear()
+    bot.state.game_loop = 8960  # 400s: ordinary later pressure is not an opening warning.
+    scout.tick(bot)
+    assert not bot.scout_report["rush_warning"]["active"]
 
 
 def test_routes_screen_bases_clamp_and_include_enemy_expansions(bot, make_unit, populate):

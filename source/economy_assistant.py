@@ -248,17 +248,25 @@ class EconomyAssistant(BotAI):
         gases = self.gas_buildings.ready.filter(
             lambda gas: gas.vespene_contents > 0 and self.safe_at(gas.position)
         )
-        gas_target = 0 if self.vespene > max(500, self.minerals * 1.5) else 3
-        gas_need = {
-            gas.tag: max(0, min(gas_target, gas.ideal_harvesters) - gas.assigned_harvesters) for gas in gases
-        }
+        # A worker loss must not leave the surviving economy entirely on gas.
+        # Reserve mineral income for replacement probes/buildings immediately,
+        # rather than waiting for the stockpile threshold to release gas workers.
+        mineral_floor = max(8, math.ceil(len(self.workers) * 0.6))
+        gas_budget = max(0, len(self.workers) - mineral_floor)
+        if self.vespene > max(500, self.minerals * 1.5):
+            gas_budget = 0
+        gas_targets = {}
+        for gas in gases.sorted_by_distance_to(bases.closest_to(self.start_location)):
+            gas_targets[gas.tag] = min(3, gas.ideal_harvesters, gas_budget)
+            gas_budget -= gas_targets[gas.tag]
+        gas_need = {gas.tag: max(0, gas_targets[gas.tag] - gas.assigned_harvesters) for gas in gases}
         base_need = {base.tag: max(0, base.ideal_harvesters - base.assigned_harvesters) for base in bases}
         excess = {
             unit.tag: max(0, unit.assigned_harvesters - unit.ideal_harvesters)
             for unit in self.townhalls.ready | self.gas_buildings.ready
         }
         for gas in gases:
-            excess[gas.tag] = max(0, gas.assigned_harvesters - gas_target)
+            excess[gas.tag] = max(0, gas.assigned_harvesters - gas_targets[gas.tag])
         for worker in self.workers:
             if not self.available(worker) or not (worker.is_idle or worker.is_gathering):
                 continue
@@ -301,7 +309,7 @@ class EconomyAssistant(BotAI):
                     None,
                 )
                 # Idle workers should still mine if every safe base is saturated.
-                if base is None and (worker.is_idle or (origin in gas_need and gas_target == 0)):
+                if base is None and (worker.is_idle or (origin in gas_need and excess.get(origin, 0) > 0)):
                     base = bases.closest_to(worker)
                 minerals = self.mineral_field.closer_than(10, base) if base else []
                 if not minerals:
@@ -477,6 +485,9 @@ class EconomyAssistant(BotAI):
         targets = composition_targets(self)
         bases = self.townhalls.ready.amount
         gateway_target = min(10, max(1, 2 * bases - 1) + int(self.minerals >= 700))
+        opening_defense = army_only and self.time < 360 and self.supply_army < 12
+        if opening_defense:
+            gateway_target = max(2, gateway_target)
         pylons = self.structures(U.PYLON).ready.filter(lambda p: self.safe_at(p.position))
         if not pylons:
             return False
@@ -514,7 +525,12 @@ class EconomyAssistant(BotAI):
                 U.STARGATE,
             ),
         ]
+        if opening_defense:
+            # Add affordable parallel defenders before new expensive tech.
+            plan.insert(2, (U.GATEWAY, gateway_target, U.CYBERNETICSCORE))
         for kind, target, prerequisite in plan:
+            if opening_defense and kind in {U.ROBOTICSFACILITY, U.STARGATE}:
+                continue
             if army_only and kind not in {U.GATEWAY, U.ROBOTICSFACILITY, U.STARGATE}:
                 continue
             count = self.structures(kind).amount
@@ -552,6 +568,7 @@ class EconomyAssistant(BotAI):
                 for kind in kinds
                 if (kind != U.WARPPRISM or (self.settings.attack and self.settings.warp_reinforcement))
                 and (kind != U.OBSERVER or self.settings.scouting)
+                and not (self.economic_emergency and kind == U.WARPPRISM and self.supply_army < 20)
                 and production_target(self, PRODUCTION_TARGETS[kind]) > 0
                 and self.units(kind).amount
                 + self.already_pending(kind)

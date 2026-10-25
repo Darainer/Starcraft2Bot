@@ -152,6 +152,7 @@ class TacticalController:
             signature = (
                 bot.settings.profile,
                 bool(state.threat_supply),
+                state.rush_warning,
                 state.trade_bad,
                 state.local_advantage < 0.85,
                 state.health < PROFILES[bot.settings.profile]["retreat_health"],
@@ -230,7 +231,7 @@ class TacticalController:
                 script_metadata.get("reason", "Manually selected strategy"),
             )
         bot.strategic_plan = plan
-        bot.economic_emergency = requested == "auto" and state.threat_supply >= 8
+        bot.economic_emergency = requested == "auto" and (state.threat_supply >= 8 or state.rush_warning)
         self._micro_allowed = requested not in {"retreat", "regroup"}
         result = self.missions.execute(
             bot, army, plan, state, self.waves, preserve_combat=self._micro_allowed

@@ -190,4 +190,5 @@ class GameAssessment:
             kills >= max(800, loss * 3)
             and bot.time - bot.scout_report.get("last_seen_seconds", -999) <= 10
             and bot.scout_report.get("composition_intel", {}).get("supply", 999) < army_supply * 0.2,
+            rush_warning=bot.time < bot.scout_report.get("rush_warning", {}).get("expires_at", 0),
         )

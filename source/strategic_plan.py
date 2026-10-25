@@ -49,6 +49,7 @@ class Assessment:
     recently_defended: bool = False
     timing_ready: bool = False
     cleanup_ready: bool = False
+    rush_warning: bool = False
 
     def to_dict(self):
         return asdict(self)

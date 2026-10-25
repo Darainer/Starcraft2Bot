@@ -231,3 +231,37 @@ The user explicitly allowed the working windowed setup.
 Eight loops are approximately 0.357 game seconds per observation. They improve
 resolution over 32/64-loop trials but cannot verify the 0.125-second micro cadence.
 Human input acceptance remains separate. All reports and replays stay local.
+
+## Interrupted fixed matrix: rush recovery defect
+
+The first fixed matrix (`runtime-20261025-212452-459593`) completed six games:
+three Terran Rush defeats at 705.4 sampled seconds and three Terran Timing
+victories at 830.4 seconds. Starting fingerprints match within each triplet;
+there were no runtime failures. The scheduler was stopped while Timing ran,
+and its children finished normally. The six summaries are preserved separately
+in local `logs/expansion-matrix-interrupted.json`; this is not a completed matrix.
+
+Rush exposed a reproducible economy deadlock after worker losses: three remaining
+Probes all mined gas while minerals stayed at 15 from roughly 300 to 450 seconds.
+The old allocation waited for gas to exceed 500 before releasing them. Construction
+was working in the opening and Timing games; the starvation was specific to
+worker recovery. Allocation now reserves at least eight workers, or 60% of the
+surviving workforce, for minerals before assigning the remainder to gas. When
+fewer than eight survive, all available miners return to minerals.
+
+Scouting now records short-lived opening warnings from visible approaching combat
+forces, nearby proxy production/defenses, or multiple early production structures.
+Fog snapshots cannot refresh that evidence. Warnings prepare defenders and defer
+expansion; they expire without fresh sightings. Emergency opening construction
+adds a second Gateway before new Robotics/Stargate tech, and small defensive
+armies defer Warp Prisms. Expansion inspections and target selection are retained.
+The opponent's configured build is never an input to these decisions.
+
+The replacement matrix starts with three concurrent Terran Rush games, then tries
+five concurrent clients for the remaining scenarios, as requested. Every scenario
+still has three identical seeded repeats. Gameplay stays frozen across both
+scheduling modes. Results and live confirmation of the fixes are pending.
+
+The recovery and early-warning revision passed 301 tests with 92.01% combined
+statement/branch coverage, locked dependency sync, Ruff lint/formatting, mypy,
+and wheel/sdist build before live launch.

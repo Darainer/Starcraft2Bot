@@ -27,6 +27,37 @@ class ScoutController:
         self.observer_blocked = {}
         self.observer_goal = None
 
+    def _rush_warning(self, bot, combat, buildings, report):
+        """Short-lived opening alerts from visible evidence, never opponent settings."""
+        homes = [base.position for base in bot.townhalls.ready] or [bot.start_location]
+        approaching = combat.filter(lambda u: any(u.distance_to(home) < 60 for home in homes))
+        supply = sum(observed_supply(bot, unit) for unit in approaching)
+        production = buildings.filter(lambda u: u.type_id in {U.BARRACKS, U.GATEWAY, U.WARPGATE})
+        proxy = buildings.filter(
+            lambda u: (
+                u.type_id in {U.BARRACKS, U.GATEWAY, U.BUNKER, U.PHOTONCANNON, U.SPINECRAWLER}
+                and any(u.distance_to(home) < 45 for home in homes)
+            )
+        )
+        reason = None
+        if bot.time < 300 and supply >= 4:
+            reason = "Early combat force on our approaches"
+        elif bot.time < 300 and proxy:
+            reason = "Forward enemy production or static defense near home"
+        elif bot.time < 150 and len(production) >= 2:
+            reason = "Multiple early enemy production structures"
+        warning = report.get("rush_warning", {})
+        if reason:
+            warning = {
+                "reason": reason,
+                "seen_seconds": bot.time,
+                "expires_at": min(360, bot.time + (40 if supply >= 4 else 90)),
+                "approaching_supply": supply,
+                "evidence_tags": [str(u.tag) for u in (approaching if supply >= 4 else proxy or production)],
+            }
+        warning["active"] = bot.time < warning.get("expires_at", 0)
+        report["rush_warning"] = warning
+
     def _update_expansion_sites(self, bot):
         bases = bot.enemy_structures.filter(lambda u: u.is_visible and u.type_id in BASE_TYPES)
         sites = expansion_sites(bot)
@@ -193,6 +224,7 @@ class ScoutController:
         enemy_force = enemies.filter(lambda unit: unit.type_id not in WORKERS)
         combat = enemy_force.filter(lambda unit: unit.can_attack)
         defenses = buildings.filter(lambda unit: unit.type_id in DEFENSE_TYPES)
+        self._rush_warning(bot, combat, buildings, report)
         report["enemy_bases"] = [
             {
                 "tag": str(base.tag),
