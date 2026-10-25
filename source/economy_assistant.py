@@ -11,6 +11,7 @@ from sc2.ids.upgrade_id import UpgradeId as G
 from sc2.unit_command import UnitCommand
 
 from source.assistant_control import Control, within_budget
+from source.composition import composition_targets, production_target
 from source.layout import find_spaced_placement
 
 ARMY_TARGETS = {
@@ -86,6 +87,7 @@ class EconomyAssistant(BotAI):
         self.scout_report = {}
         self._paid_action_issued = False
         self.economic_emergency = False
+        self._last_production = -10.0
 
     @property
     def settings(self):
@@ -163,13 +165,15 @@ class EconomyAssistant(BotAI):
                 error.result,
             )
         if self.settings.enabled:
-            if self.time - self._last_macro >= 0.5:
+            if self.time - self._last_macro >= 0.25:
                 self._last_macro = self.time
                 reinforcement = getattr(self, "reinforcement", None)
-                if reinforcement is not None:
+                await self.macro()
+                if reinforcement is not None and not self._paid_action_issued:
                     await reinforcement.tick(self, self.tactics.waves)
-                if not self._paid_action_issued:
-                    await self.macro()
+            if self.settings.allocation and self.time - self._last_allocation >= 1:
+                self._last_allocation = self.time
+                await self.allocate_workers()
             await self.powers()
         if self.settings.hud and self.time - self._last_hud >= 0.5:
             self._last_hud = self.time
@@ -239,12 +243,15 @@ class EconomyAssistant(BotAI):
         gases = self.gas_buildings.ready.filter(
             lambda gas: gas.vespene_contents > 0 and self.safe_at(gas.position)
         )
-        gas_need = {gas.tag: max(0, gas.ideal_harvesters - gas.assigned_harvesters) for gas in gases}
+        gas_target = 0 if self.vespene > max(500, self.minerals * 1.5) else 3
+        gas_need = {gas.tag: max(0, min(gas_target, gas.ideal_harvesters) - gas.assigned_harvesters) for gas in gases}
         base_need = {base.tag: max(0, base.ideal_harvesters - base.assigned_harvesters) for base in bases}
         excess = {
             unit.tag: max(0, unit.assigned_harvesters - unit.ideal_harvesters)
             for unit in self.townhalls.ready | self.gas_buildings.ready
         }
+        for gas in gases:
+            excess[gas.tag] = max(0, gas.assigned_harvesters - gas_target)
         for worker in self.workers:
             if not self.available(worker) or not (worker.is_idle or worker.is_gathering):
                 continue
@@ -287,7 +294,7 @@ class EconomyAssistant(BotAI):
                     None,
                 )
                 # Idle workers should still mine if every safe base is saturated.
-                if base is None and worker.is_idle:
+                if base is None and (worker.is_idle or (origin in gas_need and gas_target == 0)):
                     base = bases.closest_to(worker)
                 minerals = self.mineral_field.closer_than(10, base) if base else []
                 if not minerals:
@@ -302,10 +309,12 @@ class EconomyAssistant(BotAI):
         s = self.settings
         bases = self.townhalls.ready
         late_game = self.time >= 900
-        base_target = min(5, max(3, s.bases) + int(late_game))
-        supply_buffer = min(40, max(20, len(bases) * 8 + self.supply_army // 8))
-        fill_supply_cap = self.townhalls.ready.amount >= 3
-        pylon_target = min(3, max(1, math.ceil((200 - self.supply_cap) / 8))) if fill_supply_cap else 1
+        base_target = s.bases
+        capacity = len(self.structures.of_type(set(PRODUCERS) | {U.WARPGATE}))
+        supply_buffer = min(20, max(4, len(bases) * 2 + capacity * 2))
+        pending_supply = 8 * self.already_pending(U.PYLON)
+        need_supply = self.supply_left + pending_supply <= supply_buffer
+        pylon_target = min(3, max(1, math.ceil((supply_buffer - self.supply_left) / 8)))
         if not bases:
             if s.expansion and not self.townhalls and self.workers:
                 await self.build_structure(U.NEXUS, self.start_location, max_distance=2)
@@ -313,7 +322,7 @@ class EconomyAssistant(BotAI):
         home = bases.closest_to(self.start_location)
         safe_bases = bases.filter(lambda base: self.safe_at(base.position))
         if not safe_bases:
-            if s.supply and self.supply_cap < 200 and (fill_supply_cap or self.supply_left <= supply_buffer):
+            if s.supply and self.supply_cap < 200 and need_supply:
                 safe_pylons = self.structures(U.PYLON).ready.filter(
                     lambda pylon: self.safe_at(pylon.position)
                 )
@@ -340,7 +349,7 @@ class EconomyAssistant(BotAI):
         if (
             s.supply
             and self.supply_cap < 200
-            and (fill_supply_cap or self.supply_left <= supply_buffer)
+            and need_supply
             and self.already_pending(U.PYLON) < pylon_target
         ):
             # Spread supply/power across bases and around existing power rather
@@ -351,12 +360,20 @@ class EconomyAssistant(BotAI):
                 return
             if not self.already_pending(U.PYLON) and not self.affordable(U.PYLON):
                 return  # Save for supply instead of repeatedly spending on probes.
+        if s.construction:
+            for kind, prerequisite in ((U.GATEWAY, U.PYLON), (U.CYBERNETICSCORE, U.GATEWAY)):
+                if not self.structures(kind) and not self.already_pending(kind) and self.structures(prerequisite).ready:
+                    pylons = self.structures(U.PYLON).ready
+                    if pylons and await self.build_structure(kind, pylons.closest_to(home).position):
+                        return
+                    if self.minerals < self.calculate_cost(kind).minerals:
+                        return
         if self.economic_emergency:
-            if s.construction and await self.construct(home, 0, army_only=True):
-                return
             if s.production and self.produce(0):
                 return
-            return
+            if s.construction and await self.construct(home, 0, army_only=True):
+                return
+            # A defensive response still needs income and gas to rebuild.
         worker_cap = min(80, s.max_workers + (12 if late_game else 0))
         worker_target = min(
             worker_cap, sum(base.ideal_harvesters for base in bases) + 3 * len(self.gas_buildings.ready)
@@ -369,7 +386,13 @@ class EconomyAssistant(BotAI):
                     and self.issue(nexus.train(U.PROBE), paid=True, supply=True)
                 ):
                     return
-        if s.gas and self.structures(U.CYBERNETICSCORE) and not self.already_pending(U.ASSIMILATOR):
+        gas_limit = min(2 * len(bases), max(1, int((self.supply_workers - 12) / 8)))
+        if (
+            s.gas and (self.structures(U.GATEWAY) or self.structures(U.CYBERNETICSCORE))
+            and len(self.gas_buildings) < gas_limit
+            and self.vespene < max(300, self.minerals)
+            and not self.already_pending(U.ASSIMILATOR)
+        ):
             for base in safe_bases:
                 for geyser in self.vespene_geyser.closer_than(10, base):
                     if geyser.vespene_contents <= 0 or self.gas_buildings.closer_than(1, geyser):
@@ -386,46 +409,31 @@ class EconomyAssistant(BotAI):
             s.expansion
             and self.townhalls.amount < base_target
             and not self.already_pending(U.NEXUS)
-            and self.supply_workers >= max(14, 12 * len(bases))
+            and not self.economic_emergency
+            and (self.structures(U.GATEWAY) or self.structures(U.CYBERNETICSCORE))
+            and self.supply_workers >= (16 if len(bases) == 1 else 20 * len(bases) - 2)
+            and (len(bases) == 1 or not s.attack or self.supply_army >= 12)
         ):
             location = await self.safe_expansion_location(home.position)
             if location and self.builder(location):
                 expansion_reserve = 400
                 if await self.build_structure(U.NEXUS, location, max_distance=2):
                     return
-        gateway_count = self.structures(U.GATEWAY).amount + self.structures(U.WARPGATE).amount
-        gateway_target = min(10, max(5, 2 * len(bases), (s.stalkers + 5) // 6))
-        warpgate_research_needed = (
-            s.attack
-            and s.warp_reinforcement
-            and G.WARPGATERESEARCH not in self.state.upgrades
-            and not self.already_pending_upgrade(G.WARPGATERESEARCH)
-        )
-        high_difficulty = getattr(self, "opponent_difficulty", "Medium") in {
-            "MediumHard",
-            "Hard",
-            "Harder",
-            "VeryHard",
-            "CheatVision",
-            "CheatMoney",
-            "CheatInsane",
-        }
-        research_capacity_ready = not high_difficulty or gateway_count >= min(5, gateway_target)
-        # Periodically give research priority over additional production buildings.
-        # Worker/supply emergencies and explicit reserves still take precedence.
+        # Keep idle production working. Reserve periodic opportunities for tech
+        # and infrastructure, rather than starving either behind the other.
+        if s.production and self.time - self._last_production >= 1 and self.produce(expansion_reserve):
+            self._last_production = self.time
+            return
         if (
-            s.upgrades
-            and (warpgate_research_needed or research_capacity_ready)
+            s.upgrades and not self.economic_emergency
             and self.time - self._last_upgrade >= 30
             and await self.upgrade(expansion_reserve)
         ):
             return
-        if s.construction and await self.construct(home, expansion_reserve):
+        if s.construction and await self.construct(home, expansion_reserve, army_only=self.economic_emergency):
             return
-        if s.upgrades and await self.upgrade(expansion_reserve):
-            return
-        if s.production and self.produce(expansion_reserve):
-            return
+        if s.production:
+            self.produce(expansion_reserve)
         # Also runs in on_step after paid actions via the separate allocation clock.
 
     async def build_supply_pylons(self, anchors, target):
@@ -438,6 +446,9 @@ class EconomyAssistant(BotAI):
 
     async def construct(self, home, reserve, army_only=False):
         s = self.settings
+        targets = composition_targets(self)
+        bases = self.townhalls.ready.amount
+        gateway_target = min(10, max(1, 2 * bases - 1) + int(self.minerals >= 700))
         pylons = self.structures(U.PYLON).ready.filter(lambda p: self.safe_at(p.position))
         if not pylons:
             return False
@@ -445,27 +456,16 @@ class EconomyAssistant(BotAI):
         plan = [
             (U.GATEWAY, 1, U.PYLON),
             (U.CYBERNETICSCORE, 1, U.GATEWAY),
-            (
-                U.GATEWAY,
-                min(10, max(5, 2 * self.townhalls.ready.amount, (s.stalkers + 5) // 6)),
-                U.CYBERNETICSCORE,
-            ),
-            (
-                U.ROBOTICSFACILITY,
-                int(s.immortals > 0 or s.colossi > 0 or (s.attack and s.warp_reinforcement))
-                + int(s.immortals + s.colossi >= 8 and self.townhalls.ready.amount >= 2),
-                U.CYBERNETICSCORE,
-            ),
-            (
-                U.FORGE,
-                int(s.upgrades) * (1 + int(self.supply_army >= 24) + int(self.supply_army >= 60)),
-                U.CYBERNETICSCORE,
-            ),
-            (U.TWILIGHTCOUNCIL, int(s.upgrades or s.blink or s.high_templar > 0), U.CYBERNETICSCORE),
-            (U.TEMPLARARCHIVE, int(s.high_templar > 0), U.TWILIGHTCOUNCIL),
-            (U.ROBOTICSBAY, int(s.colossi > 0), U.ROBOTICSFACILITY),
-            (U.STARGATE, min(3, (s.voidrays + 5) // 6, self.townhalls.ready.amount), U.CYBERNETICSCORE),
-            (U.FLEETBEACON, int(s.voidrays > 0 and s.upgrades), U.STARGATE),
+            (U.ROBOTICSFACILITY,
+             int(targets["immortals"] > 0 or targets["colossi"] > 0 or (s.attack and (s.scouting or s.warp_reinforcement)))
+             + int(targets["immortals"] + targets["colossi"] >= 8 and bases >= 3), U.CYBERNETICSCORE),
+            (U.STARGATE, min(3, (targets["voidrays"] + 5) // 6, bases), U.CYBERNETICSCORE),
+            (U.GATEWAY, gateway_target, U.CYBERNETICSCORE),
+            (U.ROBOTICSBAY, int(targets["colossi"] > 0), U.ROBOTICSFACILITY),
+            (U.TWILIGHTCOUNCIL, int(s.blink or targets["high_templar"] > 0 or (s.upgrades and self.supply_army >= 20)), U.CYBERNETICSCORE),
+            (U.TEMPLARARCHIVE, int(targets["high_templar"] > 0), U.TWILIGHTCOUNCIL),
+            (U.FORGE, int(s.upgrades and self.supply_army >= 12) * (1 + int(self.supply_army >= 60)), U.CYBERNETICSCORE),
+            (U.FLEETBEACON, int(targets["voidrays"] > 0 and s.upgrades and self.supply_army >= 60), U.STARGATE),
         ]
         for kind, target, prerequisite in plan:
             if army_only and kind not in {U.GATEWAY, U.ROBOTICSFACILITY, U.STARGATE}:
@@ -505,16 +505,16 @@ class EconomyAssistant(BotAI):
                 for kind in kinds
                 if (kind != U.WARPPRISM or (self.settings.attack and self.settings.warp_reinforcement))
                 and (kind != U.OBSERVER or self.settings.scouting)
-                and getattr(self.settings, PRODUCTION_TARGETS[kind]) > 0
+                and production_target(self, PRODUCTION_TARGETS[kind]) > 0
                 and self.units(kind).amount
                 + self.already_pending(kind)
                 + (self.units(U.WARPPRISMPHASING).amount if kind == U.WARPPRISM else 0)
-                < getattr(self.settings, PRODUCTION_TARGETS[kind])
+                < production_target(self, PRODUCTION_TARGETS[kind])
             ]
             candidates.sort(
                 key=lambda kind: (
                     (self.units(kind).amount + self.already_pending(kind))
-                    / getattr(self.settings, PRODUCTION_TARGETS[kind])
+                    / production_target(self, PRODUCTION_TARGETS[kind])
                 )
             )
             for building in self.structures(producer).ready.idle:
@@ -540,7 +540,11 @@ class EconomyAssistant(BotAI):
             plan.append((G.BLINKTECH, U.TWILIGHTCOUNCIL))
         if self.settings.attack and self.settings.warp_reinforcement:
             plan.append((G.WARPGATERESEARCH, U.CYBERNETICSCORE))
-        if self.settings.voidrays:
+        if production_target(self, "colossi") and self.units(U.COLOSSUS):
+            plan.append((G.EXTENDEDTHERMALLANCE, U.ROBOTICSBAY))
+        if self.settings.attack and production_target(self, "zealots") >= 8 and self.units(U.ZEALOT).amount >= 4:
+            plan.append((G.CHARGE, U.TWILIGHTCOUNCIL))
+        if production_target(self, "voidrays"):
             plan += [(upgrade, U.CYBERNETICSCORE) for upgrade in AIR_UPGRADES]
         plan += [(upgrade, U.FORGE) for upgrade in GROUND_UPGRADES]
         for upgrade, kind in plan:

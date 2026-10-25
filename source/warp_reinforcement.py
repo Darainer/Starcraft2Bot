@@ -6,6 +6,8 @@ from sc2.ids.ability_id import AbilityId as A
 from sc2.ids.unit_typeid import UnitTypeId as U
 from sc2.ids.upgrade_id import UpgradeId as G
 
+from source.composition import production_target
+
 WARP_UNITS = {
     U.STALKER: (A.WARPGATETRAIN_STALKER, "stalkers"),
     U.ZEALOT: (A.WARPGATETRAIN_ZEALOT, "zealots"),
@@ -50,7 +52,7 @@ class WarpReinforcement:
         return next((point for point, valid in zip(points, allowed, strict=False) if valid), None)
 
     async def tick(self, bot, waves):
-        if not bot.settings.attack or not bot.settings.warp_reinforcement:
+        if not bot.settings.enabled or not bot.settings.attack or not bot.settings.warp_reinforcement:
             self.last_report = {"phase": "disabled"}
             return
         if G.WARPGATERESEARCH not in bot.state.upgrades:
@@ -141,7 +143,7 @@ class WarpReinforcement:
             else:
                 preferred = (U.ZEALOT, U.STALKER)
             defense_kind = next(
-                (kind for kind in preferred if getattr(bot.settings, WARP_UNITS[kind][1]) > 0),
+                (kind for kind in preferred if production_target(bot, WARP_UNITS[kind][1]) > 0),
                 None,
             )
         self.last_report = {
@@ -159,18 +161,18 @@ class WarpReinforcement:
             else None,
             "defense_warp_in_skipped": bool(defense_threat is not None and not defense_anchor_available),
         }
-        if anchor is None or bot.supply_left < 6:
+        if anchor is None or bot.supply_left < 2 or not bot.settings.production:
             return
         choices = [
             kind
             for kind, (_, setting) in WARP_UNITS.items()
-            if getattr(bot.settings, setting) > 0
-            and bot.units(kind).amount + bot.already_pending(kind) < getattr(bot.settings, setting)
+            if production_target(bot, setting) > 0
+            and bot.units(kind).amount + bot.already_pending(kind) < production_target(bot, setting)
         ]
         choices.sort(
             key=lambda kind: (
                 (bot.units(kind).amount + bot.already_pending(kind))
-                / getattr(bot.settings, WARP_UNITS[kind][1])
+                / production_target(bot, WARP_UNITS[kind][1])
             )
         )
         if (
@@ -178,7 +180,7 @@ class WarpReinforcement:
             and defense_anchor_available
             and self.defense_supply_queued < defense_limit
             and defense_kind in WARP_UNITS
-            and getattr(bot.settings, WARP_UNITS[defense_kind][1]) > 0
+            and production_target(bot, WARP_UNITS[defense_kind][1]) > 0
         ):
             choices = [defense_kind]
         for gate in bot.structures(U.WARPGATE).ready.idle:

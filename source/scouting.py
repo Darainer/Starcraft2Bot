@@ -3,6 +3,8 @@
 from sc2.ids.unit_typeid import UnitTypeId as U
 from sc2.position import Point2
 
+from source.combat_assessment import home_threats
+from source.composition import composition_targets
 from source.endgame_sweep import BASE_TYPES, DEFENSE_TYPES
 
 WORKERS = {U.PROBE, U.SCV, U.DRONE}
@@ -14,12 +16,22 @@ class ScoutController:
         self.last_assignment = -120
         self.worker_route_index = 0
         self.observer_route_index = 0
+        self.unit_memory = {}
+        self.base_memory = {}
+        self.tech_memory = {}
+        self.opening_complete = False
+        self.returning = False
 
     def _observer_route(self, bot):
         return self._patrol_route(bot, include_enemy_expansions=True)
 
     def _worker_route(self, bot):
-        return self._patrol_route(bot, include_enemy_expansions=False)
+        if not bot.enemy_start_locations:
+            return []
+        enemy = bot.enemy_start_locations[0]
+        sites = sorted(bot.expansion_locations_list, key=enemy.distance_to)
+        natural = next((site for site in sites if site.distance_to(enemy) > 8), None)
+        return ([natural] if natural is not None else []) + [enemy]
 
     def _patrol_route(self, bot, include_enemy_expansions):
         enemy = bot.enemy_start_locations[0] if bot.enemy_start_locations else bot.game_info.map_center
@@ -42,7 +54,7 @@ class ScoutController:
             )
             for site in sites:
                 if all(site.distance_to(base) > 12 for base in own_bases):
-                    points.append(site)
+                    points.insert(0, site)
             points.append(enemy)
 
         area = getattr(bot.game_info, "playable_area", None)
@@ -90,7 +102,7 @@ class ScoutController:
             target = route[self.observer_route_index]
             phase = "patrolling_approach"
 
-        if observer.is_idle or not observer.orders or observer.distance_to(target) > 6:
+        if not isinstance(observer.order_target, Point2) or observer.order_target.distance_to(target) > 2:
             bot.issue(observer.move(target))
         return {
             "phase": phase,
@@ -186,51 +198,20 @@ class ScoutController:
             report.update(
                 enemy_seen=True,
                 last_seen_seconds=bot.time,
-                flying=sum(unit.is_flying for unit in enemies),
-                armored=sum(unit.is_armored for unit in enemies),
+                flying=sum(unit.is_flying for unit in combat),
                 enemy_units=len(enemies),
                 enemy_buildings=len(buildings),
             )
-            if bot.settings.enabled and bot.settings.attack and bot.settings.adaptive_composition:
-                total_supply = max(1, force_supply)
-                air_share = air_supply / total_supply
-                mixed_ground = armored_ground_supply >= 8 or light_ground_count >= 8
-                if air_supply >= 8 and mixed_ground:
-                    targets = {
-                        "stalkers": 48 if air_share >= 0.35 else 40,
-                        "voidrays": 8 if armored_air_supply >= 6 else 6,
-                        "immortals": 6 if armored_ground_supply >= 8 else 4,
-                        "colossi": 2,
-                    }
-                elif air_supply >= 8:
-                    targets = {
-                        "stalkers": 48 if air_share >= 0.4 else 40,
-                        "voidrays": 8 if armored_air_supply >= 6 else 6,
-                        "immortals": 4,
-                        "colossi": 2,
-                    }
-                else:
-                    targets = {
-                        "stalkers": 32
-                        if sum(unit.is_flying for unit in combat) >= 2
-                        else bot.settings.stalkers,
-                        "voidrays": bot.settings.voidrays,
-                        "immortals": 10 if armored_ground_supply >= 8 else bot.settings.immortals,
-                        "colossi": 4 if light_ground_count >= 8 else bot.settings.colossi,
-                    }
-                changes = {}
-                for name, target in targets.items():
-                    if getattr(bot.settings, name) != target:
-                        setattr(bot.settings, name, target)
-                        changes[name] = target
-                if changes:
-                    report["composition_adjustment"] = {
-                        "enemy_composition": composition,
-                        "targets": changes,
-                    }
+        self._remember(bot, combat, buildings, report)
+        bot.scout_report = report
+        targets = composition_targets(bot)
+        report["production_targets"] = targets
+        report["composition_adjustment"] = {
+            "enemy_composition": report["composition_intel"]["composition"],
+            "targets": {name: value for name, value in targets.items() if value != getattr(bot.settings, name)},
+        }
 
-        bases = bot.townhalls.ready
-        incoming = enemy_force.filter(lambda unit: any(unit.distance_to(base) < 120 for base in bases))
+        incoming = home_threats(bot, enemy_force)
         incoming_supply = sum(bot.calculate_supply_cost(unit.type_id) for unit in incoming)
         report["incoming_force"] = (
             {
@@ -249,12 +230,61 @@ class ScoutController:
         observer_status = self._observer_tick(bot) if bot.settings.scouting else {"phase": "disabled"}
         return {"phase": worker_status, "observer": observer_status, "intel": report}
 
+    def _remember(self, bot, combat, buildings, report):
+        dead = getattr(bot.state, "dead_units", set())
+        for unit in combat:
+            self.unit_memory[unit.tag] = {
+                "seen_seconds": bot.time,
+                "kind": unit.type_id.name,
+                "supply": bot.calculate_supply_cost(unit.type_id),
+                "air": unit.is_flying,
+                "armored": unit.is_armored,
+                "light": unit.is_light,
+            }
+        self.unit_memory = {
+            tag: info for tag, info in self.unit_memory.items()
+            if tag not in dead and bot.time - info["seen_seconds"] <= 90
+        }
+        composition = {}
+        for info in self.unit_memory.values():
+            composition[info["kind"]] = composition.get(info["kind"], 0) + 1
+        remembered = list(self.unit_memory.values())
+        report["composition_intel"] = {
+            "seen_seconds": max((u["seen_seconds"] for u in remembered), default=-999),
+            "composition": composition,
+            "supply": sum(u["supply"] for u in remembered),
+            "air_supply": sum(u["supply"] for u in remembered if u["air"]),
+            "armored_air_supply": sum(u["supply"] for u in remembered if u["air"] and u["armored"]),
+            "armored_ground_supply": sum(u["supply"] for u in remembered if not u["air"] and u["armored"]),
+            "light_ground_count": sum(not u["air"] and u["light"] for u in remembered),
+        }
+        for info in report["enemy_bases"]:
+            self.base_memory[tuple(info["position"])] = {**info, "seen_seconds": bot.time}
+        for position, info in list(self.base_memory.items()):
+            point = Point2(position)
+            if bot.time - info["seen_seconds"] > 180 or (
+                bot.is_visible(point)
+                and not any(b.type_id in BASE_TYPES and b.distance_to(point) < 5 for b in buildings)
+            ):
+                del self.base_memory[position]
+        report["known_enemy_bases"] = list(self.base_memory.values())
+        for building in buildings:
+            self.tech_memory[building.tag] = (building.type_id.name, bot.time)
+        self.tech_memory = {
+            tag: value for tag, value in self.tech_memory.items()
+            if tag not in dead and bot.time - value[1] <= 180
+        }
+        report["known_enemy_tech"] = sorted({value[0] for value in self.tech_memory.values()})
+
     def _worker_scout(self, bot, enemies, report):
         if not bot.settings.enabled or not bot.settings.attack or not bot.settings.scouting:
+            self.worker_tag = bot.scout_tag = None
             return "disabled"
         scout = bot.workers.find_by_tag(self.worker_tag) if self.worker_tag else None
         if scout is None:
             bot.scout_tag = None
+            if self.opening_complete:
+                return "opening_complete"
             if bot.supply_workers >= 12 and bot.time - self.last_assignment >= 90:
                 candidates = bot.workers.filter(
                     lambda unit: bot.available(unit) and (unit.is_idle or unit.is_gathering)
@@ -268,21 +298,24 @@ class ScoutController:
         if not bot.control.eligible(scout):
             return "human_owned"
         threatened = enemies.filter(lambda unit: unit.can_attack_ground and unit.distance_to(scout) < 8)
-        if threatened or scout.health + scout.shield < 30:
+        self.returning |= bool(threatened) or scout.health + scout.shield < 30
+        route = self._worker_route(bot)
+        if not route:
+            self.worker_tag = bot.scout_tag = None
+            return "no_known_start"
+        if not self.returning and scout.distance_to(route[self.worker_route_index]) < 6:
+            self.worker_route_index += 1
+            self.returning = self.worker_route_index >= len(route)
+        if self.returning:
             target = bot.start_location
             if scout.distance_to(target) <= 6:
                 self.worker_tag = bot.scout_tag = None
+                self.opening_complete = True
                 return "returned"
             phase = "returning"
-        elif bot.enemy_start_locations:
-            route = self._worker_route(bot)
-            self.worker_route_index %= len(route)
-            if scout.distance_to(route[self.worker_route_index]) < 6:
-                self.worker_route_index = (self.worker_route_index + 1) % len(route)
+        else:
             target = route[self.worker_route_index]
             phase = "scouting_enemy_start"
-        else:
-            return "no_known_start"
-        if scout.is_idle or not scout.orders or scout.distance_to(target) > 5:
+        if not isinstance(scout.order_target, Point2) or scout.order_target.distance_to(target) > 2:
             bot.issue(scout.move(target), scout_order=True)
         return phase
