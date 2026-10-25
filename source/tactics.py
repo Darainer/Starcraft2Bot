@@ -93,6 +93,7 @@ class TacticalController:
                         "observation": observation,
                         "available_abilities": available_abilities,
                         "previous_strategy": self.previous,
+                        "wave": self.waves.last_state,
                     },
                 )
                 strategy = plan["strategy"]

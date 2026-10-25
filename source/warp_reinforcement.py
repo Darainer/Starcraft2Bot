@@ -1,5 +1,7 @@
 """Research/morph support, protected Prism phasing, and resource-aware warp-ins."""
 
+import math
+
 from sc2.ids.ability_id import AbilityId as A
 from sc2.ids.unit_typeid import UnitTypeId as U
 from sc2.ids.upgrade_id import UpgradeId as G
@@ -16,7 +18,34 @@ class WarpReinforcement:
     def __init__(self):
         self.warpins = 0
         self.last_issued = {}
+        self.reserved_positions = []
+        self.gate_positions = {}
         self.last_report = {"phase": "waiting_for_tech"}
+
+    def reject(self, failure, now):
+        if failure["result"] == 41:
+            for tag in failure["unit_tags"]:
+                if tag in self.gate_positions:
+                    self.reserved_positions.append((self.gate_positions[tag], now + 30))
+
+    async def placement(self, bot, ability, anchor):
+        self.reserved_positions = [(p, expiry) for p, expiry in self.reserved_positions if expiry > bot.time]
+        points = []
+        for radius in (2, 3, 4):
+            for index in range(12):
+                angle = (index + self.warpins) * math.pi / 6
+                point = anchor.offset((radius * math.cos(angle), radius * math.sin(angle)))
+                if not bot.state.psionic_matrix.covers(point) or not bot.is_visible(point):
+                    continue
+                if any(point.distance_to(p) < 1.5 for p, expiry in self.reserved_positions):
+                    continue
+                if any(not u.is_flying and u.distance_to(point) < u.radius + 0.75 for u in bot.all_own_units):
+                    continue
+                points.append(point)
+        if not points:
+            return None
+        allowed = await bot.can_place(ability, points)
+        return next((point for point, valid in zip(points, allowed, strict=False) if valid), None)
 
     async def tick(self, bot, waves):
         if not bot.settings.attack or not bot.settings.warp_reinforcement:
@@ -100,13 +129,7 @@ class WarpReinforcement:
                     or bot.tech_requirement_progress(kind) < 1
                 ):
                     continue
-                position = await bot.find_placement(
-                    ability,
-                    near=anchor.offset((2, 0)),
-                    max_distance=5,
-                    placement_step=1,
-                    random_alternative=False,
-                )
+                position = await self.placement(bot, ability, anchor)
                 if (
                     position is not None
                     and bot.safe_at(position, 12)
@@ -114,5 +137,9 @@ class WarpReinforcement:
                 ):
                     self.warpins += 1
                     self.last_issued[gate.tag] = bot.time
+                    self.gate_positions[gate.tag] = position
+                    self.reserved_positions.append(
+                        (position, bot.time + (5 if phase == "forward_warp_in" else 13))
+                    )
                     self.last_report.update(queued_warp_in_orders=self.warpins, last_unit=kind.name)
                     return

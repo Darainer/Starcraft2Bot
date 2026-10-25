@@ -1,5 +1,6 @@
 """Persistent army cohorts, assembly gates, role formations and reinforcement batches."""
 
+from collections import Counter
 from statistics import median
 
 from sc2.ids.unit_typeid import UnitTypeId as U
@@ -17,6 +18,7 @@ class ArmyWaves:
         self.wave_id = 0
         self.phase = "assemble"
         self.center = None
+        self.last_state = {}
 
     def reset(self):
         self.members.clear()
@@ -46,6 +48,7 @@ class ArmyWaves:
         readiness = sum(bot.calculate_supply_cost(u.type_id) for u in units if u.distance_to(rally) <= 10)
         fraction = readiness / max(1, supply(units))
         reason = "Assemble a complete, scouted attack wave"
+        cohesion_fraction = 0
         if core and supply(core) < policy["continue_supply"]:
             self.reset()
             core = units.filter(lambda u: False)
@@ -88,6 +91,7 @@ class ArmyWaves:
                     batch = gathered
             cohesion = sum(bot.calculate_supply_cost(u.type_id) for u in core if u.distance_to(anchor) <= 9)
             coherent = cohesion / max(1, supply(core)) >= 0.8
+            cohesion_fraction = cohesion / max(1, supply(core))
             engaged = any(
                 u.is_visible and u.can_attack and u.distance_to(anchor) < 10 for u in bot.enemy_units
             )
@@ -125,7 +129,7 @@ class ArmyWaves:
                 if coherent
                 else "Wait for stragglers before advancing"
             )
-        return destinations, {
+        state = {
             "id": self.wave_id,
             "phase": self.phase,
             "reason": reason,
@@ -137,4 +141,9 @@ class ArmyWaves:
             "composition_ready": composition_ok,
             "scouted": scouted,
             "center": list(self.center) if self.center is not None else None,
+            "cohesion_fraction": cohesion_fraction,
+            "core_supply": supply(core),
+            "composition": dict(Counter(unit.type_id.name for unit in units)),
         }
+        self.last_state = state
+        return destinations, state

@@ -179,3 +179,18 @@ def test_threatened_phased_prism_unphases(bot, make_unit, populate):
     controller = WarpReinforcement()
     asyncio.run(controller.tick(bot, waves))
     assert bot.actions[0].ability == A.MORPH_WARPPRISMTRANSPORTMODE
+
+
+def test_warp_placement_requires_current_power_and_reserves_positions(bot, make_unit, populate):
+    populate(make_unit(U.PYLON, (5, 5)))
+    controller = WarpReinforcement()
+    bot.state.psionic_matrix = SimpleNamespace(covers=lambda point: False)
+    assert asyncio.run(controller.placement(bot, A.WARPGATETRAIN_STALKER, Point2((5, 5)))) is None
+    bot.state.psionic_matrix = SimpleNamespace(covers=lambda point: True)
+    first = asyncio.run(controller.placement(bot, A.WARPGATETRAIN_STALKER, Point2((5, 5))))
+    controller.reserved_positions.append((first, bot.time + 20))
+    second = asyncio.run(controller.placement(bot, A.WARPGATETRAIN_STALKER, Point2((5, 5))))
+    assert first.distance_to(second) >= 1.5
+    controller.gate_positions[123] = second
+    controller.reject({"result": 41, "unit_tags": [123]}, bot.time)
+    assert any(position == second for position, expiry in controller.reserved_positions)

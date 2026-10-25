@@ -37,6 +37,7 @@ pys2clientprotocol 1.0.2. Map: BelShirVestigeLE.
 | 145414-879919 | air / Medium Terran after production fairness fix | Victory near 11:10; replay saved | Specialist capacity and fair scheduling removed the earlier air-profile stall |
 | 145627-579202 | fortress / Medium Terran | Victory near 11:15; replay saved | Parallel Forges researched multiple level-2/3 chains |
 | 150926-905704 | pressure / Medium Terran with scout/wave/Prism pipeline | Victory near 11:30; replay saved; no runtime error | Scouting acquired intel, a persistent 24-supply wave launched, 4 Warpgates operated, Prism reached forward phasing mode |
+| 151537-875949 | pressure / Hard Terran with grouped waves | Victory near 11:45; replay saved; no runtime error | Direct API diagnostics exposed late warp-in placement failures; add current-power checks and reservation/backoff before further evaluation |
 
 The research failure was an exact-versus-generic ability-ID mismatch: availability
 queries returned exact research IDs, while the planner compared generic remaps.

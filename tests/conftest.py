@@ -24,6 +24,7 @@ from source.economy_assistant import EconomyAssistant
 def bot():
     bot = EconomyAssistant(AssistantSettings(hud=False, allocation=False, chrono=False))
     bot.state = SimpleNamespace(game_loop=224, chat=[], action_errors=[], upgrades=set())
+    bot.state.psionic_matrix = SimpleNamespace(covers=lambda point: True)
     bot.game_info = SimpleNamespace(player_start_location=Point2((0, 0)), map_center=Point2((40, 40)))
     bot.player_id = 1
     bot.race = Race.Protoss
@@ -35,6 +36,9 @@ def bot():
     bot.tech_requirement_progress = Mock(return_value=1)
     bot.get_available_abilities = AsyncMock(return_value=[])
     bot.find_placement = AsyncMock(side_effect=lambda kind, near, **kwargs: near)
+    bot.can_place = AsyncMock(side_effect=lambda ability, points: [True] * len(points))
+    bot.is_visible = lambda point: True
+    bot.in_pathing_grid = lambda point: True
     bot.get_next_expansion = AsyncMock(return_value=Point2((30, 0)))
     abilities = [data_pb2.AbilityData(ability_id=a.value, link_name=a.name) for a in A if a.value]
     creation = {}

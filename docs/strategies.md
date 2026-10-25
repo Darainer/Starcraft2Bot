@@ -86,6 +86,10 @@ use queried available abilities and legal warp-in placement checks. Before Prism
 deployment, safe home Pylons provide warp-in power so assembly does not deadlock.
 Warp-ins explicitly debit live unit prices/supply and preserve resource reserves.
 Queued warp-in orders are telemetry, not a count of confirmed completed units.
+Placement uses current Psionic Matrix coverage and a batched legal-placement
+query. It avoids occupied/reserved warp points and temporarily excludes rejected
+locations instead of repeating them. Immediate action-response rejections and
+later observation errors are both captured.
 
 Use `!assist scouting off`, `!assist army_waves off`, or
 `!assist warp_reinforcement off` to disable individual parts. Disabling waves

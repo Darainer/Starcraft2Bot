@@ -538,6 +538,7 @@ class RuntimeAssistant(EconomyAssistant):
             for failure in getattr(getattr(self, "client", None), "recent_rejections", []):
                 key = f"direct:{failure['ability_id']}:{failure['result']}"
                 self.action_rejections[key] = self.action_rejections.get(key, 0) + 1
+                self.reinforcement.reject(failure, self.time)
             if getattr(self, "client", None) is not None:
                 self.client.recent_rejections = []
             selected = [unit.tag for unit in getattr(self, "all_own_units", ()) if unit.is_selected]
