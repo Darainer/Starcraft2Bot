@@ -1,6 +1,7 @@
 """Summarize sampled build progress and decisions without opening SC2."""
 
 import argparse
+import hashlib
 import json
 from collections import Counter
 from pathlib import Path
@@ -15,6 +16,7 @@ def summarize(report_path):
     report = json.loads(report_path.read_text(encoding="utf-8-sig"))
     milestones, strategies, samples = {}, Counter(), 0
     latest = None
+    initial = None
     metrics = {"sampled_supply_block_seconds": 0.0, "sampled_idle_facility_seconds": 0.0}
     previous = None
     banks, timings, objectives, outcomes = [], [], Counter(), Counter()
@@ -33,6 +35,33 @@ def summarize(report_path):
             observation = row["observation"]["observation"]
             raw = observation.get("raw_data", {})
             player = observation.get("player_common", {})
+            if initial is None:
+                initial = {
+                    "game_loop": row["game_loop"],
+                    "player": player,
+                    "settings": row.get("settings"),
+                    "units": sorted(
+                        (
+                            {k: u.get(k) for k in ("unit_type", "pos", "health", "shield", "build_progress")}
+                            for u in raw.get("units", [])
+                            if u.get("alliance") == "Self"
+                        ),
+                        key=lambda u: json.dumps(u, sort_keys=True),
+                    ),
+                    "scenario": {
+                        k: report.get(k)
+                        for k in (
+                            "map_sha256",
+                            "ping",
+                            "random_seed",
+                            "opponent_race",
+                            "opponent_build",
+                            "opponent_difficulty",
+                            "fast_step_size",
+                            "game_time_limit",
+                        )
+                    },
+                }
             seconds = row["game_loop"] / 22.4
             blocked = (
                 0 < player.get("food_cap", 0) < 200
@@ -131,6 +160,8 @@ def summarize(report_path):
         "phase": report["phase"],
         "result": report.get("result"),
         "samples": samples,
+        "initial_state": initial,
+        "initial_state_sha256": hashlib.sha256(json.dumps(initial, sort_keys=True).encode()).hexdigest(),
         "sampled_game_seconds": round(latest["game_loop"] / 22.4, 1),
         "player": observation.get("player_common", {}),
         "own_units_and_buildings": dict(own),

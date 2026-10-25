@@ -419,18 +419,22 @@ class SharedClient(Client):
         return response
 
 
-def create_request(map_path, players, realtime=True):
+def create_request(map_path, players, realtime=True, random_seed=None):
     # Inline map data avoids game-process path resolution / protected-folder differences.
     request = pb.RequestCreateGame(
         local_map=pb.LocalMap(map_path=map_path.name, map_data=map_path.read_bytes()),
         realtime=realtime,
         disable_fog=False,
     )
+    if random_seed is not None:
+        request.random_seed = random_seed
     for player in players:
         setup = request.player_setup.add(type=player.type.value)
         if player.type.name == "Computer":
             setup.race = player.race.value
             setup.difficulty = player.difficulty.value
+            if player.ai_build is not None:
+                setup.ai_build = player.ai_build.value
     return request
 
 
@@ -445,6 +449,7 @@ async def run_session(
     attach_port=None,
     realtime=True,
     game_time_limit=None,
+    random_seed=None,
 ):
     try:
         async with connection(installation, attach_port) as server:
@@ -468,7 +473,9 @@ async def run_session(
                 raise RuntimeError(
                     "Client is not idle/launched. Refusing to replace an existing game or replay."
                 )
-            result = await server._execute(create_game=create_request(map_path, players, realtime))
+            result = await server._execute(
+                create_game=create_request(map_path, players, realtime, random_seed)
+            )
             if not result.HasField("create_game") or result.create_game.HasField("error"):
                 raise RuntimeError(f"CreateGame failed: {result.create_game}")
             report.update(phase="created", replay_target=str(replay))

@@ -19,11 +19,15 @@ retail binary first. Preserve local changes when updating the checkout.
   Verify that it has reached the actual command runner; a still-restricted
   process means the change has not taken effect there. Report that distinction
   and resume live trials once the approved execution context is active.
-- After each gameplay revision, evaluate three concurrent games against the same
-  opponent race/difficulty, map, profile and step size. Freeze the gameplay code
-  for the complete batch, retain separate logs/reports/replays, and assess all
-  three outcomes before tuning again. Record results by revision; do not merge
-  different revisions into one win rate or react to one game in isolation.
+- Freeze gameplay code for each evaluation matrix. Run three concurrent repeats
+  per scenario, using identical map, profile, difficulty, step size, game/Python
+  seed, and explicit opponent build. Verify loop-zero starting-state fingerprints;
+  do not mix random builds or spawn conditions when comparing revisions.
+- The current requested suite is pressure versus VeryHard Terran and Zerg, three
+  repeats of each explicit build (Rush, Timing, Power, Macro, Air): 30 games with
+  three clients active at a time. Finish and assess the full matrix before tuning.
+  Retain separate logs/reports/replays and record results by gameplay revision.
+  Repeated fixed-seed starts measure reproducibility, not 30 independent scenarios.
 - Do not call `--probe` a gameplay acceptance test. Never infer human input works
   from an API response, a replay, a test pass or a bot match result.
 - Record the exact ping binary/data identity and live checklist results. If the

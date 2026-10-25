@@ -271,6 +271,20 @@ def test_probe_does_not_create_game(session_setup):
     assert args[-1].data["phase"] == "probe_ok"
 
 
+@pytest.mark.parametrize("seed", [0, 20261025])
+def test_seed_and_opponent_build_reach_create_game_protocol(session_setup, seed):
+    from sc2.data import AIBuild
+
+    args, server, _, _ = session_setup
+    args[2][1].ai_build = AIBuild.Macro
+    asyncio.run(runtime.run_session(*args, realtime=False, random_seed=seed))
+    request = server._execute.call_args.kwargs["create_game"]
+    copied = pb.RequestCreateGame.FromString(request.SerializeToString())
+    assert copied.HasField("random_seed") and copied.random_seed == seed
+    assert copied.player_setup[1].ai_build == AIBuild.Macro.value
+    assert not copied.realtime and not copied.disable_fog
+
+
 @pytest.mark.parametrize("failure", ["busy", "create", "play", "bot", "version"])
 def test_failure_paths_are_reported(session_setup, failure):
     args, server, client, play = session_setup

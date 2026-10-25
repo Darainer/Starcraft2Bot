@@ -3,9 +3,10 @@
 **Status:** Full Access resolved the native startup blocker. Independent SC2
 instances can run concurrently, with separate API ports, runtime reports, logs
 and replays. Four initial matches finished: pressure won one of two; balanced lost both.
-The subsequent loss-counter-only pair also lost. The expansion-denial revision
-passes offline checks and is ready for its separate three-game batch. These are
-smoke results, not a reliable win-rate estimate.
+The subsequent loss-counter-only pair also lost. The expansion-denial revision finished its initial three-game batch at one win
+and two losses. The user requested fixed starting conditions and a broader
+30-game matrix; the runner now supports those controls. These early results are
+smoke tests, not a reliable win-rate estimate.
 
 ## Live environment and initial results
 
@@ -87,8 +88,8 @@ From this revision onward, run **three concurrent pressure-versus-VeryHard-Terra
 games per gameplay change**, with the same map and eight-loop step size. Freeze
 the committed gameplay code for the complete batch, assess all three outcomes,
 and only then tune again. This is recorded in [AGENTS.md](../AGENTS.md). Each game
-gets its own report, log and replay; the sequential `source.trials` runner is not
-launched concurrently because it shares an aggregate output and default log.
+gets its own report, log and replay. The follow-up runner adds internal bounded
+concurrency and unique outputs for every game.
 
 Expansion metrics distinguish Observer travel, inspected sites, known enemy
 expansions, an advancing force assigned to an expansion, and allocated denial
@@ -182,23 +183,51 @@ locked lint, formatting, mypy and package build passed again.
 uv run --locked pytest --cov --cov-report=term-missing -q -p no:cacheprovider --basetemp .local/pytest-full-access-verification
 ```
 
-## Bounded live batch prepared
+## Expansion-denial batch and fixed-condition matrix
 
-From normal PowerShell in the repository:
+Gameplay revision `d48a8fb` completed three concurrent pressure games without a
+runtime failure. This batch still used random builds and seeds, so it is kept
+separate from the controlled evaluation requested afterward.
+
+| Run | Result | Last sampled time | First expansion advance | Inspected sites | Expansion target samples | Denial squad samples |
+| --- | --- | ---: | ---: | ---: | ---: | ---: |
+| 01 | Defeat | 1215.4 s | 335.4 s | 8 | 38 | 0 |
+| 02 | Victory | 1215.4 s | 320.4 s | 8 | 56 | 2 |
+| 03 | Defeat | 1065.4 s | 350.4 s | 8 | 27 | 0 |
+
+Evidence is `performance-v3-pressure-terran-<01|02|03>` under local logs/replays.
+All three inspected expansions and assigned advancing forces to them. Side raids
+were rare; the main force did most expansion pressure. This demonstrates selected
+behavior, but does not establish an improved win rate or sustained economic denial.
+
+The runner revision passed **294 tests with 91.75% coverage**, locked sync,
+lint, formatting, mypy and package build. Protocol tests verify that the fixed
+seed and selected AI build reach SC2's serialized create-game request. Concurrency
+tests require three simultaneous workers and isolated output paths.
+
+The next matrix keeps the gameplay implementation unchanged and fixes SC2's seed,
+Python's random/hash seeds, race/build, map, profile, step and duration. It checks
+loop-zero fingerprints of starting player state, units/positions, settings and
+scenario metadata. Protocol tags and timestamps are excluded. Hidden opponent
+units are never queried. A mismatched or missing initial fingerprint stops the
+matrix rather than silently comparing unlike starts.
 
 ```powershell
-.\.venv\Scripts\python.exe -m source.trials --profiles pressure balanced --repeat 3 --difficulty VeryHard --opponent Terran --fast-step-size 8 --duration 1500
+uv run --locked python -m source.trials --profiles pressure --opponents Terran Zerg --builds Rush Timing Power Macro Air --repeat 3 --parallel 3 --difficulty VeryHard --seed 20261025 --fast-step-size 8 --duration 1500 --output logs/expansion-matrix-fixed.json
 ```
 
-This schedules three games per profile, saves individual runtime reports/replays,
-and updates `logs/latest-trials.json`. Eight loops correspond to approximately
-0.357 game seconds per observation; this improves resolution over the former
-32/64-loop trials but cannot verify the configured 0.125-second micro cadence.
-Four-loop and real-time follow-ups are needed for finer reaction measurements.
-Three games per profile are a smoke comparison, not a precise win-rate estimate.
-No fixed-seed or opponent-build matching is claimed by this command.
+This is ten explicit scenarios, each repeated three times with the same seed.
+It checks repeatability across 30 games, not 30 independent random scenarios.
+All three repeats complete before the runner starts the next build. The gameplay
+code stays frozen for the entire matrix. Future comparisons should reuse exactly
+these settings and report results per race/build rather than combine revisions.
 
-After the batch starts, inspect startup errors, first Stalker and pressure timing,
-supply blocks, idle production, resources, mission aborts and the recorded result.
-Review replays for actual fights and economic damage. Expand to repeated matched
-baseline trials and other opponent races once startup and basic play succeed.
+The installed Windows retail client is retained. Blizzard documents its separate
+[headless Linux packages](https://github.com/Blizzard/s2client-proto#linux-packages);
+PySC2's [Windows launch path](https://github.com/google-deepmind/pysc2/blob/master/pysc2/lib/sc_process.py)
+uses a window. No alternate binary, platform migration or headless claim is made.
+The user explicitly allowed the working windowed setup.
+
+Eight loops are approximately 0.357 game seconds per observation. They improve
+resolution over 32/64-loop trials but cannot verify the 0.125-second micro cadence.
+Human input acceptance remains separate. All reports and replays stay local.

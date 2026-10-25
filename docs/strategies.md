@@ -264,19 +264,16 @@ sampled build milestones, completed upgrades, composition, resources, strategy
 history and the recorded result. A deliberately stopped test records a defeat;
 it is not evidence that the opponent defeated the bot.
 
-The trial runner launches owned local clients sequentially, with bounded game
-durations, snapshots and replays per trial. The default duration is 1500 game
-seconds (25 minutes); set `--duration` to change it. It records the comparison in
-`logs/latest-trials.json`. Do not run it concurrently with a match you want to keep.
-By default it uses accelerated non-real-time API games with 32 game loops per API
-turn (`--fast-step-size`, allowed 4–64). This reduces API round trips for faster
-evaluation; it also lowers response resolution to about 1.4 game seconds per bot
-turn. The same game-time scheduling applies, but no controller can react faster
-than these observations arrive. Reduce the step size when evaluating fine-grained reactions.
-64 loops is faster but coarser and lost a Hard trial before the default 32-loop
-trial could finish; use 32 for strategy comparisons.
-Add `--realtime` to watch at normal speed. A time-limit result is a tie, not a win.
-Single-game CLI equivalents are `--fast-test --game-time-limit 600`.
+The trial runner launches owned clients with bounded game duration and saves
+separate reports, logs and replays. `--parallel 3` runs three repeats of a scenario
+concurrently before starting the next scenario. `--opponents` and `--builds` expand
+the matrix; `--output` chooses its aggregate JSON. Use `--seed` and an explicit
+build to fix SC2/Python randomness. Seeded scenarios must have matching loop-zero
+starting-state fingerprints or the runner stops. The default remains sequential.
+
+```powershell
+python -m source.trials --profiles pressure --opponents Terran Zerg --builds Rush Timing Power Macro Air --repeat 3 --parallel 3 --seed 20261025 --difficulty VeryHard --fast-step-size 8 --duration 1500 --output logs/expansion-matrix-fixed.json
+```
 
 Building placement reserves two-tile aisles, mining routes and production exit
 corridors, and checks nearby ground connectivity before placing structures. It
