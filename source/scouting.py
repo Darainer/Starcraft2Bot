@@ -45,7 +45,9 @@ class ScoutController:
                     points.append(site)
             points.append(enemy)
 
-        area = bot.game_info.playable_area
+        area = getattr(bot.game_info, "playable_area", None)
+        if area is None:
+            return points or [enemy]
         route = []
         for point in points:
             point = Point2(
@@ -260,7 +262,7 @@ class ScoutController:
                     self.worker_tag = bot.scout_tag = scout.tag
                     self.last_assignment = bot.time
         if scout is None:
-            return "observing" if report.get("enemy_seen") else "waiting_for_probe"
+            return "observing" if report.get("enemy_seen") else "waiting_for_scout"
         if not bot.control.eligible(scout):
             return "human_owned"
         threatened = enemies.filter(lambda unit: unit.can_attack_ground and unit.distance_to(scout) < 8)
@@ -276,7 +278,7 @@ class ScoutController:
             if scout.distance_to(route[self.worker_route_index]) < 6:
                 self.worker_route_index = (self.worker_route_index + 1) % len(route)
             target = route[self.worker_route_index]
-            phase = "patrolling_approach"
+            phase = "scouting_enemy_start"
         else:
             return "no_known_start"
         if scout.is_idle or not scout.orders or scout.distance_to(target) > 5:

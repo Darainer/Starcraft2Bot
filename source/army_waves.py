@@ -91,7 +91,12 @@ class ArmyWaves:
         # A complete high-difficulty force should not camp forever if the scout
         # loses contact. Use the large army gate as a bounded launch fallback.
         scouting_timeout = hard_supply and bot.time >= 600 and supply(units) >= minimum_supply
-        scouted = not bot.settings.scouting or bool(intel.get("force_intel_ready")) or scouting_timeout
+        scouted = (
+            not bot.settings.scouting
+            or bool(intel.get("force_intel_ready"))
+            or (not hard_supply and bool(intel.get("enemy_seen")))
+            or scouting_timeout
+        )
         readiness = sum(bot.calculate_supply_cost(u.type_id) for u in units if u.distance_to(rally) <= 10)
         fraction = readiness / max(1, supply(units))
         reason = "Assemble a complete, scouted attack wave"

@@ -198,9 +198,9 @@ class EconomyAssistant(BotAI):
 
     async def safe_expansion_location(self, reference):
         preferred = await self.get_next_expansion()
-        candidates = ([preferred] if preferred else []) + sorted(
-            self.expansion_locations_list, key=reference.distance_to
-        )
+        candidates = [preferred] if preferred else []
+        if not candidates:
+            candidates = sorted(getattr(self, "expansion_locations_list", ()), key=reference.distance_to)
         for location in candidates:
             if any(base.distance_to(location) < 10 for base in self.townhalls):
                 continue
@@ -401,7 +401,16 @@ class EconomyAssistant(BotAI):
             and G.WARPGATERESEARCH not in self.state.upgrades
             and not self.already_pending_upgrade(G.WARPGATERESEARCH)
         )
-        research_capacity_ready = gateway_count >= min(5, gateway_target)
+        high_difficulty = getattr(self, "opponent_difficulty", "Medium") in {
+            "MediumHard",
+            "Hard",
+            "Harder",
+            "VeryHard",
+            "CheatVision",
+            "CheatMoney",
+            "CheatInsane",
+        }
+        research_capacity_ready = not high_difficulty or gateway_count >= min(5, gateway_target)
         # Periodically give research priority over additional production buildings.
         # Worker/supply emergencies and explicit reserves still take precedence.
         if (
