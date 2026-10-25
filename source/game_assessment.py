@@ -18,6 +18,7 @@ def ratio(friends, foes):
 class GameAssessment:
     def __init__(self):
         self.trades = deque()
+        self.loss_high_water = 0
         self.defended_at = -999
         self.had_threat = False
         self.upgrades = set()
@@ -62,6 +63,10 @@ class GameAssessment:
         score = getattr(bot.state, "score", None)
         lost = sum(getattr(score, f"lost_{kind}_army", 0) for kind in ("minerals", "vespene"))
         killed = sum(getattr(score, f"killed_{kind}_army", 0) for kind in ("minerals", "vespene"))
+        # Retail loss totals can dip during production accounting and rebound
+        # without casualties. Count only new cumulative losses, not that rebound.
+        self.loss_high_water = max(self.loss_high_water, lost)
+        lost = self.loss_high_water
         self.trades.append((bot.time, lost, killed))
         while len(self.trades) > 1 and self.trades[1][0] < bot.time - 12:
             self.trades.popleft()

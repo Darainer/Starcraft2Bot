@@ -102,6 +102,29 @@ def test_recent_trades_and_visibility_are_required_for_cleanup(bot, make_unit, p
     assert not tracker.observe(bot, bot.units).cleanup_ready
 
 
+def test_loss_score_rebound_does_not_trigger_retreat(bot, make_unit, populate):
+    setup_army(bot, make_unit, populate)
+    tracker = GameAssessment()
+    bot.state.score = SimpleNamespace(lost_minerals_army=1625, killed_minerals_army=0)
+    assert not tracker.observe(bot, bot.units).trade_bad
+    # An old loss leaves the recent window, then production temporarily reduces
+    # the cumulative score. Rebounding by 375 must not look like fresh casualties.
+    bot.state.game_loop += 448
+    bot.state.score.lost_minerals_army = 950
+    assert not tracker.observe(bot, bot.units).trade_bad
+    bot.state.game_loop += 45
+    bot.state.score.lost_minerals_army = 1325
+    state = tracker.observe(bot, bot.units)
+    assert not state.trade_bad
+    assert StrategicDirector().decide(state).objective == "pressure"
+    # New losses above the previous maximum still interrupt pressure immediately.
+    bot.state.game_loop += 45
+    bot.state.score.lost_minerals_army = 1975
+    state = tracker.observe(bot, bot.units)
+    assert state.trade_bad
+    assert StrategicDirector().decide(state).objective == "recover"
+
+
 @pytest.mark.parametrize(
     "intel,expected",
     [

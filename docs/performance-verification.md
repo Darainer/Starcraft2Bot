@@ -2,13 +2,13 @@
 
 **Status:** Full Access resolved the native startup blocker. Independent SC2
 instances can run concurrently, with separate API ports, runtime reports, logs
-and replays. The first pressure match beat VeryHard Terran; the first balanced
-match lost. Further repetitions are in progress. These are smoke results, not a
-reliable win-rate estimate.
+and replays. Four initial matches finished: pressure won one of two; balanced lost both.
+The loss-counter correction below is being evaluated separately. These are smoke
+results, not a reliable win-rate estimate.
 
 ## Live environment and initial results
 
-Current implementation: `05f3b5c`, branch `feat/adaptive-pressure-tactics`.
+Initial live implementation: `05f3b5c`, branch `feat/adaptive-pressure-tactics`.
 Opponent: VeryHard Terran. Map: Bel'Shir Vestige LE. Fast stepping: eight loops
 (approximately 0.357 game seconds per observation), bounded to 1,500 game seconds.
 Optional combat spells remain disabled. No fixed seed or opponent build matching
@@ -26,10 +26,12 @@ Exact live ping identity:
 | --- | --- | ---: | ---: | ---: | ---: | ---: |
 | Pressure 01 | Victory | 755.4 s | 290.4 s | 200.4 s | 5 s | 4.110 ms |
 | Balanced 01 | Defeat | 970.4 s | 340.4 s | 190.4 s | 25 s | 3.583 ms |
+| Pressure 02 | Defeat | 1320.4 s | 275.4 s | 190.4 s | 10 s | 4.916 ms |
+| Balanced 02 | Defeat | 1095.4 s | 330.4 s | 195.4 s | 90 s | 4.337 ms |
 
-Local evidence uses `logs/performance-v1-<profile>-terran-01.json`, its matching
+Local evidence uses `logs/performance-v1-<profile>-terran-<01|02>.json`, its matching
 `.state.jsonl`/metadata files and `.log`, and
-`replays/performance-v1-<profile>-terran-01.SC2Replay`. Logs and replays remain
+`replays/performance-v1-<profile>-terran-<01|02>.SC2Replay`. Logs and replays remain
 uncommitted. The displayed duration is the last five-second observation sample,
 not an exact end-of-match timestamp. Sampled tactical timings exclude macro/API
 latency and run under concurrent game load.
@@ -39,12 +41,29 @@ loss included repeated defensive withdrawals, then a collapse from 96 assigned
 combat supply around 795 seconds to six around 825 seconds while returning to
 defend. That identifies defensive transitions and retreat routes for investigation;
 it does not establish a single cause from sampled observations. Neither first
-match recorded action rejections. Repetitions are needed before profile selection
-or a claim that the bot consistently beats VeryHard.
+match recorded action rejections. The second pressure game recorded one rejected
+attack request; the second balanced game recorded one rejected attack and one
+failed warp-in placement. The current bot does not consistently beat VeryHard.
 
 Human input acceptance remains separate and unverified under the
 [Windows runbook](windows-install-and-play.md). Autonomous games verify API
 startup and gameplay, not keyboard/mouse sharing.
+
+### Loss-score correction found during live verification
+
+In balanced run 02, the reported army-loss total had reached 1,625 resources,
+then temporarily fell below that value. At sampled times 555-565 seconds it was
+1,250, 1,450 and 1,550, yet `trade_bad` was true. The director was treating a
+rebound below the previous maximum as fresh losses. Negative totals earlier in
+matches also demonstrate that this field is not a monotonic casualty counter.
+
+The assessment now retains the highest cumulative loss value seen and measures
+recent increases against that value. Its regression test verifies that a score
+rebound keeps pressure active, while 350 genuinely new reported losses still
+trigger recovery. This fixes false retreats without changing force thresholds.
+It remains an estimate: actual losses can be recognized late while the raw total
+is below its previous maximum. Terrain, retreat routes and defensive commitment
+still need broader evaluation; this correction does not solve those problems.
 
 ### Resolved permission blocker
 
@@ -123,13 +142,15 @@ matching `.game-data.pb`, `.game-info.json`, and `.state.jsonl` files.
 
 ## Regression checks
 
-After the metadata fix and benchmark addition, **277 tests passed with 91.28%
-combined statement/branch coverage**. Ruff lint, formatting, and the existing
-mypy scope passed. These checks used the existing environment; the locked/build
-limitations in the [implementation record](overhaul-validation.md) still apply.
+After the metadata fix and benchmark addition, the fresh locked suite passed
+**277 tests with 91.28% combined statement/branch coverage**. Full Access also
+allowed `uv sync --locked`, locked Ruff lint/formatting, locked mypy and `uv build`
+to pass. The package produced both wheel and sdist without changing pins.
+After the loss-score correction, **278 tests passed with 91.29% coverage**;
+locked lint, formatting, mypy and package build passed again.
 
 ```powershell
-.venv/Scripts/python.exe -m pytest --cov --cov-report=term-missing -q -p no:cacheprovider --basetemp .local/pytest-performance-verification
+uv run --locked pytest --cov --cov-report=term-missing -q -p no:cacheprovider --basetemp .local/pytest-full-access-verification
 ```
 
 ## Bounded live batch prepared
