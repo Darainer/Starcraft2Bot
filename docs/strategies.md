@@ -317,3 +317,9 @@ is configured. Later LLM-PySC2-inspired experiments can replace observation,
 planning, or specialist execution boundaries after shadow evaluation. See the
 [architecture plan](tactical-architecture-plan.md) and
 [implementation validation record](overhaul-validation.md).
+
+For tactical CPU measurements on saved raw observations, use
+`python -m source.benchmark_controllers logs/runtime-<session>.json --repeat 3`.
+This requires the matching metadata/snapshot files and never connects to SC2.
+See [performance verification](performance-verification.md) for measured results
+and the distinction between CPU cost and live gameplay performance.

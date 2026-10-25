@@ -2,6 +2,9 @@
 
 Date: 2026-10-25. Branch: `feat/adaptive-pressure-tactics`.
 
+Follow-up: [performance verification](performance-verification.md) records the
+native startup attempt, a retail-metadata fix, and measured controller CPU costs.
+
 The initial hard-coded overhaul is implemented. No model provider is connected.
 This record distinguishes executable behavior from gameplay evidence. New
 VeryHard wins and human-control compatibility have **not** been established.
