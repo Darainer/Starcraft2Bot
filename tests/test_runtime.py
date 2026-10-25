@@ -94,6 +94,17 @@ def test_dynamic_ability_snapshot_preserves_raw_ids_and_resource_requirements():
     assert asyncio.run(client.available_ability_snapshot([])) == {}
 
 
+def test_action_response_rejections_are_retained_for_runtime_diagnostics():
+    response = pb.Response(action=pb.ResponseAction(result=[41]))
+    client = runtime.SharedClient(FakeSocket([response]))
+    request = pb.RequestAction()
+    command = request.actions.add().action_raw.unit_command
+    command.ability_id = 979
+    command.unit_tags.append(123)
+    asyncio.run(client._execute(action=request))
+    assert client.recent_rejections == [{"ability_id": 979, "result": 41, "unit_tags": [123]}]
+
+
 @pytest.fixture
 def installation(monkeypatch, tmp_path):
     monkeypatch.setattr(runtime.paths, "PF", "Windows")

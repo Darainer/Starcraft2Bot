@@ -65,8 +65,9 @@ def test_attack_respects_selection_release_and_worker_ownership(bot, populate, m
     decision = TacticalController().tick(bot)
     assert decision["strategy"] == "push"
     assert [action.unit.tag for action in bot.actions] == [soldier.tag]
-    assert decision["orders"] == [{"unit_tag": soldier.tag, "action": "attack"}]
-    assert bot.actions[0].target == Point2((100, 100))
+    assert decision["orders"][0]["action"] == "move"
+    assert decision["wave"]["phase"] == "assemble"
+    assert bot.actions[0].target != Point2((100, 100))
 
 
 @pytest.mark.parametrize("switch", ["attack", "enabled"])
@@ -121,6 +122,7 @@ def test_snapshot_interval_and_raw_observation_roundtrip(monkeypatch, tmp_path):
     bot.tactics = SimpleNamespace(
         tick=lambda bot, **kwargs: {"strategy": "regroup", "reason": "test"}, micro=lambda bot: []
     )
+    bot.scouting = SimpleNamespace(tick=lambda bot: {})
     monkeypatch.setattr(EconomyAssistant, "on_step", AsyncMock())
     clock = iter([0, 4.9, 5.0])
     monkeypatch.setattr(runtime.time, "monotonic", lambda: next(clock))

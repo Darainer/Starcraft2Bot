@@ -38,7 +38,9 @@ from sc2.versions import VERSIONS
 
 from source.economy_assistant import AIR_UPGRADES, GROUND_UPGRADES, PRODUCERS, SPELLS, EconomyAssistant
 from source.local_control import consume_command
+from source.scouting import ScoutController
 from source.tactics import TacticalController
+from source.warp_reinforcement import WARP_UNITS, WarpReinforcement
 
 
 @dataclass(frozen=True)
@@ -135,6 +137,7 @@ def audit_commands(data, game_data):
     upgrades = {
         UpgradeId.PSISTORMTECH,
         UpgradeId.BLINKTECH,
+        UpgradeId.WARPGATERESEARCH,
         *GROUND_UPGRADES,
         *AIR_UPGRADES,
     }
@@ -149,6 +152,10 @@ def audit_commands(data, game_data):
         AbilityId.HARVEST_GATHER,
         AbilityId.MOVE_MOVE,
         AbilityId.ATTACK_ATTACK,
+        AbilityId.MORPH_WARPGATE,
+        AbilityId.MORPH_WARPPRISMPHASINGMODE,
+        AbilityId.MORPH_WARPPRISMTRANSPORTMODE,
+        *(item[0] for item in WARP_UNITS.values()),
     }:
         check(ability.name, ability)
     return {
@@ -382,6 +389,19 @@ class SharedClient(Client):
             options.raw_affects_selection = False
             options.show_cloaked = False
         response = await super()._execute(**kwargs)
+        if "action" in kwargs and response.HasField("action"):
+            failures = getattr(self, "recent_rejections", [])
+            for action, result in zip(kwargs["action"].actions, response.action.result, strict=False):
+                if result != 1 and action.HasField("action_raw"):
+                    command = action.action_raw.unit_command
+                    failure = {
+                        "ability_id": command.ability_id,
+                        "result": result,
+                        "unit_tags": list(command.unit_tags),
+                    }
+                    failures.append(failure)
+                    logger.warning("SC2 rejected action request: {}", failure)
+            self.recent_rejections = failures
         if "join_game" in kwargs:
             result = response.join_game
             if result.HasField("error") or not result.player_id:
@@ -478,6 +498,8 @@ class RuntimeAssistant(EconomyAssistant):
         self.tactics = TacticalController()
         self._last_micro = float("-inf")
         self._micro_decisions = []
+        self.scouting = ScoutController()
+        self.reinforcement = WarpReinforcement()
 
     async def on_start(self):
         try:
@@ -513,6 +535,11 @@ class RuntimeAssistant(EconomyAssistant):
 
     async def on_step(self, iteration):
         try:
+            for failure in getattr(getattr(self, "client", None), "recent_rejections", []):
+                key = f"direct:{failure['ability_id']}:{failure['result']}"
+                self.action_rejections[key] = self.action_rejections.get(key, 0) + 1
+            if getattr(self, "client", None) is not None:
+                self.client.recent_rejections = []
             selected = [unit.tag for unit in getattr(self, "all_own_units", ()) if unit.is_selected]
             command = consume_command(self.report.path, self.control, selected)
             if command:
@@ -532,6 +559,7 @@ class RuntimeAssistant(EconomyAssistant):
             if observation is not None and now - self._last_tactical_snapshot >= 5:
                 self._last_tactical_snapshot = now
                 observed = MessageToDict(observation, preserving_proto_field_name=True)
+                scouting = self.scouting.tick(self)
                 abilities = {}
                 query = getattr(getattr(self, "client", None), "available_ability_snapshot", None)
                 if query is not None:
@@ -551,6 +579,8 @@ class RuntimeAssistant(EconomyAssistant):
                     "settings": asdict(self.settings),
                     "released_unit_tags": sorted(self.control.released),
                     "observed_action_rejections": dict(self.action_rejections),
+                    "scouting": scouting,
+                    "reinforcement": self.reinforcement.last_report,
                 }
                 destination = self.report.path.with_suffix(".state.jsonl")
                 with destination.open("a", encoding="utf-8") as stream:

@@ -34,6 +34,9 @@ pys2clientprotocol 1.0.2. Map: BelShirVestigeLE.
 | 144609-480602 | balanced / Medium Terran, accelerated, 900s bound | Victory near 11:25; replay saved; no runtime error | Three-base economy, upgrades and mixed army produced |
 | 144827-628075 | robotics / Medium Terran, accelerated, 900s bound | Victory near 10:05; replay saved; no runtime error | Ground tech profile completed a full match; one rejected build action recorded |
 | 144941-731526 | air / Medium Terran, accelerated, 900s bound | Time-limit tie; replay saved; no runtime error | Air/ground upgrades through level 2 completed; too few Void Rays despite a resource bank |
+| 145414-879919 | air / Medium Terran after production fairness fix | Victory near 11:10; replay saved | Specialist capacity and fair scheduling removed the earlier air-profile stall |
+| 145627-579202 | fortress / Medium Terran | Victory near 11:15; replay saved | Parallel Forges researched multiple level-2/3 chains |
+| 150926-905704 | pressure / Medium Terran with scout/wave/Prism pipeline | Victory near 11:30; replay saved; no runtime error | Scouting acquired intel, a persistent 24-supply wave launched, 4 Warpgates operated, Prism reached forward phasing mode |
 
 The research failure was an exact-versus-generic ability-ID mismatch: availability
 queries returned exact research IDs, while the planner compared generic remaps.

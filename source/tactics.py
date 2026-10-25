@@ -4,6 +4,7 @@ from dataclasses import asdict, dataclass
 
 from sc2.position import Point2
 
+from source.army_waves import ArmyWaves
 from source.economy_assistant import ARMY_TARGETS
 from source.strategy_profiles import PROFILES
 from source.strategy_scripts import run_strategy_script
@@ -44,6 +45,7 @@ class TacticalController:
         self.previous = "regroup"
         self.active_mode = "manual"
         self.enemy_buildings = {}
+        self.waves = ArmyWaves()
 
     def tick(self, bot, observation=None, available_abilities=None):
         self.active_mode = "manual"
@@ -139,20 +141,42 @@ class TacticalController:
         target = Point2((target.x, target.y))
         self.active_mode = strategy
         decision["target"] = list(target)
+        destinations = {}
+        if bot.settings.army_waves and strategy == "push":
+            rally = front.towards(bot.game_info.map_center, max(10, policy["rally_distance"]))
+            destinations, wave = self.waves.plan(bot, army, target, rally, policy)
+            decision["wave"] = wave
+            if wave["phase"] not in {"advance", "engage"}:
+                self.active_mode = "assemble"
+        elif strategy in {"retreat", "regroup"}:
+            self.waves.reset()
         for unit in army:
             if not bot.available(unit):
                 continue
             move = strategy in {"retreat", "regroup"} or not unit.can_attack
-            if move and unit.distance_to(target) < 3:
+            destination = target
+            if unit.tag in destinations:
+                mode, destination = destinations[unit.tag]
+                move = mode == "move"
+            maximum = unit.health_max + unit.shield_max
+            if maximum and (unit.health + unit.shield) / maximum < 0.25:
+                move, destination = True, home
+            if move and unit.distance_to(destination) < 2:
                 continue
             # Don't replace a matching standing order every polling interval.
             if unit.orders:
                 order = unit.orders[0]
-                if isinstance(order.target, Point2) and order.target.distance_to(target) < 2:
+                if isinstance(order.target, Point2) and order.target.distance_to(destination) < 2:
                     continue
-            command = unit.move(target) if move else unit.attack(target)
+            command = unit.move(destination) if move else unit.attack(destination)
             if bot.issue(command):
-                decision["orders"].append({"unit_tag": unit.tag, "action": "move" if move else "attack"})
+                decision["orders"].append(
+                    {
+                        "unit_tag": unit.tag,
+                        "action": "move" if move else "attack",
+                        "target": list(destination),
+                    }
+                )
         return decision
 
     def micro(self, bot):

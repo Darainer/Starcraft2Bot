@@ -57,6 +57,43 @@ attack objectives; otherwise it checks the enemy spawn and then known expansion
 locations. Retreat/regroup issue move orders; defend/push issue attack-move orders.
 Nonattacking support units move with the group. Workers are never recruited.
 
+### Scout, compose, assemble, advance, reinforce
+
+Autonomous mode assigns one eligible Probe to scouting after reaching 16 workers.
+That Probe is reserved from economic orders and returns after acquiring enemy
+information or meeting a threat. Human selection/release still takes precedence.
+Visible enemy combat composition can raise Stalker, Immortal or Colossus targets;
+disable this with `!assist adaptive_composition off` to retain fixed targets.
+
+An attack request now passes a separate **wave assembly gate**: at least 24 actual
+combat-unit supply (or the profile's larger threshold), 8 units for pressure or
+10 for other profiles, 80% of supply assembled near the rally point, and acquired
+scouting information. Robotics requires a heavy unit; air requires four Void Rays.
+Known enemy air also requires an anti-air component. Global supply and units still
+in production do not satisfy these gates. Small forces wait rather than stream
+individually toward the enemy.
+
+Launched waves retain membership, move through common short waypoints, and wait
+for stragglers when cohesion drops. Zealots occupy forward slots; ranged units
+follow; support/casters take rear slots. Remote reinforcements assemble in groups
+of at least six/12 supply before moving toward the core. Nearby safe arrivals can
+join directly. Pause, selection and release still prevent new delegated orders.
+
+Warpgate research and eligible Gateway conversion support reinforcement. A Warp
+Prism follows behind a deployed wave, phases at a visible rear position, and
+unphases/repositions when exposed to anti-air, damaged, or left behind. Warpgates
+use queried available abilities and legal warp-in placement checks. Before Prism
+deployment, safe home Pylons provide warp-in power so assembly does not deadlock.
+Warp-ins explicitly debit live unit prices/supply and preserve resource reserves.
+Queued warp-in orders are telemetry, not a count of confirmed completed units.
+
+Use `!assist scouting off`, `!assist army_waves off`, or
+`!assist warp_reinforcement off` to disable individual parts. Disabling waves
+restores direct attack-move behavior and should be used deliberately. Movement
+and warp positioning are heuristic; this is not a terrain-perfect formation or
+transport-drop planner. The Prism is a mobile reinforcement platform, not a cargo
+drop script. Wave, scouting and Prism phases are recorded with every snapshot.
+
 Selection and explicit release exclude units from tactical orders. Use
 `!assist release` to retain manual ownership after deselecting. Disabling attacks
 or pausing stops new orders; already issued movement/attacks continue until you

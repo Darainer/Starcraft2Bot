@@ -22,9 +22,10 @@ ARMY_TARGETS = {
 }
 PRODUCERS = {
     U.GATEWAY: (U.STALKER, U.ZEALOT, U.SENTRY, U.HIGHTEMPLAR),
-    U.ROBOTICSFACILITY: (U.IMMORTAL, U.COLOSSUS),
+    U.ROBOTICSFACILITY: (U.WARPPRISM, U.IMMORTAL, U.COLOSSUS),
     U.STARGATE: (U.VOIDRAY,),
 }
+PRODUCTION_TARGETS = {**ARMY_TARGETS, U.WARPPRISM: "warp_prisms"}
 SPELLS = {
     A.EFFECT_BLINK_STALKER,
     A.PSISTORM_PSISTORM,
@@ -79,6 +80,9 @@ class EconomyAssistant(BotAI):
         self.action_rejections = {}
         self._production_cursor = 0
         self.construction_reservations = {}
+        self.scout_tag = None
+        self.scout_report = {}
+        self._paid_action_issued = False
 
     @property
     def settings(self):
@@ -90,14 +94,23 @@ class EconomyAssistant(BotAI):
         )
 
     def available(self, unit):
-        return unit.tag not in self._used and self.control.eligible(unit)
+        return unit.tag != self.scout_tag and unit.tag not in self._used and self.control.eligible(unit)
 
-    def issue(self, command, paid=False, supply=False):
-        if not isinstance(command, UnitCommand) or not self.available(command.unit):
+    def issue(self, command, paid=False, supply=False, scout_order=False):
+        if not isinstance(command, UnitCommand):
+            return False
+        eligible = self.available(command.unit) or (
+            scout_order
+            and command.unit.tag == self.scout_tag
+            and command.unit.tag not in self._used
+            and self.control.eligible(command.unit)
+        )
+        if not eligible:
             return False
         accepted = self.do(command, subtract_cost=paid, subtract_supply=supply, can_afford_check=paid)
         if accepted:
             self._used.add(command.unit.tag)
+            self._paid_action_issued |= paid
         return accepted
 
     def affordable(self, item, extra_minerals=0):
@@ -106,8 +119,23 @@ class EconomyAssistant(BotAI):
             self.minerals, self.vespene, cost.minerals, cost.vespene, self.settings, extra_minerals
         )
 
+    def issue_warp_in(self, command, kind):
+        # Warp-in IDs have separate SDK cost lookup entries; use the live unit
+        # price and supply explicitly so budgeting is charged exactly once.
+        if not self.affordable(kind) or not self.can_feed(kind) or not self.issue(command):
+            return False
+        cost = self.calculate_cost(kind)
+        supply = self.calculate_supply_cost(kind)
+        self.minerals -= cost.minerals
+        self.vespene -= cost.vespene
+        self.supply_left -= supply
+        self.supply_used += supply
+        self._paid_action_issued = True
+        return True
+
     async def on_step(self, iteration):
         self._used.clear()
+        self._paid_action_issued = False
         selected = [unit.tag for unit in self.all_own_units if unit.is_selected]
         for message in self.state.chat:
             if message.player_id != self.player_id:
@@ -134,7 +162,11 @@ class EconomyAssistant(BotAI):
         if self.settings.enabled:
             if self.time - self._last_macro >= 0.5:
                 self._last_macro = self.time
-                await self.macro()
+                reinforcement = getattr(self, "reinforcement", None)
+                if reinforcement is not None:
+                    await reinforcement.tick(self, self.tactics.waves)
+                if not self._paid_action_issued:
+                    await self.macro()
             await self.powers()
         if self.settings.hud and self.time - self._last_hud >= 0.5:
             self._last_hud = self.time
@@ -331,7 +363,7 @@ class EconomyAssistant(BotAI):
             (U.CYBERNETICSCORE, 1, U.GATEWAY),
             (
                 U.ROBOTICSFACILITY,
-                int(s.immortals > 0 or s.colossi > 0)
+                int(s.immortals > 0 or s.colossi > 0 or (s.attack and s.warp_reinforcement))
                 + int(s.immortals + s.colossi >= 8 and self.townhalls.ready.amount >= 2),
                 U.CYBERNETICSCORE,
             ),
@@ -366,14 +398,17 @@ class EconomyAssistant(BotAI):
             candidates = [
                 kind
                 for kind in kinds
-                if getattr(self.settings, ARMY_TARGETS[kind]) > 0
-                and self.units(kind).amount + self.already_pending(kind)
-                < getattr(self.settings, ARMY_TARGETS[kind])
+                if (kind != U.WARPPRISM or (self.settings.attack and self.settings.warp_reinforcement))
+                and getattr(self.settings, PRODUCTION_TARGETS[kind]) > 0
+                and self.units(kind).amount
+                + self.already_pending(kind)
+                + (self.units(U.WARPPRISMPHASING).amount if kind == U.WARPPRISM else 0)
+                < getattr(self.settings, PRODUCTION_TARGETS[kind])
             ]
             candidates.sort(
                 key=lambda kind: (
                     (self.units(kind).amount + self.already_pending(kind))
-                    / getattr(self.settings, ARMY_TARGETS[kind])
+                    / getattr(self.settings, PRODUCTION_TARGETS[kind])
                 )
             )
             for building in self.structures(producer).ready.idle:
@@ -397,6 +432,8 @@ class EconomyAssistant(BotAI):
             plan.append((G.PSISTORMTECH, U.TEMPLARARCHIVE))
         if self.settings.blink:
             plan.append((G.BLINKTECH, U.TWILIGHTCOUNCIL))
+        if self.settings.attack and self.settings.warp_reinforcement:
+            plan.append((G.WARPGATERESEARCH, U.CYBERNETICSCORE))
         if self.settings.voidrays:
             plan += [(upgrade, U.CYBERNETICSCORE) for upgrade in AIR_UPGRADES]
         plan += [(upgrade, U.FORGE) for upgrade in GROUND_UPGRADES]
