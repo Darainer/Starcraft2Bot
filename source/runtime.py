@@ -17,7 +17,7 @@ from importlib.metadata import version
 from pathlib import Path
 
 import aiohttp
-from google.protobuf.json_format import MessageToDict
+from google.protobuf.json_format import MessageToDict, ParseDict
 from loguru import logger
 from s2clientprotocol import data_pb2, query_pb2
 from s2clientprotocol import sc2api_pb2 as pb
@@ -497,6 +497,62 @@ async def run_session(
         raise
 
 
+def recorded_observations(report_path):
+    """Rehydrate sampled player observations without a client or API connection.
+
+    Dynamic pathing changes between snapshots are unavailable. Actions accumulate
+    only in memory; callers must never attach a live client to this replay bot.
+    Recorded script paths are deliberately not executed during offline analysis.
+    """
+    from sc2.game_info import GameInfo
+    from sc2.game_state import GameState
+
+    from source.assistant_control import AssistantSettings
+
+    path = Path(report_path)
+    report = json.loads(path.read_text(encoding="utf-8-sig"))
+    data = pb.ResponseData.FromString(path.with_suffix(".game-data.pb").read_bytes())
+    info = ParseDict(
+        json.loads(path.with_suffix(".game-info.json").read_text(encoding="utf-8")), pb.ResponseGameInfo()
+    )
+    game_data = compatible_game_data(data)[0]
+    bot = None
+    previous_loop = -1
+    with path.with_suffix(".state.jsonl").open(encoding="utf-8") as stream:
+        for line in stream:
+            row = json.loads(line)
+            settings = AssistantSettings(**{**row["settings"], "strategy_script": ""}).validate()
+            state = GameState(ParseDict(row["observation"], pb.ResponseObservation()))
+            if state.game_loop <= previous_loop:
+                raise ValueError("Recorded observations must advance monotonically")
+            previous_loop = state.game_loop
+            first = bot is None
+            if first:
+                bot = EconomyAssistant(settings)
+                bot._prepare_start(
+                    None,
+                    state.common.player_id,
+                    GameInfo(info),
+                    game_data,
+                    base_build=report["ping"]["base_build"],
+                )
+                bot.unit_supplies = {
+                    kind: entry._proto.food_required for kind, entry in game_data.units.items()
+                }
+                bot.opponent_difficulty = report.get("opponent_difficulty", "Unknown")
+            bot.control.settings = settings
+            bot.control.released = set(row.get("released_unit_tags", []))
+            bot._prepare_step(state, pb.Response(game_info=info))
+            if first:
+                if not bot.townhalls:
+                    raise ValueError("Recording must begin with an owned starting base")
+                bot._prepare_first_step()
+            bot._used.clear()
+            bot.actions.clear()
+            bot.unit_tags_received_action.clear()
+            yield bot, row
+
+
 class RuntimeAssistant(EconomyAssistant):
     """Expose live milestones and errors that the SDK may otherwise turn into defeat."""
 
@@ -529,7 +585,7 @@ class RuntimeAssistant(EconomyAssistant):
                     failures = [c["command"] for c in audit["commands"] if not c["ok"]]
                     raise RuntimeError("Command compatibility failed: " + ", ".join(failures))
             self.unit_supplies = {
-                UnitTypeId(kind): data._proto.food_required for kind, data in self.game_data.units.items()
+                kind: data._proto.food_required for kind, data in self.game_data.units.items()
             }
             wire = getattr(self.client, "game_data_wire", None)
             if wire is not None:

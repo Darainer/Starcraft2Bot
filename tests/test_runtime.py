@@ -299,7 +299,8 @@ def test_runtime_bot_milestones_and_errors(monkeypatch, installation, tmp_path):
     report = runtime.RuntimeReport(tmp_path / "report.json", installation)
     bot = runtime.RuntimeAssistant(AssistantSettings(enabled=False), report)
     bot.client = SimpleNamespace()
-    bot.game_data = SimpleNamespace(units={})
+    # Retail game data can include metadata IDs absent from the pinned SDK enum.
+    bot.game_data = SimpleNamespace(units={2005: SimpleNamespace(_proto=SimpleNamespace(food_required=0))})
     bot.chat_send = AsyncMock()
     bot.state = SimpleNamespace(game_loop=224)
     monkeypatch.setattr(EconomyAssistant, "on_start", AsyncMock())
@@ -307,6 +308,7 @@ def test_runtime_bot_milestones_and_errors(monkeypatch, installation, tmp_path):
     monkeypatch.setattr(EconomyAssistant, "on_step", step)
     asyncio.run(bot.on_start())
     assert report.data["automation_paused"] is True
+    assert bot.unit_supplies[2005] == 0
     asyncio.run(bot.on_step(0))
     asyncio.run(bot.on_step(1))
     assert report.data["first_game_loop"] == 224

@@ -94,7 +94,7 @@ def bot():
         for upgrade, info in RESEARCH_INFO[kind].items()
     ]
     bot.game_data = GameData(sc2api_pb2.ResponseData(abilities=abilities, units=units, upgrades=upgrades))
-    bot.unit_supplies = {U(kind): data._proto.food_required for kind, data in bot.game_data.units.items()}
+    bot.unit_supplies = {kind: data._proto.food_required for kind, data in bot.game_data.units.items()}
     bot.minerals, bot.vespene, bot.supply_left = 1000, 1000, 20
     return bot
 

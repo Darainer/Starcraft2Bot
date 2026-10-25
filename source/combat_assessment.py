@@ -8,8 +8,8 @@ WORKERS = {U.PROBE, U.SCV, U.DRONE, U.MULE}
 def observed_supply(bot, unit):
     """Existing-unit supply from the adapter, not incremental morph cost."""
     supplies = getattr(bot, "unit_supplies", {})
-    if unit.type_id in supplies:
-        return supplies[unit.type_id]
+    if unit.type_id.value in supplies:
+        return supplies[unit.type_id.value]
     return bot.calculate_supply_cost(unit.type_id)
 
 
