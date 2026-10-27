@@ -26,11 +26,16 @@ retail binary first. Preserve local changes when updating the checkout.
 - The current requested suite is pressure versus VeryHard Terran and Zerg, three
   repeats of each explicit build (Rush, Timing, Power, Macro, Air): 30 games with
   three clients for the first Rush batch, then five concurrent clients for the
-  remaining scenarios (user instruction). Five live Windows clients were verified
-  on 2026-10-25; use up to five subsequently, keeping three repeats per scenario.
+  remaining scenarios (original user instruction). The user subsequently approved
+  eight concurrent clients on 2026-10-27; eight is now the global live-client limit,
+  keeping three repeats per scenario. The trial runner supports that limit.
+  On 2026-10-27 the user explicitly replaced mandatory full-matrix evaluation of
+  poor candidates with short targeted trials and early rejection. Freeze gameplay
+  within each trial batch; run broader regression tests only after a candidate
+  improves its targeted failure. Do not spend thirty games confirming a poor change.
   Concurrency may cross scenario boundaries. Individual games slow under load;
   do not claim a net speedup without a matched throughput comparison. Finish the
-  matrix before tuning.
+  targeted batch before tuning; intentionally aborted trials must remain labeled.
   Retain separate logs/reports/replays and record results by gameplay revision.
   Repeated fixed-seed starts measure reproducibility, not 30 independent scenarios.
 - Do not call `--probe` a gameplay acceptance test. Never infer human input works

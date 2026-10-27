@@ -36,6 +36,7 @@ def test_trade_rebound_is_not_counted_twice_and_windows_are_auditable():
     assert [(w["start"], w["lost_army"]) for w in result["worst_trade_windows"]] == [(0, 1100), (30, 400)]
     assert result["worst_trade_windows"][0]["targets"] == ["base"]
     assert result["army_trade_ratio"] == 0.1
+    assert result["first_bad_trade_window"]["start"] == 0
 
 
 def test_target_reversals_exclude_emergency_handoffs_and_same_position_ids():
@@ -104,3 +105,25 @@ def test_worker_and_base_losses_are_reported_without_large_army_losses():
     result = review.summary()
     assert result["bad_trade_window_count"] == 0
     assert result["worst_economy_loss_windows"][0]["own_economy_disappearances"] == {"NEXUS": 1}
+
+
+def test_early_worker_losses_exclude_loading_and_losses_after_the_horizon():
+    review = SessionReview()
+    workers = [{"alliance": "Self", "tag": str(i), "unit_type": U.PROBE.value} for i in range(3)]
+    prism = {"alliance": "Self", "tag": "prism", "unit_type": U.WARPPRISM.value}
+    for time, units in (
+        (0, workers + [prism]),
+        (100, [{**prism, "passengers": workers}]),
+        (120, workers + [prism]),
+        (150, workers[1:] + [prism]),  # A gas harvester temporarily leaves raw vision.
+        (155, workers + [prism]),
+        (240, workers[1:] + [prism]),
+        (245, [prism]),
+    ):
+        sample = row(time)
+        sample["observation"]["observation"]["raw_data"] = {"units": units}
+        review.observe(sample)
+    result = review.summary()
+    assert result["worker_disappearances_by_240_seconds"] == 1
+    assert result["first_worker_disappearance_seconds"] == 240
+    assert result["first_bad_trade_window"] is None

@@ -35,6 +35,9 @@ class GameAssessment:
         if bases:
             home = max(bases, key=lambda b: min((b.distance_to(e) for e in contacts), default=999)).position
         front = bases.closest_to(bot.game_info.map_center).position if bases else home
+        # Search travel is paid by the army, which may already be across the
+        # map. Home-relative costs repeatedly send it back to stale nearby sites.
+        travel_origin = fighters.center if fighters else front
         rally = front.towards(
             bot.game_info.map_center, max(8, PROFILES[bot.settings.profile]["rally_distance"])
         )
@@ -128,7 +131,7 @@ class GameAssessment:
                         55,
                         float(info.get("visible_defenders", 0) + info.get("visible_defense_buildings", 0)),
                         1,
-                        front.distance_to(point),
+                        travel_origin.distance_to(point),
                         expansion=info.get("expansion", is_expansion(bot, point)),
                         defender_supply=info.get("defender_supply", 0),
                         static_defense=info.get("visible_defense_buildings", 0) > 0,
@@ -158,7 +161,7 @@ class GameAssessment:
                     40 if index == 0 else 32,
                     0,
                     1,
-                    front.distance_to(site),
+                    travel_origin.distance_to(site),
                 )
             )
         maximum = sum(unit.health_max + unit.shield_max for unit in fighters)

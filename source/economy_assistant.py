@@ -205,12 +205,16 @@ class EconomyAssistant(BotAI):
         workers = self.workers.filter(lambda w: self.available(w) and (w.is_idle or w.is_gathering))
         return workers.closest_to(point) if workers else None
 
-    async def safe_expansion_location(self, reference):
+    async def safe_expansion_location(self, reference, require_minerals=False):
         preferred = await self.get_next_expansion()
         candidates = ([preferred] if preferred else []) + sorted(
             self.expansion_locations_list, key=reference.distance_to
         )
         for location in candidates:
+            if require_minerals and not self.mineral_field.closer_than(10, location).filter(
+                lambda patch: patch.mineral_contents > 0
+            ):
+                continue
             if any(base.distance_to(location) < 10 for base in self.townhalls):
                 continue
             if self.enemy_structures.closer_than(10, location):
@@ -362,6 +366,31 @@ class EconomyAssistant(BotAI):
                     return
             return
         home = safe_bases.closest_to(home)
+        # Saturation falls as mineral patches disappear. Saving for a replacement
+        # mineral line must not require training up to the normal expansion gate:
+        # that same depleted saturation also prevents producing more workers.
+        depleted_income = (
+            self.time >= 360
+            and any(base.ideal_harvesters < 8 for base in safe_bases)
+            and sum(base.ideal_harvesters for base in safe_bases) < max(8, self.supply_workers * 0.6)
+        )
+        if (
+            depleted_income
+            and s.expansion
+            and self.townhalls.amount < base_target
+            and not self.already_pending(U.NEXUS)
+            and self.supply_workers >= 14
+            and not self.economic_emergency
+            and (self.strategic_plan is None or self.strategic_plan.expand)
+            and (not s.attack or self.supply_army >= 12)
+        ):
+            location = await self.safe_expansion_location(home.position, require_minerals=True)
+            if location and self.builder(location):
+                self._macro_reserve = 400
+                if not self.affordable(U.NEXUS):
+                    return  # Retain the remaining bank instead of spending the recovery fund.
+                if await self.build_structure(U.NEXUS, location, max_distance=2):
+                    return
         # Spending/building first prevents allocation from claiming every idle builder.
         if (
             s.supply
@@ -411,11 +440,12 @@ class EconomyAssistant(BotAI):
                 ):
                     return
         gas_limit = min(2 * len(bases), max(1, int((self.supply_workers - 12) / 8)))
+        active_gases = self.gas_buildings.filter(lambda gas: not gas.is_ready or gas.vespene_contents > 0)
         if (
             s.gas
             and (self.structures(U.GATEWAY) or self.structures(U.CYBERNETICSCORE))
-            and len(self.gas_buildings) < gas_limit
-            and (not self.gas_buildings or self.vespene < max(300, self.minerals))
+            and len(active_gases) < gas_limit
+            and (not active_gases or self.vespene < max(300, self.minerals))
             and not self.already_pending(U.ASSIMILATOR)
         ):
             for base in safe_bases:

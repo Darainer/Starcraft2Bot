@@ -1,0 +1,815 @@
+--- a/source/game_assessment.py
++++ b/source/game_assessment.py
+@@ -37,0 +38,3 @@
++        # Search travel is paid by the army, which may already be across the
++        # map. Home-relative costs repeatedly send it back to stale nearby sites.
++        travel_origin = fighters.center if fighters else front
+@@ -63,0 +67,16 @@
++        response_tags, response_supply = [], 0
++        response = fighters.tags_in(set())
++        budget = min(army_supply * 0.3, max(8, sum(observed_supply(bot, e) for e in incoming) * 1.5))
++        # A projected remote response is distinct from defenders already nearby.
++        # Require every selected actor to hit all observed attacking domains.
++        if incoming and threat is not None:
++            capable = fighters.filter(
++                lambda u: all(u.can_attack_air if e.is_flying else u.can_attack_ground for e in incoming)
++            )
++            for unit in capable.sorted_by_distance_to(threat):
++                cost = bot.calculate_supply_cost(unit.type_id)
++                if response_supply + cost <= budget:
++                    response_tags.append(unit.tag)
++                    response_supply += cost
++            response = fighters.tags_in(response_tags)
++        response_advantage = ratio(response, incoming) if response else 0
+@@ -131 +150 @@
+-                        front.distance_to(point),
++                        travel_origin.distance_to(point),
+@@ -161 +180 @@
+-                    front.distance_to(site),
++                    travel_origin.distance_to(site),
+@@ -193,0 +213,3 @@
++            raid_response_tags=tuple(response_tags),
++            raid_response_supply=response_supply,
++            raid_response_advantage=response_advantage,
+--- a/source/missions.py
++++ b/source/missions.py
+@@ -3,0 +4 @@
++from math import atan2, ceil, cos, hypot, pi, sin
+@@ -12,0 +14,66 @@
++
++
++def retreat_geometry(contacts):
++    """Cache SDK weapon data once per observation, outside the route search."""
++    return tuple(
++        (
++            e.position.x,
++            e.position.y,
++            e.radius,
++            max(6 if e.type_id == U.BUNKER else 0, e.ground_range),
++            e.air_range,
++            max(24 if e.type_id == U.BUNKER else 1, e.ground_dps),
++            max(1, e.air_dps),
++            e.can_attack_ground or e.type_id == U.BUNKER,
++            e.can_attack_air,
++        )
++        for e in contacts
++    )
++
++
++def retreat_waypoint(bot, unit, goal, contacts, geometry=None):
++    """Choose a short traversable escape using only currently visible weapons."""
++    origin = unit.position
++    ox, oy = origin
++    flying, radius = unit.is_flying, unit.radius
++    geometry = retreat_geometry(contacts) if geometry is None else geometry
++    threats = [
++        (x, y, (ar if flying else gr) + er + radius + 3, ad if flying else gd)
++        for x, y, er, gr, ar, gd, ad, ground, air in geometry
++        if (air if flying else ground) and hypot(x - ox, y - oy) < max(gr, ar) + 18
++    ]
++    area = getattr(bot.game_info, "playable_area", None)
++
++    def traversable(point):
++        x, y = point
++        if area and not (area.x <= x < area.x + area.width and area.y <= y < area.y + area.height):
++            return False
++        if flying:
++            return True
++        steps = max(1, ceil(hypot(x - ox, y - oy)))
++        return all(
++            bot.in_pathing_grid(Point2((ox + (x - ox) * i / steps, oy + (y - oy) * i / steps)))
++            for i in range(1, steps + 1)
++        )
++
++    if not threats and traversable(goal):
++        return goal
++
++    def danger(x, y):
++        return sum(dps * max(0, reach - hypot(ex - x, ey - y)) for ex, ey, reach, dps in threats)
++
++    direction = atan2(goal.y - oy, goal.x - ox)
++    distance = 10 if threats else min(10, hypot(goal.x - ox, goal.y - oy))
++    candidates = [origin]
++    for i in range(16):
++        angle = direction + i * pi / 8
++        point = Point2((ox + cos(angle) * distance, oy + sin(angle) * distance))
++        if traversable(point):
++            candidates.append(point)
++
++    def cost(point):
++        x, y = point
++        exposure = sum(danger(ox + (x - ox) * f, oy + (y - oy) * f) for f in (0.25, 0.5, 0.75, 1))
++        return exposure + danger(x, y) * 4 + hypot(x - goal.x, y - goal.y) * 0.15
++
++    return min(candidates, key=cost)
+@@ -29,0 +97 @@
++        geometry = retreat_geometry(contacts)
+@@ -31 +99 @@
+-        destinations, assignments, records = {}, {}, {}
++        destinations, assignments, records, retreat_goals = {}, {}, {}, {}
+@@ -48,0 +117,8 @@
++            if (
++                spec.role == "defend"
++                and state.raid_response_schema_version == 1
++                and state.raid_response_tags
++                and state.raid_response_advantage >= 1.2
++                and state.raid_response_supply == spec.supply_budget
++            ):
++                candidates = candidates.tags_in(state.raid_response_tags)
+@@ -101 +177,5 @@
+-            if abort or (old.get("phase") == "recover" and bot.time < old.get("recover_until", 0)):
++            if (
++                abort
++                or (spec.role == "main" and plan.objective == "recover")
++                or (old.get("phase") == "recover" and bot.time < old.get("recover_until", 0))
++            ):
+@@ -102,0 +183,11 @@
++                goal = Point2(old.get("retreat_goal", state.home))
++                if spec.target_id == "script" and plan.objective == "recover":
++                    goal = target
++                elif (
++                    old.get("phase") != "recover"
++                    or not bot.townhalls.ready.closer_than(2, goal)
++                    or contacts.closer_than(14, goal)
++                ):
++                    safe_bases = bot.townhalls.ready.filter(lambda base: not contacts.closer_than(14, base))
++                    goal = safe_bases.closest_to(anchor).position if safe_bases else Point2(state.home)
++                record["retreat_goal"] = list(goal)
+@@ -115 +206,2 @@
+-                    destinations[unit.tag] = ("move", Point2(state.home))
++                    retreat_goals[unit.tag] = goal
++                    destinations[unit.tag] = ("move", retreat_waypoint(bot, unit, goal, contacts, geometry))
+@@ -168,2 +260,2 @@
+-            if critical:
+-                mode, target = "move", Point2(state.home)
++            if critical and tag not in retreat_goals:
++                mode, target = "move", retreat_waypoint(bot, unit, Point2(state.home), contacts, geometry)
+--- a/source/strategic_plan.py
++++ b/source/strategic_plan.py
+@@ -52,0 +53,4 @@
++    raid_response_schema_version: int = 1
++    raid_response_tags: tuple[int, ...] = ()
++    raid_response_supply: float = 0
++    raid_response_advantage: float = 0
+--- a/source/strategy_policies.py
++++ b/source/strategy_policies.py
+@@ -66,0 +67,6 @@
++    projected_response = (
++        state.raid_response_schema_version == 1
++        and bool(state.raid_response_tags)
++        and 2 <= state.raid_response_supply <= min(remaining * 0.3, max(8, state.threat_supply * 1.5))
++        and state.raid_response_advantage >= 1.2
++    )
+@@ -73 +79 @@
+-        and state.home_advantage >= 1.2
++        and (state.home_advantage >= 1.2 or projected_response)
+@@ -76 +82,5 @@
+-        budget = min(remaining * 0.3, max(8, state.threat_supply * 1.5))
++        budget = (
++            state.raid_response_supply
++            if projected_response
++            else min(remaining * 0.3, max(8, state.threat_supply * 1.5))
++        )
+--- a/source/tactics.py
++++ b/source/tactics.py
+@@ -13 +13 @@
+-from source.missions import MissionPlanner
++from source.missions import MissionPlanner, retreat_geometry, retreat_waypoint
+@@ -275,0 +276 @@
++        geometry = None
+@@ -290 +291,4 @@
+-                command, reason = unit.move(home), "individual_retreat"
++                if geometry is None:
++                    geometry = retreat_geometry(contacts)
++                waypoint = retreat_waypoint(bot, unit, home, contacts, geometry)
++                command, reason = unit.move(waypoint), "individual_retreat"
+--- /dev/null
++++ b/tests/test_engagement_participation.py
+@@ -0,0 +1,40 @@
++from sc2.ids.unit_typeid import UnitTypeId as U
++
++from source.game_assessment import GameAssessment
++from source.strategy_director import StrategicDirector
++
++
++def test_eight_supply_flank_does_not_recall_large_healthy_main(bot, make_unit, populate):
++    flank = [make_unit(U.ZEALOT, (70, 70), health=10, shield=0) for _ in range(4)]
++    main = [make_unit(U.STALKER) for _ in range(62)]
++    enemy = make_unit(U.MARINE, (71, 70), alliance=4, health=10000, health_max=10000)
++    populate(make_unit(U.NEXUS), *flank, *main, enemy)
++    bot.settings.profile = "pressure"
++    state = GameAssessment().observe(bot, bot.units)
++    assert state.army_supply == 132
++    assert state.local_advantage == 10
++    assert StrategicDirector().decide(state).objective != "recover"
++
++
++def test_substantial_participating_force_still_triggers_recovery(bot, make_unit, populate):
++    front = [make_unit(U.STALKER, (70, 70)) for _ in range(20)]
++    main = [make_unit(U.STALKER) for _ in range(46)]
++    enemy = make_unit(U.MARINE, (71, 70), alliance=4, health=10000, health_max=10000)
++    populate(make_unit(U.NEXUS), *front, *main, enemy)
++    bot.settings.profile = "pressure"
++    state = GameAssessment().observe(bot, bot.units)
++    assert state.local_advantage < 0.85
++    assert StrategicDirector().decide(state).objective == "recover"
++
++
++def test_small_whole_army_is_still_assessed(bot, make_unit, populate):
++    populate(
++        make_unit(U.NEXUS),
++        make_unit(U.STALKER, (70, 70)),
++        make_unit(U.STALKER, (70, 70)),
++        make_unit(U.MARINE, (71, 70), alliance=4, health=10000, health_max=10000),
++    )
++    state = GameAssessment().observe(bot, bot.units)
++    assert state.army_supply == 4
++    assert state.local_advantage < 0.85
++    assert StrategicDirector().decide(state).objective == "recover"
+--- /dev/null
++++ b/tests/test_forward_terrain.py
+@@ -0,0 +1,119 @@
++from s2clientprotocol import common_pb2, raw_pb2
++from sc2.ids.ability_id import AbilityId as A
++from sc2.ids.unit_typeid import UnitTypeId as U
++from sc2.position import Point2, Rect
++
++from source.action_intents import ActionExecutor, ActionIntent
++from source.army_waves import ArmyWaves, terrain_destination
++from source.strategy_profiles import PROFILES
++
++
++def test_walkable_endpoint_across_cliff_uses_actual_goal(bot, make_unit):
++    unit = make_unit(U.STALKER)
++    slot, goal = Point2((10, 0)), Point2((30, 10))
++    bot.in_pathing_grid = lambda p: not (3 < p.x < 6 and abs(p.y) < 3)
++    assert bot.in_pathing_grid(slot)
++    assert terrain_destination(bot, unit, slot, goal) == goal
++
++
++def test_invalid_slot_and_blocked_goal_choose_deterministic_walkable_goal(bot, make_unit):
++    unit = make_unit(U.STALKER)
++    slot, goal = Point2((10, 0)), Point2((30, 10))
++    bot.in_pathing_grid = lambda p: p.distance_to(goal) >= 1 and p.distance_to(slot) >= 1
++    result = terrain_destination(bot, unit, slot, goal)
++    assert bot.in_pathing_grid(result)
++    assert result.distance_to(goal) <= 2.001
++    assert terrain_destination(bot, unit, slot, goal) == result
++
++
++def test_valid_formation_and_flying_orders_are_unchanged(bot, make_unit):
++    unit = make_unit(U.STALKER)
++    slot, goal = Point2((10, 0)), Point2((30, 10))
++    assert terrain_destination(bot, unit, slot, goal) == slot
++    bot.in_pathing_grid = lambda p: False
++    flying = make_unit(U.STALKER, is_flying=True)
++    assert terrain_destination(bot, flying, slot, goal) == slot
++
++
++def test_advancing_ground_wave_routes_around_invalid_slots_without_reassembling(bot, make_unit, populate):
++    units = [make_unit(U.STALKER) for _ in range(6)]
++    populate(*units)
++    waves = ArmyWaves()
++    waves.members = {u.tag for u in units}
++    waves.phase = "advance"
++    bot.in_pathing_grid = lambda p: not 9 < p.x < 15
++    goal = Point2((30, 0))
++    orders, report = waves.plan(bot, bot.units, goal, Point2((-20, 0)), PROFILES["pressure"])
++    assert report["phase"] == "advance"
++    assert waves.members == {u.tag for u in units}
++    assert all(point == goal for mode, point in orders.values())
++    bot.control.released.add(units[0].tag)
++    orders, _ = waves.plan(bot, bot.units, goal, Point2((-20, 0)), PROFILES["pressure"])
++    assert units[0].tag not in orders
++
++
++def test_invalid_nearby_standing_order_is_replaced_with_walkable_destination(bot, make_unit, populate):
++    old = Point2((10, 0))
++    safe = Point2((10.5, 0))
++    unit = make_unit(
++        U.STALKER,
++        orders=[
++            raw_pb2.UnitOrder(
++                ability_id=A.MOVE_MOVE.value, target_world_space_pos=common_pb2.Point(x=old.x, y=old.y)
++            )
++        ],
++    )
++    populate(unit)
++    bot.settings.attack = True
++    bot.in_pathing_grid = lambda p: p != old
++    executor = ActionExecutor()
++    executor.assign({unit.tag: "main"})
++    intent = ActionIntent(
++        unit.tag,
++        executor.assignments[unit.tag][1],
++        bot.state.game_loop,
++        bot.state.game_loop + 8,
++        "move",
++        tuple(safe),
++    )
++    assert executor.execute(bot, intent)
++    assert len(bot.actions) == 1 and bot.actions[0].target == safe
++
++
++def test_edge_slots_and_cached_orders_do_not_query_outside_map(bot, make_unit, populate):
++    bot.game_info.playable_area = Rect((0, 0, 20, 20))
++
++    def grid(point):
++        assert 0 <= point.x < 20 and 0 <= point.y < 20
++        return True
++
++    bot.in_pathing_grid = grid
++    unit = make_unit(U.STALKER, (1, 1))
++    assert terrain_destination(bot, unit, Point2((-1, 1)), Point2((10, 10))) == Point2((10, 10))
++    flying = make_unit(U.STALKER, (1, 1), is_flying=True)
++    assert terrain_destination(bot, flying, Point2((-1, 1)), Point2((10, 10))) == Point2((10, 10))
++    old = Point2((-0.2, 0))
++    safe = Point2((0.2, 0))
++    unit = make_unit(
++        U.STALKER,
++        orders=[
++            raw_pb2.UnitOrder(
++                ability_id=A.MOVE_MOVE.value, target_world_space_pos=common_pb2.Point(x=old.x, y=old.y)
++            )
++        ],
++    )
++    populate(unit)
++    bot.settings.attack = True
++    executor = ActionExecutor()
++    executor.assign({unit.tag: "main"})
++    assert executor.execute(
++        bot,
++        ActionIntent(
++            unit.tag,
++            executor.assignments[unit.tag][1],
++            bot.state.game_loop,
++            bot.state.game_loop + 8,
++            "move",
++            tuple(safe),
++        ),
++    )
+--- /dev/null
++++ b/tests/test_recovery_skirmish.py
+@@ -0,0 +1,100 @@
++from dataclasses import replace
++from types import SimpleNamespace
++
++from sc2.ids.ability_id import AbilityId as A
++from sc2.ids.unit_typeid import UnitTypeId as U
++
++from source.game_assessment import GameAssessment
++from source.tactics import TacticalController
++
++
++def setup(bot, unit):
++    bot.settings.attack = True
++    bot.settings.strategy = "auto"
++    controller = TacticalController()
++    controller.active_mode = "retreat"
++    controller._micro_allowed = True
++    controller._automatic_recovery = True
++    controller.last_assessment = SimpleNamespace(home=(-20, 0))
++    controller.missions.records = {
++        "main": {"phase": "recover", "members": [unit.tag], "retreat_goal": [-20, 0]}
++    }
++    return controller
++
++
++def test_automatic_recovery_moves_fires_and_resumes_escape_across_observations(bot, make_unit, populate):
++    unit = make_unit(U.STALKER, weapon_cooldown=4)
++    enemy = make_unit(U.MARINE, (3, 0), alliance=4)
++    populate(unit, enemy)
++    controller = setup(bot, unit)
++    for cooldown, expected in ((4, "recovery_escape"), (0, "recovery_volley"), (4, "recovery_escape")):
++        unit._proto.weapon_cooldown = cooldown
++        bot._used.clear()
++        bot.actions.clear()
++        bot.state.game_loop += 8
++        decisions = controller.micro(bot)
++        assert decisions == [{"unit_tag": unit.tag, "action": expected}]
++        assert len(bot.actions) == 1
++        if cooldown:
++            assert bot.actions[0].ability == A.MOVE_MOVE
++            assert bot.actions[0].target.distance_to(enemy.position) > unit.distance_to(enemy)
++        else:
++            assert bot.actions[0].target == enemy
++        controller.micro(bot)
++        assert len(bot.actions) == 1
++
++
++def test_recovery_never_chases_out_of_range_target_and_critical_actor_escapes(bot, make_unit, populate):
++    unit = make_unit(U.STALKER, weapon_cooldown=0)
++    enemy = make_unit(U.MARINE, (20, 0), alliance=4)
++    populate(unit, enemy)
++    controller = setup(bot, unit)
++    assert controller.micro(bot)[0]["action"] == "recovery_escape"
++    assert bot.actions[0].ability == A.MOVE_MOVE
++    bot._used.clear()
++    bot.actions.clear()
++    unit._proto.health, unit._proto.shield = 10, 0
++    enemy._proto.pos.x = 3
++    assert controller.micro(bot)[0]["action"] == "individual_retreat"
++    assert bot.actions[0].ability == A.MOVE_MOVE
++
++
++def test_manual_overrides_and_released_ownership_suppress_recovery_fire(bot, make_unit, populate):
++    unit = make_unit(U.STALKER)
++    populate(unit, make_unit(U.MARINE, (3, 0), alliance=4))
++    controller = setup(bot, unit)
++    for strategy in ("retreat", "regroup"):
++        bot.settings.strategy = strategy
++        assert not controller.micro(bot)
++        assert not bot.actions
++    bot.settings.strategy = "auto"
++    controller._micro_allowed = False  # Resolved scripted retreat overrides configured auto.
++    assert not controller.micro(bot)
++    assert not bot.actions
++
++    controller._micro_allowed = True
++    controller._automatic_recovery = False
++    assert not controller.micro(bot)
++    assert not bot.actions
++    controller._automatic_recovery = True
++    bot.control.released.add(unit.tag)
++    assert not controller.micro(bot)
++    assert not bot.actions
++
++
++def test_strategic_recovery_hands_actor_budget_to_same_observation_micro(bot, make_unit, populate):
++    units = [make_unit(U.STALKER) for _ in range(7)]
++    enemy = make_unit(U.MARINE, (3, 0), alliance=4)
++    populate(*units, make_unit(U.NEXUS, (30, 0)), enemy)
++    bot.settings.attack = True
++    bot.settings.strategy = "auto"
++    state = replace(GameAssessment().observe(bot, bot.units), trade_bad=True)
++    controller = TacticalController()
++    controller.assessor.observe = lambda *_: state
++    result = controller.tick(bot)
++    assert result["missions"]["main"]["phase"] == "recover"
++    assert not bot.actions  # Movement does not consume the volley actor budget.
++    decisions = controller.micro(bot)
++    assert len(decisions) == len(units)
++    assert all(d["action"] == "recovery_volley" for d in decisions)
++    assert len(bot.actions) == len({a.unit.tag for a in bot.actions}) == len(units)
+--- /dev/null
++++ b/tests/test_remote_raid.py
+@@ -0,0 +1,119 @@
++"""Load only the four isolated 9fd64a1-based candidate modules."""
++# ruff: noqa: E402 -- staged modules must load before their consumers.
++
++from dataclasses import replace
++
++from sc2.ids.unit_typeid import UnitTypeId as U
++
++from source.army_waves import ArmyWaves
++from source.game_assessment import GameAssessment
++from source.missions import MissionPlanner
++from source.strategic_plan import Assessment, Opportunity, validate_plan
++from source.strategy_director import StrategicDirector
++
++
++def facts(**changes):
++    state = Assessment(
++        224,
++        10,
++        "pressure",
++        142,
++        71,
++        1,
++        10,
++        2,
++        0,
++        (0, 0),
++        (8, 8),
++        (80, 80),
++        (Opportunity("base", (100, 100), 10, True, True, 65, 0, 2, 40),),
++        0,
++        400,
++        200,
++        56,
++        3,
++        (("stalkers", 40),),
++        raid_response_tags=(1, 2, 3, 4),
++        raid_response_supply=8,
++        raid_response_advantage=2,
++    )
++    return replace(state, **changes)
++
++
++def test_remote_small_raid_gets_bounded_response_and_pressure_continues():
++    state = facts()
++    plan = validate_plan(StrategicDirector().decide(state), state)
++    assert plan.objective == "pressure"
++    assert [(m.role, m.supply_budget) for m in plan.missions] == [("defend", 8), ("main", 134)]
++
++
++def test_heavy_threat_rush_and_inadequate_response_keep_full_defense():
++    for changes in (
++        {"threat_supply": 20},
++        {"rush_warning": True},
++        {"raid_response_advantage": 0.5},
++        {"raid_response_tags": ()},
++        {"army_supply": 30},
++        {"raid_response_supply": 60},
++    ):
++        plan = StrategicDirector().decide(facts(**changes))
++        assert plan.objective == "stabilize"
++        assert len(plan.missions) == 1
++
++
++def test_legacy_assessment_remains_conservative():
++    state = facts(raid_response_tags=(), raid_response_supply=0, raid_response_advantage=0)
++    data = state.to_dict()
++    for key in tuple(data):
++        if key.startswith("raid_response_"):
++            del data[key]
++    from source.replay_strategy import assessment_from_dict
++
++    legacy = assessment_from_dict(data)
++    assert StrategicDirector().decide(legacy).objective == "stabilize"
++
++
++def test_projected_response_uses_only_units_that_can_hit_air_and_preserves_main(bot, make_unit, populate):
++    bot.game_data.units[U.ZEALOT.value]._proto.weapons[0].type = 1
++    zealots = [make_unit(U.ZEALOT) for _ in range(50)]
++    stalkers = [make_unit(U.STALKER) for _ in range(21)]
++    populate(
++        *zealots,
++        *stalkers,
++        make_unit(U.NEXUS),
++        make_unit(U.NEXUS, (80, 80)),
++        make_unit(U.MUTALISK, (81, 80), alliance=4, is_flying=True),
++        make_unit(U.MUTALISK, (82, 80), alliance=4, is_flying=True),
++    )
++    bot.settings.attack = True
++    bot.settings.profile = "pressure"
++    state = GameAssessment().observe(bot, bot.units)
++    assert state.home_advantage == 0
++    assert state.raid_response_advantage >= 1.2
++    assert set(state.raid_response_tags) <= {unit.tag for unit in stalkers}
++    plan = validate_plan(StrategicDirector().decide(state), state)
++    assert plan.objective == "pressure"
++    result = MissionPlanner().execute(bot, bot.units, plan, state, ArmyWaves())
++    response = result["missions"]["home-defense"]
++    assert set(response["members"]) == set(state.raid_response_tags)
++    assert response["supply"] <= state.army_supply * 0.3
++    assert result["missions"]["main"]["supply"] >= 40
++    assert len({action.unit.tag for action in bot.actions}) == len(bot.actions)
++    bot._used.clear()
++    bot.actions.clear()
++    bot.control.released.update(state.raid_response_tags)
++    MissionPlanner().execute(bot, bot.units, plan, state, ArmyWaves())
++    assert not any(action.unit.tag in state.raid_response_tags for action in bot.actions)
++    assert len({action.unit.tag for action in bot.actions}) == len(bot.actions)
++
++
++def test_ground_only_army_does_not_claim_remote_air_response(bot, make_unit, populate):
++    bot.game_data.units[U.ZEALOT.value]._proto.weapons[0].type = 1
++    populate(
++        *(make_unit(U.ZEALOT) for _ in range(30)),
++        make_unit(U.NEXUS),
++        make_unit(U.MUTALISK, (1, 1), alliance=4, is_flying=True),
++    )
++    state = GameAssessment().observe(bot, bot.units)
++    assert not state.raid_response_tags
++    assert state.raid_response_advantage == 0
+--- /dev/null
++++ b/tests/test_retreat_routes.py
+@@ -0,0 +1,109 @@
++from types import SimpleNamespace
++
++from sc2.ids.unit_typeid import UnitTypeId as U
++from sc2.position import Point2
++from sc2.units import Units
++
++from source.army_waves import ArmyWaves
++from source.missions import MissionPlanner, retreat_waypoint
++from source.strategic_plan import MissionSpec
++from source.tactics import TacticalController
++
++
++def test_retreat_avoids_visible_weapons_instead_of_running_through_them(bot, make_unit):
++    unit = make_unit(U.STALKER)
++    enemy = make_unit(U.MARINE, (5, 0), alliance=4)
++    waypoint = retreat_waypoint(bot, unit, Point2((30, 0)), Units([enemy], bot))
++    assert waypoint.distance_to(enemy.position) > unit.distance_to(enemy)
++    assert waypoint.distance_to(unit.position) <= 10.001
++
++
++def test_retreat_checks_entire_ground_segment_but_air_can_cross(bot, make_unit):
++    unit = make_unit(U.STALKER)
++    bot.in_pathing_grid = lambda point: not 3 < point.x < 5
++    goal = Point2((10, 0))
++    assert retreat_waypoint(bot, unit, goal, Units([], bot)).x <= 3
++    flying = make_unit(U.STALKER, is_flying=True)
++    assert retreat_waypoint(bot, flying, goal, Units([], bot)) == goal
++
++
++def test_unit_at_home_still_escapes_an_attacker_without_zero_length_normalization(bot, make_unit):
++    unit = make_unit(U.STALKER)
++    enemy = make_unit(U.MARINE, (2, 0), alliance=4)
++    waypoint = retreat_waypoint(bot, unit, unit.position, Units([enemy], bot))
++    assert waypoint.distance_to(enemy.position) > unit.distance_to(enemy)
++    assert retreat_waypoint(bot, unit, unit.position, Units([], bot)) == unit.position
++
++
++def test_ground_only_weapons_do_not_divert_air_retreat(bot, make_unit):
++    bot.game_data.units[U.MARINE.value]._proto.weapons[0].type = 1
++    enemy = make_unit(U.MARINE, (5, 0), alliance=4)
++    flying = make_unit(U.STALKER, is_flying=True)
++    goal = Point2((30, 0))
++    assert retreat_waypoint(bot, flying, goal, Units([enemy], bot)) == goal
++
++
++def test_recovery_goal_survives_home_changes_but_revokes_destroyed_base(bot, make_unit, populate):
++    unit = make_unit(U.STALKER, (10, 0))
++    first = make_unit(U.NEXUS, (0, 0))
++    other = make_unit(U.NEXUS, (80, 0))
++    populate(unit, first, other)
++    bot.settings.attack = True
++    planner = MissionPlanner()
++    spec = MissionSpec("main", "main", "home", (0, 0), 2, 0, 100, "move")
++    plan = SimpleNamespace(missions=(spec,), objective="recover")
++    state = SimpleNamespace(targets=(), home=(0, 0))
++    waves = ArmyWaves()
++    planner.execute(bot, bot.units, plan, state, waves)
++    assert planner.records["main"]["retreat_goal"] == [0, 0]
++    bot._used.clear()
++    state.home = (80, 0)
++    planner.execute(bot, bot.units, plan, state, waves)
++    assert planner.records["main"]["retreat_goal"] == [0, 0]
++    populate(unit, other)
++    bot._used.clear()
++    planner.execute(bot, bot.units, plan, state, waves)
++    assert planner.records["main"]["retreat_goal"] == [80, 0]
++
++
++def test_scripted_retreat_keeps_explicit_destination(bot, make_unit, populate):
++    populate(make_unit(U.STALKER, (10, 0)), make_unit(U.NEXUS))
++    bot.settings.attack = True
++    planner = MissionPlanner()
++    spec = MissionSpec("main", "main", "script", (50, 50), 2, 0, 100, "move")
++    plan = SimpleNamespace(missions=(spec,), objective="recover")
++    state = SimpleNamespace(targets=(), home=(0, 0))
++    result = planner.execute(bot, bot.units, plan, state, ArmyWaves(), preserve_combat=False)
++    assert result["missions"]["main"]["retreat_goal"] == [50, 50]
++    assert result["orders"][0]["target"] == [50, 50]
++
++
++def test_critical_escape_stays_safe_between_strategic_ticks_and_honors_ownership(bot, make_unit, populate):
++    weak = make_unit(U.STALKER, health=10, shield=0)
++    enemy = make_unit(U.MARINE, (5, 0), alliance=4)
++    populate(weak, *(make_unit(U.STALKER) for _ in range(6)), make_unit(U.NEXUS, (30, 0)), enemy)
++    bot.settings.attack = True
++    bot.settings.strategy = "push"
++    bot.settings.army_waves = False
++    controller = TacticalController()
++    decision = controller.tick(bot)
++    assert decision["missions"]["main"]["phase"] == "engage"
++    initial = next(action for action in bot.actions if action.unit.tag == weak.tag)
++    assert initial.target.distance_to(enemy.position) > weak.distance_to(enemy)
++    # The runtime clears the actor budget on the next observation, while the
++    # strategic plan remains active until the one-second planning interval.
++    for _ in range(2):
++        bot._used.clear()
++        bot.actions.clear()
++        bot.state.game_loop += 8
++        controller.micro(bot)
++        orders = [action for action in bot.actions if action.unit.tag == weak.tag]
++        assert len(orders) == 1
++        assert orders[0].target.distance_to(enemy.position) > weak.distance_to(enemy)
++        controller.micro(bot)
++        assert len([action for action in bot.actions if action.unit.tag == weak.tag]) == 1
++    bot._used.clear()
++    bot.actions.clear()
++    bot.control.released.add(weak.tag)
++    controller.micro(bot)
++    assert not any(action.unit.tag == weak.tag for action in bot.actions)
+--- /dev/null
++++ b/tests/test_target_travel.py
+@@ -0,0 +1,64 @@
++"""Distant-army search costs and emergency overrides use actual observations."""
++
++import pytest
++from sc2.ids.unit_typeid import UnitTypeId as U
++from sc2.position import Point2
++from sc2.units import Units
++
++from source.game_assessment import GameAssessment
++from source.strategy_director import StrategicDirector
++
++
++def setup(bot, make_unit, populate):
++    soldiers = [make_unit(U.STALKER, (99 + i * 0.2, 100)) for i in range(12)]
++    populate(make_unit(U.NEXUS), *soldiers)
++    bot.settings.profile = "pressure"
++    bot.state.game_loop = 22400
++    bot.game_info.start_locations = [Point2((200, 200))]
++    bot._expansion_positions_list = [Point2((25, 0)), Point2((100, 90))]
++    bot.is_visible = lambda point: False
++    return Units(soldiers, bot)
++
++
++def test_distant_army_searches_near_its_position_instead_of_near_home(bot, make_unit, populate):
++    army = setup(bot, make_unit, populate)
++    state = GameAssessment().observe(bot, army)
++    targets = {target.id: target for target in state.targets}
++    assert targets["site:2"].travel == pytest.approx(army.center.distance_to(Point2((100, 90))))
++    assert targets["site:2"].travel < targets["site:1"].travel
++    assert StrategicDirector().decide(state).missions[-1].target_id == "site:2"
++
++
++def test_remembered_bases_use_army_travel_and_do_not_override_an_emergency(bot, make_unit, populate):
++    army = setup(bot, make_unit, populate)
++    bot.scout_report = {
++        "known_enemy_bases": [
++            {"tag": "near_army", "position": [100, 110], "seen_seconds": 990, "expansion": True},
++            {"tag": "near_home", "position": [20, 0], "seen_seconds": 990, "expansion": True},
++        ]
++    }
++    assessment = GameAssessment()
++    state = assessment.observe(bot, army)
++    targets = {target.id: target for target in state.targets}
++    assert targets["near_army"].travel < targets["near_home"].travel
++    director = StrategicDirector()
++    assert director.decide(state).missions[-1].target_id == "near_army"
++    bot.scout_report["rush_warning"] = {"expires_at": 1100}
++    plan = director.decide(assessment.observe(bot, army))
++    assert plan.objective == "stabilize" and not plan.expand
++
++
++def test_no_fighting_army_uses_front_and_fresh_empty_sites_stay_suppressed(bot, make_unit, populate):
++    setup(bot, make_unit, populate)
++    bot.scout_report = {
++        "expansion_sites": [{"position": [100, 90], "status": "empty", "last_checked": 999}],
++        "known_enemy_bases": [
++            {"tag": "remembered", "position": [120, 100], "seen_seconds": 990, "expansion": True}
++        ],
++    }
++    state = GameAssessment().observe(bot, Units([], bot))
++    targets = {target.id: target for target in state.targets}
++    assert "site:2" not in targets
++    assert targets["site:1"].travel == pytest.approx(25)
++    assert targets["remembered"].travel == pytest.approx(Point2((0, 0)).distance_to(Point2((120, 100))))
++    assert StrategicDirector().decide(state).objective == "develop"
+--- /dev/null
++++ b/tests/test_weapon_power.py
+@@ -0,0 +1,58 @@
++import pytest
++from s2clientprotocol import data_pb2
++from sc2.ids.unit_typeid import UnitTypeId as U
++
++from source.combat_assessment import power
++
++
++def test_weapon_bonus_armor_and_observed_upgrades_change_power(bot, make_unit):
++    weapon = bot.game_data.units[U.MARINE.value]._proto.weapons[0]
++    weapon.type, weapon.damage, weapon.attacks, weapon.speed = 1, 10, 1, 2
++    weapon.damage_bonus.add(attribute=2, bonus=4)  # Armored.
++    target_data = bot.game_data.units[U.STALKER.value]._proto
++    target_data.attributes.append(2)
++    target_data.armor = 1
++    attacker = make_unit(U.MARINE, health=100, shield=0)
++    target = make_unit(U.STALKER, health=100, shield=0, armor_upgrade_level=2)
++    assert power([attacker], [target]) == pytest.approx(550)  # (10+4-3)/2 *100HP.
++    upgraded = make_unit(U.MARINE, health=100, shield=0, attack_upgrade_level=2)
++    assert power([upgraded], [target]) == pytest.approx(650)
++    unarmored = make_unit(U.ZEALOT, health=100, shield=0)
++    assert power([attacker], [unarmored]) == pytest.approx(500)
++
++
++def test_shield_armor_and_current_health_weight_are_retained(bot, make_unit):
++    weapon = bot.game_data.units[U.MARINE.value]._proto.weapons[0]
++    weapon.damage, weapon.attacks, weapon.speed = 10, 1, 1
++    attacker = make_unit(U.MARINE, health=40, shield=10)
++    target = make_unit(U.STALKER, shield=100, shield_upgrade_level=3)
++    assert power([attacker], [target]) == pytest.approx(50 * 7)
++
++
++def test_domains_and_dual_domain_colossus_do_not_double_count(bot, make_unit):
++    data = bot.game_data.units[U.MARINE.value]._proto
++    del data.weapons[:]
++    data.weapons.extend(
++        [
++            data_pb2.Weapon(type=1, damage=10, attacks=1, speed=1, range=5),
++            data_pb2.Weapon(type=2, damage=20, attacks=1, speed=1, range=5),
++        ]
++    )
++    attacker = make_unit(U.MARINE, health=100, shield=0)
++    colossus = make_unit(U.COLOSSUS, shield=0)
++    assert power([attacker], [colossus]) == pytest.approx(2000)
++    ground_only = make_unit(U.ZEALOT, health=100, shield=0)
++    bot.game_data.units[U.ZEALOT.value]._proto.weapons[0].type = 1
++    flying = make_unit(U.MUTALISK, is_flying=True)
++    assert power([ground_only], [flying]) == 0
++
++
++def test_unknown_bunker_cargo_remains_conservative_but_unfinished_defense_does_not_attack(bot, make_unit):
++    del bot.game_data.units[U.BUNKER.value]._proto.weapons[:]
++    bunker = make_unit(U.BUNKER, alliance=4, health=100, shield=0)
++    target = make_unit(U.STALKER)
++    assert power([bunker], [target]) >= 2400
++    unfinished = make_unit(U.BUNKER, alliance=4, build_progress=0.5)
++    assert power([unfinished], [target]) == 0
++    assert power([make_unit(U.PROBE)], [target]) == 0
++    assert power([bunker], []) == 0

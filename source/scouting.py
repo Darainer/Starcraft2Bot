@@ -22,6 +22,9 @@ class ScoutController:
         self.base_memory = {}
         self.tech_memory = {}
         self.opening_complete = False
+        self.scout_attempts = 0
+        self.retry_after = 0
+        self.scout_interruption = None
         self.returning = False
         self.observer_visits = {}
         self.expansion_checks = {}
@@ -392,40 +395,86 @@ class ScoutController:
         report["known_enemy_tech"] = sorted({value[0] for value in self.tech_memory.values()})
 
     def _worker_scout(self, bot, enemies, report):
+        phase = self._worker_scout_tick(bot, enemies, report)
+        report["opening_scout"] = {
+            "schema_version": 1,
+            "completed": self.opening_complete,
+            "phase": phase,
+            "attempts": self.scout_attempts,
+            "route_points_inspected": self.worker_route_index,
+            "retry_after": self.retry_after,
+            "interruption": self.scout_interruption,
+        }
+        return phase
+
+    def _worker_scout_tick(self, bot, enemies, report):
         if not bot.settings.enabled or not bot.settings.attack or not bot.settings.scouting:
             self.worker_tag = bot.scout_tag = None
             return "disabled"
         scout = bot.workers.find_by_tag(self.worker_tag) if self.worker_tag else None
         if scout is None:
+            if self.worker_tag is not None:
+                self.scout_interruption = "scout_missing"
+                self.retry_after = max(self.retry_after, bot.time + 60)
+            self.worker_tag = None
             bot.scout_tag = None
             if self.opening_complete:
                 return "opening_complete"
-            if bot.supply_workers >= 12 and bot.time - self.last_assignment >= 90:
+            if self.scout_attempts >= 3 or bot.time >= 300:
+                return "opening_incomplete"
+            threats = enemies.filter(lambda u: u.is_visible and u.can_attack_ground)
+            homes = [base.position for base in bot.townhalls.ready] or [bot.start_location]
+            route = self._worker_route(bot)
+            unsafe = any(any(u.distance_to(home) < 32 for home in homes) for u in threats)
+            unsafe |= bool(route and threats.closer_than(12, route[0]))
+            unsafe |= bot.time < report.get("rush_warning", {}).get("expires_at", 0)
+            if (
+                not unsafe
+                and bot.time >= self.retry_after
+                and bot.supply_workers >= 12
+                and bot.time - self.last_assignment >= 90
+            ):
                 candidates = bot.workers.filter(
-                    lambda unit: bot.available(unit) and (unit.is_idle or unit.is_gathering)
+                    lambda unit: (
+                        bot.available(unit)
+                        and unit.health + unit.shield >= (unit.health_max + unit.shield_max) * 0.75
+                        and (unit.is_idle or unit.is_gathering)
+                    )
                 )
                 if candidates:
                     scout = candidates.closest_to(bot.game_info.map_center)
                     self.worker_tag = bot.scout_tag = scout.tag
                     self.last_assignment = bot.time
+                    self.scout_attempts += 1
+                    self.worker_route_index = 0
+                    self.returning = False
+                    self.scout_interruption = None
         if scout is None:
             return "observing" if report.get("enemy_seen") else "waiting_for_scout"
         if not bot.control.eligible(scout):
             return "human_owned"
         threatened = enemies.filter(lambda unit: unit.can_attack_ground and unit.distance_to(scout) < 8)
+        if threatened or scout.health + scout.shield < 30:
+            self.scout_interruption = "threatened" if threatened else "damaged"
         self.returning |= bool(threatened) or scout.health + scout.shield < 30
         route = self._worker_route(bot)
         if not route and not self.returning:
             self.returning = True
             return "no_known_start"
-        if not self.returning and scout.distance_to(route[self.worker_route_index % len(route)]) < 6:
+        if (
+            not self.returning
+            and scout.distance_to(route[self.worker_route_index % len(route)]) < 6
+            and bot.is_visible(route[self.worker_route_index % len(route)])
+        ):
             self.worker_route_index += 1
             self.returning = self.worker_route_index >= len(route)
+            self.opening_complete = self.returning
         if self.returning:
             target = bot.start_location
             if scout.distance_to(target) <= 6:
                 self.worker_tag = bot.scout_tag = None
-                self.opening_complete = True
+                if not self.opening_complete:
+                    self.retry_after = bot.time + 60
                 return "returned"
             phase = "returning"
         else:

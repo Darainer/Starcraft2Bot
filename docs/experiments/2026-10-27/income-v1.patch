@@ -1,0 +1,43 @@
+--- a/source/economy_assistant.py
++++ b/source/economy_assistant.py
+@@ -208 +208 @@
+-    async def safe_expansion_location(self, reference):
++    async def safe_expansion_location(self, reference, require_minerals=False):
+@@ -213,0 +214,4 @@
++            if require_minerals and not self.mineral_field.closer_than(10, location).filter(
++                lambda patch: patch.mineral_contents > 0
++            ):
++                continue
+@@ -364,0 +369,25 @@
++        # Saturation falls as mineral patches disappear. Saving for a replacement
++        # mineral line must not require training up to the normal expansion gate:
++        # that same depleted saturation also prevents producing more workers.
++        depleted_income = (
++            self.time >= 360
++            and any(base.ideal_harvesters < 8 for base in safe_bases)
++            and sum(base.ideal_harvesters for base in safe_bases) < max(8, self.supply_workers * 0.6)
++        )
++        if (
++            depleted_income
++            and s.expansion
++            and self.townhalls.amount < base_target
++            and not self.already_pending(U.NEXUS)
++            and self.supply_workers >= 14
++            and not self.economic_emergency
++            and (self.strategic_plan is None or self.strategic_plan.expand)
++            and (not s.attack or self.supply_army >= 12)
++        ):
++            location = await self.safe_expansion_location(home.position, require_minerals=True)
++            if location and self.builder(location):
++                self._macro_reserve = 400
++                if not self.affordable(U.NEXUS):
++                    return  # Retain the remaining bank instead of spending the recovery fund.
++                if await self.build_structure(U.NEXUS, location, max_distance=2):
++                    return
+@@ -413,0 +443 @@
++        active_gases = self.gas_buildings.filter(lambda gas: not gas.is_ready or gas.vespene_contents > 0)
+@@ -417,2 +447,2 @@
+-            and len(self.gas_buildings) < gas_limit
+-            and (not self.gas_buildings or self.vespene < max(300, self.minerals))
++            and len(active_gases) < gas_limit
++            and (not active_gases or self.vespene < max(300, self.minerals))

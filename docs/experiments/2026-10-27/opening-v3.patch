@@ -1,0 +1,464 @@
+--- a/source/economy_assistant.py
++++ b/source/economy_assistant.py
+@@ -16,0 +17 @@
++from source.strategy_profiles import PROFILES
+@@ -325,0 +327,27 @@
++        contacts = visible_threats(self)
++        early_contact = self.time < 180 and any(
++            any(enemy.distance_to(base) < 32 for base in bases) for enemy in contacts
++        )
++        completed_supply = sum(
++            self.calculate_supply_cost(unit.type_id)
++            for unit in self.units.of_type(set(ARMY_TARGETS)).ready
++            if unit.can_attack
++        )
++        requested_supply = sum(
++            production_target(self, name) * self.calculate_supply_cost(kind)
++            for kind, name in ARMY_TARGETS.items()
++            if kind in {U.ZEALOT, U.STALKER}
++        )
++        first_defender = (
++            s.attack
++            and s.production
++            and self.time < 180
++            and requested_supply > 0
++            and (completed_supply < min(6, requested_supply) or early_contact)
++        )
++        self.opening_phase = (
++            "defend" if first_defender and early_contact else "first_force" if first_defender else "complete"
++        )
++        self._opening_reserve = 0
++        if not first_defender:
++            self.opening_defense_anchor = None
+@@ -338,0 +367,2 @@
++        if first_defender and self.produce_opening_defender():
++            return
+@@ -339,0 +370,2 @@
++            if first_defender and s.construction and await self.opening_battery(home, contacts):
++                return
+@@ -346 +378 @@
+-            if self.economic_emergency and s.production and self.produce(0):
++            if not first_defender and self.economic_emergency and s.production and self.produce(0):
+@@ -353,0 +386 @@
++                and not first_defender
+@@ -380,0 +414,15 @@
++        if first_defender and s.construction:
++            gateways = self.structures(U.GATEWAY) | self.structures(U.WARPGATE)
++            count = len(gateways) + sum(
++                kind == U.GATEWAY and expiry > self.time and not gateways.closer_than(2, point)
++                for kind, point, expiry in self.construction_reservations.values()
++            )
++            if count == 1 and self.structures(U.PYLON).ready:
++                self._macro_reserve = 150
++                if self.affordable(U.GATEWAY):
++                    pylons = self.structures(U.PYLON).ready.filter(lambda p: self.safe_at(p.position))
++                    if pylons:
++                        await self.build_structure(
++                            U.GATEWAY, pylons.closest_to(home).position, allow_pending=True
++                        )
++                return  # Complete parallel capacity before Core/worker/natural investment.
+@@ -395 +443 @@
+-        if self.economic_emergency:
++        if self.economic_emergency and not first_defender:
+@@ -409 +457 @@
+-                    and self.affordable(U.PROBE)
++                    and self.affordable(U.PROBE, self._opening_reserve)
+@@ -431,0 +480,14 @@
++        if first_defender:
++            if s.construction and await self.opening_battery(home, contacts):
++                return
++            if (
++                early_contact
++                and s.construction
++                and len(self.structures(U.GATEWAY) | self.structures(U.WARPGATE)) < 2
++                and not self.already_pending(U.GATEWAY)
++                and self.affordable(U.GATEWAY, self._opening_reserve)
++            ):
++                pylons = self.structures(U.PYLON).ready.filter(lambda p: self.safe_at(p.position))
++                if pylons:
++                    await self.build_structure(U.GATEWAY, pylons.closest_to(home).position)
++            return  # Retain the defense fund; do not buy technology or a natural.
+@@ -444,0 +507 @@
++            and not first_defender
+@@ -473,0 +537,65 @@
++
++    def produce_opening_defender(self):
++        """A legal first force; avoid spending its Stalker gas on support units."""
++        gateways = self.structures(U.GATEWAY).ready.idle.filter(
++            lambda gateway: (
++                gateway.is_powered
++                and self.available(gateway)
++                and self._blocked_producers.get(gateway.tag, 0) <= self.time
++            )
++        )
++        if not gateways:
++            return False
++        kinds = [U.STALKER, U.ZEALOT] if self.structures(U.CYBERNETICSCORE).ready else [U.ZEALOT]
++        for kind in kinds:
++            target = production_target(self, ARMY_TARGETS[kind])
++            if target <= self.units(kind).amount + self.already_pending(kind):
++                continue
++            if self.tech_requirement_progress(kind) < 1:
++                continue
++            self._opening_reserve = self.calculate_cost(kind).minerals
++            if self.affordable(kind) and self.issue(gateways.first.train(kind), paid=True, supply=True):
++                self._last_production = self.time
++                return True
++            return False  # Preserve this legal defender's budget instead of buying a Sentry.
++        return False
++
++    async def opening_battery(self, home, contacts):
++        """Protected powered placements; the front Pylon need not hug the Nexus."""
++        batteries = self.structures(U.SHIELDBATTERY).closer_than(14, home)
++        ready = batteries.ready.filter(lambda battery: battery.is_powered)
++        if ready:
++            battery = ready.closest_to(home)
++            if battery.distance_to(home) <= 6 + home.radius:
++                anchor = battery.position.towards(home.position, min(3, battery.distance_to(home)))
++                if self.in_pathing_grid(anchor) and self.is_visible(anchor):
++                    self.opening_defense_anchor = tuple(anchor)
++        if batteries or self.already_pending(U.SHIELDBATTERY):
++            return False
++        direction = contacts.closest_to(home).position if contacts else self.game_info.map_center
++        hold = home.position.towards(
++            self.game_info.map_center, max(8, PROFILES[self.settings.profile]["rally_distance"])
++        )
++        forward = self.structures(U.PYLON).ready.closest_to(hold) if self.structures(U.PYLON).ready else None
++        anchors = [home.position.towards(forward.position, 3.5)] if forward else []
++        anchors += [home.position.offset(offset) for offset in ((6, 0), (-6, 0), (0, 6), (0, -6))]
++        anchors.sort(key=lambda point: max(point.distance_to(home), point.distance_to(hold)))
++        if self.structures(U.CYBERNETICSCORE).ready and self.affordable(
++            U.SHIELDBATTERY, self._opening_reserve
++        ):
++            for anchor in anchors:
++                point = await find_spaced_placement(self, U.SHIELDBATTERY, anchor, 4)
++                if (
++                    point is not None
++                    and self.state.psionic_matrix.covers(point)
++                    and point.distance_to(home) <= 6 + home.radius
++                    and self.safe_at(point)
++                    and await self.build_structure(U.SHIELDBATTERY, point, max_distance=0)
++                ):
++                    return True
++        # Protect a location before contact makes the exposed front power unusable.
++        if self.settings.supply and not self.already_pending(U.PYLON):
++            rear = home.position.towards(direction, -8)
++            if not self.state.psionic_matrix.covers(rear) and self.affordable(U.PYLON, self._opening_reserve):
++                return await self.build_structure(U.PYLON, rear, max_distance=4)
++        return False
+--- a/source/game_assessment.py
++++ b/source/game_assessment.py
+@@ -4,0 +5 @@
++from sc2.ids.unit_typeid import UnitTypeId as U
+@@ -40,0 +42,20 @@
++        opening_hold = None
++        opening_phase = getattr(bot, "opening_phase", None)
++        if (
++            bot.settings.enabled
++            and bot.settings.attack
++            and bot.settings.production
++            and bot.settings.strategy == "auto"
++            and bot.time < 180
++            and opening_phase in {"first_force", "defend"}
++        ):
++            rally = home.towards(bot.game_info.map_center, 3.5)
++            opening_anchor = getattr(bot, "opening_defense_anchor", None)
++            if opening_anchor:
++                point = Point2(opening_anchor)
++                batteries = bot.structures(U.SHIELDBATTERY).ready.filter(
++                    lambda battery: battery.is_powered and battery.distance_to(point) <= 5.5
++                )
++                if batteries and bot.in_pathing_grid(point) and bot.is_visible(point):
++                    home = rally = point
++            opening_hold = tuple(rally)
+@@ -193,0 +215 @@
++            opening_hold=opening_hold,
+--- a/source/strategic_plan.py
++++ b/source/strategic_plan.py
+@@ -52,0 +53 @@
++    opening_hold: Point | None = None
+--- a/source/strategy_policies.py
++++ b/source/strategy_policies.py
+@@ -92,0 +93,5 @@
++    if objective == "stabilize" and state.opening_hold is not None:
++        point, mode = state.opening_hold, "move"
++        choice = Candidate(
++            "stabilize", "rally", choice.score, "Hold opening defenders together near protected power"
++        )
+--- /dev/null
++++ b/tests/test_opening_defender.py
+@@ -0,0 +1,274 @@
++import asyncio
++from unittest.mock import AsyncMock
++
++import pytest
++from s2clientprotocol import raw_pb2
++from sc2.ids.ability_id import AbilityId as A
++from sc2.ids.unit_typeid import UnitTypeId as U
++from sc2.position import Point2
++from sc2.units import Units
++
++from source import economy_assistant as candidate
++from source import game_assessment as assessment_candidate
++from source import strategic_plan as contract
++from source import strategy_policies as policies
++
++
++def opening(bot, make_unit, populate, *, completed=False, busy=False):
++    bot.__class__ = candidate.EconomyAssistant
++    orders = [raw_pb2.UnitOrder(ability_id=A.GATEWAYTRAIN_ZEALOT.value, progress=0.3)] if busy else []
++    units = [make_unit(U.NEXUS), make_unit(U.PYLON), make_unit(U.GATEWAY, orders=orders), make_unit(U.PROBE)]
++    if completed:
++        units.append(make_unit(U.ZEALOT))
++    populate(*units)
++    bot.state.game_loop = 2240
++    bot.settings.attack = True
++    bot.settings.workers = bot.settings.gas = bot.settings.supply = False
++    bot.settings.construction = bot.settings.upgrades = False
++    bot.minerals, bot.vespene = 400, 0
++    bot.supply_workers = 19
++    return bot
++
++
++def test_first_gateway_defender_precedes_core_and_natural_saving(bot, make_unit, populate):
++    opening(bot, make_unit, populate)
++    bot.settings.construction = True
++    asyncio.run(candidate.EconomyAssistant.macro(bot))
++    assert [action.ability for action in bot.actions] == [A.GATEWAYTRAIN_ZEALOT]
++
++
++def test_queued_army_supply_does_not_release_completed_defender_gate(bot, make_unit, populate):
++    opening(bot, make_unit, populate, busy=True)
++    bot.supply_army = 2
++    bot.already_pending.side_effect = lambda kind: int(kind == U.ZEALOT)
++    asyncio.run(candidate.EconomyAssistant.macro(bot))
++    assert not bot.actions
++
++
++def test_completed_defender_releases_natural_gate(bot, make_unit, populate):
++    opening(bot, make_unit, populate, completed=True, busy=True)
++    asyncio.run(candidate.EconomyAssistant.macro(bot))
++    assert not bot.actions  # One Zealot is below the completed six-supply force.
++
++
++@pytest.mark.parametrize("setting", ["attack", "production"])
++def test_manual_control_settings_do_not_force_an_opening_defender(bot, make_unit, populate, setting):
++    opening(bot, make_unit, populate, busy=True)
++    setattr(bot.settings, setting, False)
++    asyncio.run(candidate.EconomyAssistant.macro(bot))
++    assert [action.ability for action in bot.actions] == [A.PROTOSSBUILD_NEXUS]
++
++
++def test_selected_gateway_and_reserves_remain_protected(bot, make_unit, populate):
++    opening(bot, make_unit, populate)
++    bot.structures(U.GATEWAY).first._proto.is_selected = True
++    bot.settings.reserve_minerals = 400
++    asyncio.run(candidate.EconomyAssistant.macro(bot))
++    assert not bot.actions
++
++
++def test_repeated_defenders_then_completed_force_releases_natural(bot, make_unit, populate):
++    opening(bot, make_unit, populate)
++    asyncio.run(bot.macro())
++    assert bot.actions[-1].ability == A.GATEWAYTRAIN_ZEALOT
++    bot._used.clear()
++    populate(
++        make_unit(U.NEXUS), make_unit(U.GATEWAY), make_unit(U.PYLON), make_unit(U.PROBE), make_unit(U.ZEALOT)
++    )
++    bot.minerals, bot.vespene = 400, 0
++    asyncio.run(bot.macro())
++    assert bot.actions[-1].ability == A.GATEWAYTRAIN_ZEALOT
++    bot._used.clear()
++    populate(
++        make_unit(U.NEXUS),
++        make_unit(U.GATEWAY),
++        make_unit(U.CYBERNETICSCORE),
++        make_unit(U.PYLON),
++        make_unit(U.PROBE),
++        make_unit(U.ZEALOT),
++        make_unit(U.ZEALOT),
++    )
++    bot.minerals, bot.vespene = 400, 100
++    asyncio.run(bot.macro())
++    assert bot.actions[-1].ability == A.GATEWAYTRAIN_STALKER
++    bot._used.clear()
++    populate(
++        make_unit(U.NEXUS),
++        make_unit(U.GATEWAY),
++        make_unit(U.CYBERNETICSCORE),
++        make_unit(U.PYLON),
++        make_unit(U.PROBE),
++        make_unit(U.ZEALOT),
++        make_unit(U.ZEALOT),
++        make_unit(U.STALKER),
++    )
++    bot.minerals, bot.vespene = 400, 100
++    asyncio.run(bot.macro())
++    assert bot.actions[-1].ability == A.PROTOSSBUILD_NEXUS
++
++
++def test_stalker_budget_is_not_spent_on_cheaper_support(bot, make_unit, populate):
++    opening(bot, make_unit, populate)
++    populate(make_unit(U.NEXUS), make_unit(U.GATEWAY), make_unit(U.CYBERNETICSCORE), make_unit(U.PROBE))
++    bot.minerals, bot.vespene = 100, 100
++    asyncio.run(bot.macro())
++    assert not bot.actions
++    assert bot._opening_reserve == 125
++
++
++def test_workers_continue_while_gateway_is_busy(bot, make_unit, populate):
++    opening(bot, make_unit, populate, busy=True)
++    bot.settings.workers = True
++    bot.supply_workers = 12
++    bot.townhalls.first._proto.ideal_harvesters = 16
++    asyncio.run(bot.macro())
++    assert bot.actions[-1].ability == A.NEXUSTRAIN_PROBE
++
++
++def test_protected_rear_power_can_be_prepared_before_battery_tech(bot, make_unit, populate, monkeypatch):
++    opening(bot, make_unit, populate, busy=True)
++    bot.settings.supply = True
++    bot._opening_reserve = 0
++    bot.state.psionic_matrix.covers = lambda point: False
++    monkeypatch.setattr(candidate, "find_spaced_placement", AsyncMock(return_value=Point2((-8, 0))))
++    assert asyncio.run(bot.opening_battery(bot.townhalls.first, Units([], bot)))
++    assert bot.actions[-1].ability == A.PROTOSSBUILD_PYLON
++    assert bot.actions[-1].target == Point2((-8, 0))
++
++
++def test_small_early_contact_reenters_defense_and_defers_tech(bot, make_unit, populate):
++    opening(bot, make_unit, populate, busy=True)
++    gateway = bot.structures(U.GATEWAY).first
++    populate(
++        make_unit(U.NEXUS),
++        gateway,
++        make_unit(U.PYLON),
++        make_unit(U.PROBE),
++        *[make_unit(U.ZEALOT) for _ in range(3)],
++    )
++    bot.enemy_units = Units([make_unit(U.MARINE, (25, 0), alliance=4)], bot)
++    bot.upgrade = AsyncMock(return_value=True)
++    bot.settings.upgrades = True
++    asyncio.run(bot.macro())
++    assert bot.opening_phase == "defend" and not bot.actions
++    bot.upgrade.assert_not_awaited()
++
++
++def test_opening_still_builds_gas_for_a_legal_stalker(bot, make_unit, populate):
++    opening(bot, make_unit, populate)
++    populate(
++        make_unit(U.NEXUS),
++        make_unit(U.GATEWAY),
++        make_unit(U.CYBERNETICSCORE),
++        make_unit(U.PROBE),
++        make_unit(U.VESPENEGEYSER, (6, 0), vespene_contents=2250),
++    )
++    bot.settings.gas = True
++    bot.minerals, bot.vespene = 100, 0
++    asyncio.run(bot.macro())
++    assert bot.actions[-1].ability == A.PROTOSSBUILD_ASSIMILATOR
++
++
++def test_front_pylon_can_power_a_safe_battery_and_unsafe_or_unpowered_sites_are_rejected(
++    bot, make_unit, populate, monkeypatch
++):
++    opening(bot, make_unit, populate)
++    populate(make_unit(U.NEXUS), make_unit(U.CYBERNETICSCORE), make_unit(U.PYLON, (9, 0)), make_unit(U.PROBE))
++    bot._opening_reserve = 0
++    bot.vespene = 100  # The generic synthetic building table assigns 100 gas.
++    bot.townhalls.first._proto.radius = 2.75
++    point = Point2((6.5, -4.5))
++    monkeypatch.setattr(candidate, "find_spaced_placement", AsyncMock(return_value=point))
++    bot.state.psionic_matrix.covers = lambda p: p == point
++    assert asyncio.run(bot.opening_battery(bot.townhalls.first, Units([], bot)))
++    assert bot.actions[-1].ability == A.BUILD_SHIELDBATTERY
++    bot.actions.clear()
++    bot._used.clear()
++    bot.state.psionic_matrix.covers = lambda p: False
++    assert not asyncio.run(bot.opening_battery(bot.townhalls.first, Units([], bot)))
++    assert not bot.actions
++
++
++def test_second_gateway_is_reserved_before_core_or_workers_while_first_builds(bot, make_unit, populate):
++    opening(bot, make_unit, populate)
++    populate(
++        make_unit(U.NEXUS),
++        make_unit(U.PYLON),
++        make_unit(U.GATEWAY, (8, 8), build_progress=0.3),
++        make_unit(U.PROBE),
++    )
++    bot.settings.construction = bot.settings.workers = True
++    bot.townhalls.first._proto.ideal_harvesters = 16
++    bot.already_pending.side_effect = lambda kind: int(kind == U.GATEWAY)
++    asyncio.run(bot.macro())
++    assert bot.actions[-1].ability == A.PROTOSSBUILD_GATEWAY
++    bot._used.clear()
++    asyncio.run(bot.macro())  # A reserved second footprint must not become a third Gateway.
++    assert sum(action.ability == A.PROTOSSBUILD_GATEWAY for action in bot.actions) == 1
++
++
++def test_parallel_capacity_respects_budget_and_ownership(bot, make_unit, populate):
++    opening(bot, make_unit, populate)
++    populate(
++        make_unit(U.NEXUS), make_unit(U.PYLON), make_unit(U.GATEWAY, build_progress=0.3), make_unit(U.PROBE)
++    )
++    bot.settings.construction = True
++    bot.minerals = 149
++    asyncio.run(bot.macro())
++    assert not bot.actions
++    bot.minerals = 400
++    bot.settings.reserve_minerals = 300
++    asyncio.run(bot.macro())
++    assert not bot.actions
++    bot.settings.reserve_minerals = 0
++    bot.workers.first._proto.is_selected = True
++    asyncio.run(bot.macro())
++    assert not bot.actions
++
++
++def test_ready_battery_provides_only_a_live_opening_defensive_anchor(bot, make_unit, populate):
++    opening(bot, make_unit, populate)
++    populate(
++        make_unit(U.NEXUS, radius=2.75),
++        make_unit(U.PYLON, (9, 0)),
++        make_unit(U.CYBERNETICSCORE),
++        make_unit(U.SHIELDBATTERY, (6.5, -4.5)),
++        make_unit(U.PROBE),
++    )
++    bot._opening_reserve = 0
++    bot.opening_phase = "defend"
++    # The shared legacy fixture predates batteries in its structure type list.
++    battery = bot.units(U.SHIELDBATTERY).first
++    bot.structures = bot.structures | Units([battery], bot)
++    bot.units = bot.units.exclude_type({U.SHIELDBATTERY})
++    assert not asyncio.run(bot.opening_battery(bot.townhalls.first, Units([], bot)))
++    anchor = Point2(bot.opening_defense_anchor)
++    assert anchor.distance_to(bot.structures(U.SHIELDBATTERY).first) <= 3.01
++    assessment = assessment_candidate.GameAssessment().observe(bot, bot.units)
++    assert Point2(assessment.home) == Point2(assessment.rally) == anchor
++    bot.opening_phase = "complete"
++    assert assessment_candidate.GameAssessment().observe(bot, bot.units).home == (0, 0)
++
++
++def test_early_contact_does_not_pull_lone_defender_out_to_the_observed_threat(bot, make_unit, populate):
++    opening(bot, make_unit, populate)
++    populate(make_unit(U.NEXUS), make_unit(U.ZEALOT, (3, 0)), make_unit(U.MARINE, (25, 0), alliance=4))
++    bot.opening_phase = "first_force"
++    state = assessment_candidate.GameAssessment().observe(bot, bot.units)
++    assert state.threat == (25, 0)  # Preserve the actual intelligence position.
++    assert Point2(state.rally).distance_to(Point2((0, 0))) == pytest.approx(3.5)
++    ranked = policies.candidates(state)
++    plan = policies.compose(state, max(ranked, key=lambda c: c.score), 1, ranked)
++    assert plan.missions[-1].target_id == "rally"
++    assert plan.missions[-1].mode == "move"
++    assert plan.missions[-1].target != state.threat
++    assert contract.validate_plan(plan, state) is plan
++    bot.opening_phase = "complete"
++    assert assessment_candidate.GameAssessment().observe(bot, bot.units).opening_hold is None
++    bot.opening_phase = "first_force"
++    bot.settings.strategy = "defend"
++    assert assessment_candidate.GameAssessment().observe(bot, bot.units).opening_hold is None
++    bot.state.psionic_matrix.covers = lambda p: True
++    bot.safe_at = lambda p, radius=18: False
++    assert not asyncio.run(bot.opening_battery(bot.townhalls.first, Units([], bot)))
++    assert not bot.actions

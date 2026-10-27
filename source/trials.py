@@ -97,7 +97,7 @@ def main(argv=None):
         "--parallel",
         type=int,
         default=1,
-        help="Concurrent games (1-5); may overlap scenarios when greater than repeat count",
+        help="Concurrent games (1-8); may overlap scenarios when greater than repeat count",
     )
     parser.add_argument("--duration", type=int, default=1500)
     parser.add_argument("--fast-step-size", type=int, default=32)
@@ -118,8 +118,8 @@ def main(argv=None):
     args = parser.parse_args(argv)
     if not 1 <= args.repeat <= 10 or not 30 <= args.duration <= 3600:
         parser.error("Repeat must be 1-10; duration must be 30-3600 game seconds")
-    if not 1 <= args.parallel <= 5:
-        parser.error("Parallel games must be 1-5")
+    if not 1 <= args.parallel <= 8:
+        parser.error("Parallel games must be 1-8")
     if not 4 <= args.fast_step_size <= 64:
         parser.error("Fast-test step size must be between 4 and 64 simulation loops")
     try:

@@ -10,7 +10,7 @@ from source.army_waves import ArmyWaves
 from source.combat_assessment import visible_threats
 from source.economy_assistant import ARMY_TARGETS
 from source.game_assessment import GameAssessment
-from source.missions import MissionPlanner
+from source.missions import MissionPlanner, retreat_geometry, retreat_waypoint
 from source.strategic_plan import MissionSpec, Opportunity, StrategicPlan, validate_plan
 from source.strategy_director import StrategicDirector
 from source.strategy_profiles import PROFILES
@@ -273,6 +273,7 @@ class TacticalController:
             lambda u: u.is_visible and u.can_be_attacked
         )
         contacts = visible_threats(bot)
+        geometry = None
         recovering = {
             tag
             for mission in self.missions.records.values()
@@ -287,7 +288,10 @@ class TacticalController:
             command, reason = None, None
             if unit.health + unit.shield < (unit.health_max + unit.shield_max) * 0.25:
                 home = Point2(self.last_assessment.home) if self.last_assessment else bot.start_location
-                command, reason = unit.move(home), "individual_retreat"
+                if geometry is None:
+                    geometry = retreat_geometry(contacts)
+                waypoint = retreat_waypoint(bot, unit, home, contacts, geometry)
+                command, reason = unit.move(waypoint), "individual_retreat"
             elif targets and unit.weapon_cooldown == 0:
                 target = min(
                     targets,

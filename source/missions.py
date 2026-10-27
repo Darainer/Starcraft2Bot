@@ -1,6 +1,7 @@
 """Persistent, disjoint squads; local execution can abort one operation at a time."""
 
 from collections import deque
+from math import atan2, ceil, cos, hypot, pi, sin
 
 from sc2.ids.unit_typeid import UnitTypeId as U
 from sc2.position import Point2
@@ -10,6 +11,72 @@ from source.army_waves import center
 from source.combat_assessment import favorable, visible_threats
 from source.endgame_sweep import EndgameSweep
 from source.strategy_profiles import PROFILES
+
+
+def retreat_geometry(contacts):
+    """Cache SDK weapon data once per observation, outside the route search."""
+    return tuple(
+        (
+            e.position.x,
+            e.position.y,
+            e.radius,
+            max(6 if e.type_id == U.BUNKER else 0, e.ground_range),
+            e.air_range,
+            max(24 if e.type_id == U.BUNKER else 1, e.ground_dps),
+            max(1, e.air_dps),
+            e.can_attack_ground or e.type_id == U.BUNKER,
+            e.can_attack_air,
+        )
+        for e in contacts
+    )
+
+
+def retreat_waypoint(bot, unit, goal, contacts, geometry=None):
+    """Choose a short traversable escape using only currently visible weapons."""
+    origin = unit.position
+    ox, oy = origin
+    flying, radius = unit.is_flying, unit.radius
+    geometry = retreat_geometry(contacts) if geometry is None else geometry
+    threats = [
+        (x, y, (ar if flying else gr) + er + radius + 3, ad if flying else gd)
+        for x, y, er, gr, ar, gd, ad, ground, air in geometry
+        if (air if flying else ground) and hypot(x - ox, y - oy) < max(gr, ar) + 18
+    ]
+    area = getattr(bot.game_info, "playable_area", None)
+
+    def traversable(point):
+        x, y = point
+        if area and not (area.x <= x < area.x + area.width and area.y <= y < area.y + area.height):
+            return False
+        if flying:
+            return True
+        steps = max(1, ceil(hypot(x - ox, y - oy)))
+        return all(
+            bot.in_pathing_grid(Point2((ox + (x - ox) * i / steps, oy + (y - oy) * i / steps)))
+            for i in range(1, steps + 1)
+        )
+
+    if not threats and traversable(goal):
+        return goal
+
+    def danger(x, y):
+        return sum(dps * max(0, reach - hypot(ex - x, ey - y)) for ex, ey, reach, dps in threats)
+
+    direction = atan2(goal.y - oy, goal.x - ox)
+    distance = 10 if threats else min(10, hypot(goal.x - ox, goal.y - oy))
+    candidates = [origin]
+    for i in range(16):
+        angle = direction + i * pi / 8
+        point = Point2((ox + cos(angle) * distance, oy + sin(angle) * distance))
+        if traversable(point):
+            candidates.append(point)
+
+    def cost(point):
+        x, y = point
+        exposure = sum(danger(ox + (x - ox) * f, oy + (y - oy) * f) for f in (0.25, 0.5, 0.75, 1))
+        return exposure + danger(x, y) * 4 + hypot(x - goal.x, y - goal.y) * 0.15
+
+    return min(candidates, key=cost)
 
 
 class MissionPlanner:
@@ -27,8 +94,9 @@ class MissionPlanner:
     def execute(self, bot, army, plan, state, waves, preserve_combat=True):
         available = army.filter(bot.control.eligible)
         contacts = visible_threats(bot)
+        geometry = retreat_geometry(contacts)
         remaining = set(available.tags)
-        destinations, assignments, records = {}, {}, {}
+        destinations, assignments, records, retreat_goals = {}, {}, {}, {}
         wave_report = None
         evidence = {target.id for target in state.targets}
         for mission_id, old in self.records.items():
@@ -98,8 +166,23 @@ class MissionPlanner:
                     squad, contacts.closer_than(20, target), 1.3
                 )
                 abort |= lost_members >= 4
-            if abort or (old.get("phase") == "recover" and bot.time < old.get("recover_until", 0)):
+            if (
+                abort
+                or (spec.role == "main" and plan.objective == "recover")
+                or (old.get("phase") == "recover" and bot.time < old.get("recover_until", 0))
+            ):
                 phase = "recover"
+                goal = Point2(old.get("retreat_goal", state.home))
+                if spec.target_id == "script" and plan.objective == "recover":
+                    goal = target
+                elif (
+                    old.get("phase") != "recover"
+                    or not bot.townhalls.ready.closer_than(2, goal)
+                    or contacts.closer_than(14, goal)
+                ):
+                    safe_bases = bot.townhalls.ready.filter(lambda base: not contacts.closer_than(14, base))
+                    goal = safe_bases.closest_to(anchor).position if safe_bases else Point2(state.home)
+                record["retreat_goal"] = list(goal)
                 until = old.get("recover_until", bot.time + 8)
                 record["recover_until"] = max(until, bot.time + 8 if abort else until)
                 if old.get("phase") != "recover":
@@ -112,7 +195,8 @@ class MissionPlanner:
                         }
                     )
                 for unit in squad:
-                    destinations[unit.tag] = ("move", Point2(state.home))
+                    retreat_goals[unit.tag] = goal
+                    destinations[unit.tag] = ("move", retreat_waypoint(bot, unit, goal, contacts, geometry))
                 if spec.role == "main":
                     waves.reset()
             elif spec.role == "main":
@@ -165,8 +249,8 @@ class MissionPlanner:
             if unit is None:
                 continue
             critical = unit.health + unit.shield < (unit.health_max + unit.shield_max) * 0.25
-            if critical:
-                mode, target = "move", Point2(state.home)
+            if critical and tag not in retreat_goals:
+                mode, target = "move", retreat_waypoint(bot, unit, Point2(state.home), contacts, geometry)
             # Preserve weapon execution between tactical updates.
             fighting = mode == "attack" or (
                 preserve_combat and not critical and not assignments[tag].endswith(":True")

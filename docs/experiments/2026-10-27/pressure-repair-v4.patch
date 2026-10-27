@@ -1,0 +1,346 @@
+--- a/source/action_intents.py
++++ b/source/action_intents.py
+@@ -67,0 +68,13 @@
++                and (
++                    unit.is_flying
++                    or (
++                        (
++                            area is None
++                            or (
++                                area.x <= unit.order_target.x < area.x + area.width
++                                and area.y <= unit.order_target.y < area.y + area.height
++                            )
++                        )
++                        and bot.in_pathing_grid(unit.order_target)
++                    )
++                )
+--- a/source/army_waves.py
++++ b/source/army_waves.py
+@@ -3,0 +4 @@
++from math import ceil, cos, pi, sin
+@@ -22,0 +24,48 @@
++
++
++def terrain_destination(bot, unit, point, goal):
++    """Use engine pathfinding to a real goal when a geometric slot crosses terrain."""
++    area = getattr(bot.game_info, "playable_area", None)
++
++    def inside(position):
++        return area is None or (
++            area.x <= position.x < area.x + area.width and area.y <= position.y < area.y + area.height
++        )
++
++    if unit.is_flying:
++        if inside(point):
++            return point
++        if inside(goal):
++            return goal
++        return Point2(
++            (
++                min(max(goal.x, area.x), area.x + area.width - 0.001),
++                min(max(goal.y, area.y), area.y + area.height - 0.001),
++            )
++        )
++
++    def walkable(position):
++        return (
++            area is None
++            or (area.x <= position.x < area.x + area.width and area.y <= position.y < area.y + area.height)
++        ) and bot.in_pathing_grid(position)
++
++    origin = unit.position
++    steps = max(1, ceil(origin.distance_to(point)))
++    if all(
++        walkable(
++            Point2((origin.x + (point.x - origin.x) * i / steps, origin.y + (point.y - origin.y) * i / steps))
++        )
++        for i in range(1, steps + 1)
++    ):
++        return point
++    # The engine can route around the obstruction to this destination. Do not
++    # substitute another straight-line intermediate on the same blocked ray.
++    if walkable(goal):
++        return goal
++    for radius in (2, 4, 6, 8):
++        candidates = [goal.offset((cos(i * pi / 8) * radius, sin(i * pi / 8) * radius)) for i in range(16)]
++        valid = [candidate for candidate in candidates if walkable(candidate)]
++        if valid:
++            return min(valid, key=lambda candidate: (unit.distance_to(candidate), candidate.x, candidate.y))
++    return origin
+@@ -175,0 +225,16 @@
++        # Never leave an army attacking an unreachable geometric formation
++        # slot: short points on a cliff can strand it beside the intended route.
++        by_tag = {unit.tag: unit for unit in units}
++        for tag, (mode, point) in list(destinations.items()):
++            goal = (
++                rally
++                if self.phase == "assemble"
++                else self.regroup_anchor or rally
++                if self.phase == "regroup"
++                else objective
++                if tag in self.members
++                else self.center or objective
++                if tag in self.reinforcements
++                else rally
++            )
++            destinations[tag] = (mode, terrain_destination(bot, by_tag[tag], point, goal))
+--- a/source/game_assessment.py
++++ b/source/game_assessment.py
+@@ -37,0 +38,3 @@
++        # Search travel is paid by the army, which may already be across the
++        # map. Home-relative costs repeatedly send it back to stale nearby sites.
++        travel_origin = fighters.center if fighters else front
+@@ -57 +60,3 @@
+-            if sum(bot.calculate_supply_cost(u.type_id) for u in friends) < min(8, army_supply * 0.3):
++            if sum(bot.calculate_supply_cost(u.type_id) for u in friends) < min(
++                army_supply, max(8, army_supply * 0.3)
++            ):
+@@ -63,0 +69,16 @@
++        response_tags, response_supply = [], 0
++        response = fighters.tags_in(set())
++        budget = min(army_supply * 0.3, max(8, sum(observed_supply(bot, e) for e in incoming) * 1.5))
++        # A projected remote response is distinct from defenders already nearby.
++        # Require every selected actor to hit all observed attacking domains.
++        if incoming and threat is not None:
++            capable = fighters.filter(
++                lambda u: all(u.can_attack_air if e.is_flying else u.can_attack_ground for e in incoming)
++            )
++            for unit in capable.sorted_by_distance_to(threat):
++                cost = bot.calculate_supply_cost(unit.type_id)
++                if response_supply + cost <= budget:
++                    response_tags.append(unit.tag)
++                    response_supply += cost
++            response = fighters.tags_in(response_tags)
++        response_advantage = ratio(response, incoming) if response else 0
+@@ -131 +152 @@
+-                        front.distance_to(point),
++                        travel_origin.distance_to(point),
+@@ -161 +182 @@
+-                    front.distance_to(site),
++                    travel_origin.distance_to(site),
+@@ -193,0 +215,3 @@
++            raid_response_tags=tuple(response_tags),
++            raid_response_supply=response_supply,
++            raid_response_advantage=response_advantage,
+--- a/source/missions.py
++++ b/source/missions.py
+@@ -3,0 +4 @@
++from math import atan2, ceil, cos, hypot, pi, sin
+@@ -12,0 +14,66 @@
++
++
++def retreat_geometry(contacts):
++    """Cache SDK weapon data once per observation, outside the route search."""
++    return tuple(
++        (
++            e.position.x,
++            e.position.y,
++            e.radius,
++            max(6 if e.type_id == U.BUNKER else 0, e.ground_range),
++            e.air_range,
++            max(24 if e.type_id == U.BUNKER else 1, e.ground_dps),
++            max(1, e.air_dps),
++            e.can_attack_ground or e.type_id == U.BUNKER,
++            e.can_attack_air,
++        )
++        for e in contacts
++    )
++
++
++def retreat_waypoint(bot, unit, goal, contacts, geometry=None):
++    """Choose a short traversable escape using only currently visible weapons."""
++    origin = unit.position
++    ox, oy = origin
++    flying, radius = unit.is_flying, unit.radius
++    geometry = retreat_geometry(contacts) if geometry is None else geometry
++    threats = [
++        (x, y, (ar if flying else gr) + er + radius + 3, ad if flying else gd)
++        for x, y, er, gr, ar, gd, ad, ground, air in geometry
++        if (air if flying else ground) and hypot(x - ox, y - oy) < max(gr, ar) + 18
++    ]
++    area = getattr(bot.game_info, "playable_area", None)
++
++    def traversable(point):
++        x, y = point
++        if area and not (area.x <= x < area.x + area.width and area.y <= y < area.y + area.height):
++            return False
++        if flying:
++            return True
++        steps = max(1, ceil(hypot(x - ox, y - oy)))
++        return all(
++            bot.in_pathing_grid(Point2((ox + (x - ox) * i / steps, oy + (y - oy) * i / steps)))
++            for i in range(1, steps + 1)
++        )
++
++    if not threats and traversable(goal):
++        return goal
++
++    def danger(x, y):
++        return sum(dps * max(0, reach - hypot(ex - x, ey - y)) for ex, ey, reach, dps in threats)
++
++    direction = atan2(goal.y - oy, goal.x - ox)
++    distance = 10 if threats else min(10, hypot(goal.x - ox, goal.y - oy))
++    candidates = [origin]
++    for i in range(16):
++        angle = direction + i * pi / 8
++        point = Point2((ox + cos(angle) * distance, oy + sin(angle) * distance))
++        if traversable(point):
++            candidates.append(point)
++
++    def cost(point):
++        x, y = point
++        exposure = sum(danger(ox + (x - ox) * f, oy + (y - oy) * f) for f in (0.25, 0.5, 0.75, 1))
++        return exposure + danger(x, y) * 4 + hypot(x - goal.x, y - goal.y) * 0.15
++
++    return min(candidates, key=cost)
+@@ -27 +94 @@
+-    def execute(self, bot, army, plan, state, waves, preserve_combat=True):
++    def execute(self, bot, army, plan, state, waves, preserve_combat=True, recovery_micro=False):
+@@ -29,0 +97 @@
++        geometry = retreat_geometry(contacts)
+@@ -31 +99 @@
+-        destinations, assignments, records = {}, {}, {}
++        destinations, assignments, records, retreat_goals = {}, {}, {}, {}
+@@ -48,0 +117,8 @@
++            if (
++                spec.role == "defend"
++                and state.raid_response_schema_version == 1
++                and state.raid_response_tags
++                and state.raid_response_advantage >= 1.2
++                and state.raid_response_supply == spec.supply_budget
++            ):
++                candidates = candidates.tags_in(state.raid_response_tags)
+@@ -101 +177,5 @@
+-            if abort or (old.get("phase") == "recover" and bot.time < old.get("recover_until", 0)):
++            if (
++                abort
++                or (spec.role == "main" and plan.objective == "recover")
++                or (old.get("phase") == "recover" and bot.time < old.get("recover_until", 0))
++            ):
+@@ -102,0 +183,11 @@
++                goal = Point2(old.get("retreat_goal", state.home))
++                if spec.target_id == "script" and plan.objective == "recover":
++                    goal = target
++                elif (
++                    old.get("phase") != "recover"
++                    or not bot.townhalls.ready.closer_than(2, goal)
++                    or contacts.closer_than(14, goal)
++                ):
++                    safe_bases = bot.townhalls.ready.filter(lambda base: not contacts.closer_than(14, base))
++                    goal = safe_bases.closest_to(anchor).position if safe_bases else Point2(state.home)
++                record["retreat_goal"] = list(goal)
+@@ -115 +206,2 @@
+-                    destinations[unit.tag] = ("move", Point2(state.home))
++                    retreat_goals[unit.tag] = goal
++                    destinations[unit.tag] = ("move", retreat_waypoint(bot, unit, goal, contacts, geometry))
+@@ -168,2 +260,13 @@
+-            if critical:
+-                mode, target = "move", Point2(state.home)
++            if critical and tag not in retreat_goals:
++                mode, target = "move", retreat_waypoint(bot, unit, Point2(state.home), contacts, geometry)
++            # Automatic recovery micro alternates in-range volleys with escape
++            # moves. Give it this observation's actor budget; explicit manual
++            # retreat/regroup and critical/support actors retain movement here.
++            if (
++                assignments[tag].endswith(":True")
++                and recovery_micro
++                and bot.settings.strategy == "auto"
++                and unit.can_attack
++                and not critical
++            ):
++                continue
+--- a/source/strategic_plan.py
++++ b/source/strategic_plan.py
+@@ -52,0 +53,4 @@
++    raid_response_schema_version: int = 1
++    raid_response_tags: tuple[int, ...] = ()
++    raid_response_supply: float = 0
++    raid_response_advantage: float = 0
+--- a/source/strategy_policies.py
++++ b/source/strategy_policies.py
+@@ -66,0 +67,6 @@
++    projected_response = (
++        state.raid_response_schema_version == 1
++        and bool(state.raid_response_tags)
++        and 2 <= state.raid_response_supply <= min(remaining * 0.3, max(8, state.threat_supply * 1.5))
++        and state.raid_response_advantage >= 1.2
++    )
+@@ -73 +79 @@
+-        and state.home_advantage >= 1.2
++        and (state.home_advantage >= 1.2 or projected_response)
+@@ -76 +82,5 @@
+-        budget = min(remaining * 0.3, max(8, state.threat_supply * 1.5))
++        budget = (
++            state.raid_response_supply
++            if projected_response
++            else min(remaining * 0.3, max(8, state.threat_supply * 1.5))
++        )
+--- a/source/tactics.py
++++ b/source/tactics.py
+@@ -13 +13 @@
+-from source.missions import MissionPlanner
++from source.missions import MissionPlanner, retreat_geometry, retreat_waypoint
+@@ -75,0 +76 @@
++        self._automatic_recovery = False
+@@ -79,0 +81 @@
++        self._automatic_recovery = False
+@@ -235,0 +238 @@
++        self._automatic_recovery = requested == "auto"
+@@ -237 +240,7 @@
+-            bot, army, plan, state, self.waves, preserve_combat=self._micro_allowed
++            bot,
++            army,
++            plan,
++            state,
++            self.waves,
++            preserve_combat=self._micro_allowed,
++            recovery_micro=self._automatic_recovery,
+@@ -270 +279,3 @@
+-        if self.active_mode not in {"push", "defend", "regroup"}:
++        if self.active_mode not in {"push", "defend", "regroup"} and not (
++            self.active_mode == "retreat" and self._automatic_recovery and bot.settings.strategy == "auto"
++        ):
+@@ -275,0 +287 @@
++        geometry = None
+@@ -277 +289 @@
+-            tag
++            tag: mission
+@@ -284 +296 @@
+-            if not bot.available(unit) or not unit.can_attack or unit.tag in recovering:
++            if not bot.available(unit) or not unit.can_attack:
+@@ -289,2 +301,33 @@
+-                home = Point2(self.last_assessment.home) if self.last_assessment else bot.start_location
+-                command, reason = unit.move(home), "individual_retreat"
++                home = (
++                    Point2(recovering[unit.tag]["retreat_goal"])
++                    if unit.tag in recovering and "retreat_goal" in recovering[unit.tag]
++                    else (Point2(self.last_assessment.home) if self.last_assessment else bot.start_location)
++                )
++                if geometry is None:
++                    geometry = retreat_geometry(contacts)
++                waypoint = retreat_waypoint(bot, unit, home, contacts, geometry)
++                command, reason = unit.move(waypoint), "individual_retreat"
++            elif unit.tag in recovering:
++                if bot.settings.strategy != "auto" or not self._automatic_recovery:
++                    continue
++                if targets and unit.weapon_cooldown == 0:
++                    target = min(
++                        targets,
++                        key=lambda enemy: (
++                            not enemy.can_attack,
++                            enemy.health + enemy.shield,
++                            unit.distance_to(enemy),
++                        ),
++                    )
++                    command, reason = unit.attack(target), "recovery_volley"
++                else:
++                    goal = Point2(
++                        recovering[unit.tag].get(
++                            "retreat_goal",
++                            self.last_assessment.home if self.last_assessment else bot.start_location,
++                        )
++                    )
++                    if geometry is None:
++                        geometry = retreat_geometry(contacts)
++                    command = unit.move(retreat_waypoint(bot, unit, goal, contacts, geometry))
++                    reason = "recovery_escape"
