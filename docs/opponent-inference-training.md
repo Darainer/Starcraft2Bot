@@ -121,6 +121,14 @@ locations and a separate enemy-side freshness flag. Ordinary visibility of an
 unoccupied site near our home must not count as enemy expansion scouting.
 Multiple possible enemy starts remain candidates; the exporter never reads an
 actual hidden spawn or AI configuration as input.
+The [version-2 input example](examples/sc2-observed-facts-v2.json) is a legal
+recorded prefix with stale technology sightings and unknown current enemy force.
+Zero recently observed supply must not be interpreted as zero total enemy supply.
+The [first version-2 corpus summary](experiments/2026-10-31/observed-facts-v2-first-corpus.json)
+binds the extractor hashes and archive manifest: 27 matches, 12929 fact records,
+299 surviving artifacts and about 3.28 GB of original content. The local complete
+corpus is `.local/datasets/facts-v2-dev-27`; it still contains one world split
+group. This is useful for adapter development, not an independent reliability test.
 
 The projector excludes raw fog snapshots, radar blips, known hallucinations,
 future timestamps, strategy labels, belief scores, director actions and outcomes.
@@ -162,6 +170,12 @@ itself. `diagnostics.json` is evaluation-only and is never a predictor input.
    Fit calibration only on validation groups. Confidence must fall on stale or
    unfamiliar evidence. A classifier benchmark cannot establish stronger play:
    require frozen closed-loop retention with costs before activating predictions.
+
+Compare enemy-fact-only predictors with predictors that also receive our own
+state. Our production reflects our existing response policy, so own-state
+shortcuts can appear successful without learning robust enemy inference. Retain
+different bot policies in the corpus, keep matched world groups together, and
+test across policies before relying on such correlations.
 
 For attribution, compare predictors on the **same visible prefixes** to test
 logic. Compare fixed predictors across matched scout policies to test information
