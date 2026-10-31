@@ -78,8 +78,8 @@ def target_table(state):
     if len(set(ids)) != len(ids) or set(ids) & {"home", "rally", "threat"}:
         raise ValueError("Conflicting candidate identities")
     result = [
-        Target("home", opaque("c", "home"), state.home, "home", True, 0, 0),
-        Target("rally", opaque("c", "rally"), state.rally, "assembly", True, 0, 0),
+        Target("home", opaque("c", "home"), state.home, "home", False, 0, 0),
+        Target("rally", opaque("c", "rally"), state.rally, "assembly", False, 0, 0),
         Target("threat", opaque("c", "threat"), state.threat, "threat", True, 0, 0)
         if state.threat is not None
         else None,
@@ -240,6 +240,7 @@ def from_assessment(state, settings, *, facts=None, elapsed_seconds=0.0, episode
             "own.income",
             "own.production_queues",
             "actors.control_eligibility",
+            "actors.entities",
             "execution.observed_effects",
             "intent.current",
             "opponent.courses_of_action",
