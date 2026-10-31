@@ -445,7 +445,12 @@ class ScoutController:
             return "observing" if report.get("enemy_seen") else "waiting_for_scout"
         if not bot.control.eligible(scout):
             return "human_owned"
-        threatened = enemies.filter(lambda unit: unit.can_attack_ground and unit.distance_to(scout) < 8)
+        threatened = enemies.filter(
+            lambda unit: (
+                unit.can_attack_ground
+                and unit.distance_to(scout) < (3 if self.revisit_active and unit.type_id in WORKERS else 8)
+            )
+        )
         self.returning |= bool(threatened) or scout.health + scout.shield < 30
         route = self._worker_route(bot)
         if self.revisit_active:

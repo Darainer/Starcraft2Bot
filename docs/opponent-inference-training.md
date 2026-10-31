@@ -1,9 +1,11 @@
 # Opponent inference from objective scouting facts
 
-This work prepares a supervised opponent-state estimator. It is separate from
-the deferred gameplay RL action policy. The Python bot still has to pass its
-[hardcoded strength gates](hardcoded-elite-milestone.md). No trained predictor or
-reliable hidden-state estimate is supplied by the current data exporter.
+This work prepares a supervised opponent-state estimator. The user is building
+the gameplay RL model in a separate session; this session supplies scouting,
+factual data and inference interfaces through the SC2 adapter. The Python bot
+still has to pass its [hardcoded strength gates](hardcoded-elite-milestone.md).
+No gameplay learner is implemented or trained here, and the current data
+exporter does not supply a reliable trained opponent-state predictor.
 
 ## Diagnosis: information and interpretation
 
@@ -110,6 +112,13 @@ Each `facts/<episode>.jsonl` contains only causal facts:
   supply to our own army, explicitly a partial observation rather than total
   enemy relative strength.
 
+Fact schema v2 also records our public starting base, publicly possible enemy
+starts and playable bounds. Site inspections carry distances to those public
+locations and a separate enemy-side freshness flag. Ordinary visibility of an
+unoccupied site near our home must not count as enemy expansion scouting.
+Multiple possible enemy starts remain candidates; the exporter never reads an
+actual hidden spawn or AI configuration as input.
+
 The projector excludes raw fog snapshots, radar blips, known hallucinations,
 future timestamps, strategy labels, belief scores, director actions and outcomes.
 Prefix-equivalence tests verify that adding future records does not change past
@@ -170,3 +179,46 @@ coefficients. Blizzard's
 [replay protocol](https://github.com/Blizzard/s2client-proto/blob/master/s2clientprotocol/sc2api.proto)
 provides participant perspective and fog controls; verify their actual behavior
 on the recorded binary before accepting an oracle-label extraction.
+
+## First paired scouting result and next experiment
+
+Frozen source `2be052b` completed all twelve matched games. All loop-zero starts,
+48 source/config hashes, binary/map identity, actual VeryHard computer difficulty
+and replays passed verification. See the
+[paired outcome artifact](experiments/2026-10-31/scouting-paired-v1-outcomes.json),
+[reference evaluation](evaluations/2026-10-31-scouting-evidence-reference-targets.md)
+and [revisit evaluation](evaluations/2026-10-31-scouting-evidence-revisit-targets.md).
+
+| Arm | Macro sampled finishes | Timing sampled finishes | Target wins |
+| --- | --- | --- | --- |
+| Reference, revisit off | 982.5 / 1149.6 / 1149.6 s | 1050.0 / 1050.0 / 1050.0 s | 6/6 |
+| Revisit v1 | 872.1 / 872.1 / 872.1 s | 639.6 / 639.6 / 648.2 s | 6/6 |
+
+The [reference diagnostics](experiments/2026-10-31/scouting-evidence-v1-reference-diagnosis.json)
+and [revisit diagnostics](experiments/2026-10-31/scouting-evidence-v1-revisit-diagnosis.json)
+are derived from separate hashed archives. All twelve games and original files
+are retained. Revisit v1 wins faster in these recordings, but does not satisfy
+the early information objective: before 240 seconds, Macro still has no observed
+army or non-base technology, and Timing's first army contact remains about 193.9
+seconds in both arms. Macro's first expansion discovery improves only from about
+295.7 to 285.0 seconds; Timing changes from about 268.9 to 271.1 seconds.
+
+The additional Probe turns back at about 158.6 seconds after seeing an enemy
+Drone roughly eight units away, despite retaining 20 health and 20 shields. It
+does not reach the enemy natural. Additional worker opportunity is about 13.9
+seconds in Macro and 7.5 seconds in Timing, with no confirmed worker-scout deaths.
+These are cheap attempts with low early information value. The generic Macro
+classifier still never labels the Macro opponent correctly. Faster wins must not
+be reported as better inference. Macro's earlier first Robotics completion also
+precedes its first positive counter-response signal: changed worker allocation
+and spending affect the trajectory independently of recognition.
+
+After finishing the complete paired batch, the next candidate narrows only the
+**revisit** worker-threat radius from eight to three units. Army threats keep the
+eight-unit escape margin; damage, timeout, Observer handoff, home-defense and
+ownership guards stay in force. The original opening Scout is unchanged. Tests
+cover passing workers, close workers, army threats and the original opening
+margin. This hypothesis must earn actual enemy-side inspections and retain wins
+before broader evaluation. In parallel, the frozen reference collects all five
+Zerg builds on unused seed 2026103101, so data collection does not depend on
+promoting an unproven scouting change.

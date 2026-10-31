@@ -99,6 +99,16 @@ def test_expansion_empty_inspection_has_timestamp_and_does_not_assert_enemy_abse
     assert ScoutingFacts(META).observe(row)["site_inspections"][0]["status"] == "unknown"
 
 
+def test_own_side_visibility_does_not_count_as_fresh_enemy_inspection():
+    context = {"own_start": [0, 0], "possible_enemy_starts": [[100, 100]]}
+    own = sample(100, expansion_sites=[{"position": [10, 0], "status": "empty", "last_checked": 100}])
+    facts = ScoutingFacts(META, context).observe(own)
+    assert facts["fact_presence"]["fresh_site_inspection"]
+    assert not facts["fact_presence"]["fresh_enemy_side_inspection"]
+    own["scouting"]["intel"]["expansion_sites"][0]["position"] = [90, 100]
+    assert ScoutingFacts(META, context).observe(own)["fact_presence"]["fresh_enemy_side_inspection"]
+
+
 def test_prefix_outputs_are_immutable_and_never_depend_on_future_or_labels():
     rows = [
         sample(45, [contact(2, build_progress=0.1)]),

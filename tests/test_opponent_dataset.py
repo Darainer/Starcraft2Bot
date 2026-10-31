@@ -5,7 +5,7 @@ import pytest
 from s2clientprotocol import sc2api_pb2 as pb
 from sc2.ids.unit_typeid import UnitTypeId as U
 
-from source.opponent_dataset import digest, export_dataset, main, split_group
+from source.opponent_dataset import digest, export_dataset, main, public_map_context, split_group
 from tests.test_scouting_facts import sample
 
 
@@ -33,6 +33,18 @@ def test_splits_keep_all_builds_repeats_scout_policies_and_bot_versions_together
     assert split_group(first) != split_group(other)
     with pytest.raises(ValueError, match="identity"):
         split_group({})
+
+
+def test_public_map_context_excludes_hidden_player_metadata():
+    initial = world()
+    info = {
+        "start_raw": {"start_locations": [{"x": 1, "y": 2}, {"x": 90, "y": 90}, {"x": 30, "y": 90}]},
+        "player_info": [{"actual_hidden_spawn": [90, 90], "ai_build": "Macro"}],
+    }
+    context = public_map_context({"initial_state": initial}, info)
+    assert context["possible_enemy_starts"] == [[90, 90], [30, 90]]
+    assert "Macro" not in json.dumps(context)
+    assert public_map_context({}, info) is None
 
 
 def recording(tmp_path, phase="ended"):

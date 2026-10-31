@@ -95,6 +95,29 @@ def test_revisit_returns_on_contact_and_hands_off_to_observer(bot, make_unit, po
     assert not bot.actions
 
 
+def test_revisit_passes_a_distant_worker_but_retreats_from_close_workers_and_army(bot, make_unit, populate):
+    scout, probe = prepare(bot, make_unit, populate)
+    probe._proto.pos.x = 40
+    worker = make_unit(U.PROBE, (47, 10), alliance=4)
+    enemies = Units([worker], bot)
+    assert worker.can_attack_ground
+    assert scout._worker_scout(bot, enemies, {}) == "revisiting_enemy_natural"
+    bot._used.clear()
+    worker._proto.pos.x = 42
+    assert scout._worker_scout(bot, enemies, {}) == "returning"
+    scout.returning = False
+    army = Units([make_unit(U.MARINE, (47, 10), alliance=4)], bot)
+    assert scout._worker_scout(bot, army, {}) == "returning"
+
+
+def test_original_opening_scout_keeps_its_worker_threat_margin(bot, make_unit, populate):
+    scout, probe = prepare(bot, make_unit, populate)
+    scout.opening_complete = False
+    worker = make_unit(U.PROBE, (17, 10), alliance=4)
+    assert scout._worker_scout(bot, Units([worker], bot), {}) == "returning"
+    assert not scout.revisit_active
+
+
 def test_scout_costs_confirm_death_and_do_not_treat_absence_as_loss(bot, make_unit, populate):
     _, probe = prepare(bot, make_unit, populate)
     costs = ScoutCosts()

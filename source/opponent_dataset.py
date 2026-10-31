@@ -4,6 +4,7 @@ import argparse
 import hashlib
 import json
 import shutil
+from math import hypot
 from pathlib import Path
 
 from s2clientprotocol import sc2api_pb2 as pb
@@ -11,7 +12,7 @@ from sc2.ids.unit_typeid import UnitTypeId as U
 
 from source.opponent_strategy import OpponentStrategyModel
 from source.scouting_diagnostics import ScoutingDiagnostics
-from source.scouting_facts import ScoutingFacts
+from source.scouting_facts import FACT_SCHEMA, ScoutingFacts
 
 
 def digest(path):
@@ -53,6 +54,29 @@ def split_group(match):
     return hashlib.sha256(json.dumps(world, sort_keys=True).encode()).hexdigest()
 
 
+def public_map_context(match, game_info):
+    """Only our starting base and publicly possible starts; never actual hidden spawn."""
+    base = next(
+        (
+            u
+            for u in (match.get("initial_state") or {}).get("units", [])
+            if u.get("unit_type") == U.NEXUS.value
+        ),
+        None,
+    )
+    if base is None:
+        return None
+    own = [base["pos"].get("x", 0), base["pos"].get("y", 0)]
+    raw = game_info.get("start_raw", {})
+    starts = [[p.get("x", 0), p.get("y", 0)] for p in raw.get("start_locations", [])]
+    return {
+        "own_start": own,
+        "possible_enemy_starts": [p for p in starts if hypot(p[0] - own[0], p[1] - own[1]) > 12],
+        "playable_area": raw.get("playable_area"),
+        "scope": "Public possible starting locations; multiple candidates are not confirmed enemy positions",
+    }
+
+
 def export_dataset(matches, destination):
     destination = Path(destination)
     destination.mkdir(parents=True, exist_ok=False)
@@ -60,7 +84,7 @@ def export_dataset(matches, destination):
         "schema_version": 1,
         "phase": "building",
         "episodes": [],
-        "input_schema": "sc2-observed-facts-v1",
+        "input_schema": FACT_SCHEMA,
         "oracle_targets_available": False,
         "extractor_sha256": {
             name: digest(Path(__file__).with_name(name))
@@ -112,7 +136,11 @@ def export_dataset(matches, destination):
         examples = 0
         diagnostic = ScoutingDiagnostics(report.get("opponent_build"))
         if snapshot.exists():
-            projector = ScoutingFacts(unit_metadata(report_path.with_suffix(".game-data.pb")))
+            info_path = report_path.with_suffix(".game-info.json")
+            info = json.loads(info_path.read_text()) if info_path.exists() else {}
+            projector = ScoutingFacts(
+                unit_metadata(report_path.with_suffix(".game-data.pb")), public_map_context(match, info)
+            )
             model = OpponentStrategyModel()
             facts_path.parent.mkdir(exist_ok=True)
             with (

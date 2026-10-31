@@ -5,20 +5,38 @@ Remembered units are last-seen contacts, not a claim that they remain alive.
 """
 
 from collections import defaultdict
-from math import isfinite
+from math import hypot, isfinite
+
+FACT_SCHEMA = "sc2-observed-facts-v2"
 
 BASES = {"HATCHERY", "LAIR", "HIVE", "COMMANDCENTER", "ORBITALCOMMAND", "PLANETARYFORTRESS", "NEXUS"}
 ORDINARY = BASES | {"EXTRACTOR", "REFINERY", "ASSIMILATOR", "PYLON", "SUPPLYDEPOT", "SUPPLYDEPOTLOWERED"}
 
 
 class ScoutingFacts:
-    def __init__(self, unit_metadata):
+    def __init__(self, unit_metadata, map_context=None):
         self.metadata = unit_metadata
+        self.map_context = map_context
         self.by_kind = {item["kind"]: item for item in unit_metadata.values()}
         self.contacts = {}
         self.tech = {}
         self.expansions = {}
         self.last_time = -1
+
+    def _site_geometry(self, point):
+        if self.map_context is None or not self.map_context["possible_enemy_starts"]:
+            return {"closer_to_enemy_start_candidate": None}
+        own = self.map_context["own_start"]
+        distance_own = hypot(point[0] - own[0], point[1] - own[1])
+        distance_enemy = min(
+            hypot(point[0] - other[0], point[1] - other[1])
+            for other in self.map_context["possible_enemy_starts"]
+        )
+        return {
+            "distance_to_own_start": distance_own,
+            "distance_to_enemy_start_candidate": distance_enemy,
+            "closer_to_enemy_start_candidate": distance_enemy < distance_own,
+        }
 
     def _remember(self, meta, tag, seen, progress=None):
         prior = self.contacts.get(tag)
@@ -112,6 +130,7 @@ class ScoutingFacts:
                     "last_checked": seen if valid else None,
                     "age_seconds": now - seen if valid else None,
                     "scope": "Site center visible; empty does not certify the entire expansion area",
+                    **self._site_geometry(site["position"]),
                 }
             )
         recent_force = [c for c in self.contacts.values() if c["combat"] and now - c["last_seen"] <= 30]
@@ -121,7 +140,8 @@ class ScoutingFacts:
             for key in ("food_army", "food_workers", "food_cap", "minerals", "vespene")
         }
         return {
-            "schema_version": "sc2-observed-facts-v1",
+            "schema_version": FACT_SCHEMA,
+            "public_map_context": self.map_context,
             "time_seconds": now,
             "own": own,
             "enemy_contacts": units,
@@ -144,6 +164,12 @@ class ScoutingFacts:
                 "fresh_expansion": any(now - e["last_recorded_seen"] <= 60 for e in self.expansions.values()),
                 "fresh_site_inspection": any(
                     site["age_seconds"] is not None and site["age_seconds"] <= 60 for site in sites
+                ),
+                "fresh_enemy_side_inspection": any(
+                    site["closer_to_enemy_start_candidate"]
+                    and site["age_seconds"] is not None
+                    and site["age_seconds"] <= 60
+                    for site in sites
                 ),
             },
         }
