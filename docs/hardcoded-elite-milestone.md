@@ -76,15 +76,15 @@ versus R2's 475.4/530.4. It reaches 111 army supply and trades about 1.71 army
 resources killed per resource lost in the representative recording. All three
 starts, source hashes, map/binary identities and nonempty replays are verified.
 The [triplet report](evaluations/2026-10-31-robotics-fund-v2-20261031-zerg-timing.md)
-retains the comparison with the winning reference. Broader retention is running
-on that same frozen revision. Terran Rush and Timing still lose their triplets;
+retains the comparison with the winning reference. Broader retention subsequently
+completed on that same frozen revision. Terran Rush and Timing still lose their triplets;
 the targeted repair has not solved those separate failures.
 
 One eight-client Terran Power attempt exited before API startup with `0x20010000`.
 Full Access and `ryanpc\\ryanj` were rechecked; other clients launched in the same
 context. Its artifacts remain labeled as infrastructure failure. The valid
-games finish normally; the missing Power repeat is retried alone before the
-Zerg retention block. No launch-code or gameplay change is made to explain that
+games finished normally; the missing Power repeat was retried alone and won
+before the Zerg retention block. No launch-code or gameplay change was made to explain that
 isolated failure, and it does not count as a defeat.
 
 The Terran Rush recordings reveal a separate delivery gap: 163 sampled decisions
@@ -106,10 +106,8 @@ counter prerequisite under pressure, and preserves a basic-force emergency floor
 It passed 515 tests with 88.53% coverage and all locked checks. Its targeted
 Terran Rush triplet won 3/3 at 805.4 seconds, with first Bay/Colossus at
 465.4/550.4 and a representative peak of 91 army supply. Terran Timing still
-lost 3/3 at 845.4 seconds. Zerg Macro retention is running on the same frozen
-candidate. This candidate is not yet accepted as a global replacement.
-
-Counter-tech's Zerg Macro triplet then lost 3/3 at 855.4 seconds. The next
+lost 3/3 at 845.4 seconds. Zerg Macro then lost 3/3 at 855.4 seconds on the same
+frozen candidate. It is not accepted as a global replacement. The next
 observed-force wave-readiness experiment also lost Terran Timing 3/3 at 1055.4;
 it changes survival time, not the resolved outcome, and is rejected as a repair.
 The damage-aware focus prototype is retained as an unpromoted patch: coarse
@@ -118,18 +116,32 @@ ready-to-fire opportunities, so it was not treated as a demonstrated solution.
 The [bot-tactics research](research/winning-bot-tactics.md) prioritizes range-aware
 approach and actual firing participation next.
 
+The [siege-approach experiment](evaluations/2026-10-31-siege-approach-v1-20261031-terran-timing.md)
+at gameplay commit `90f5277` then lost Terran Timing 3/3 at 910.4 seconds and was
+rejected without broader retention. It detects visible Tank weapon envelopes
+before the old anchor-distance check, scores short formation moves for exposure
+and allows a bounded deliberate assault. Its representative recording includes
+the new approach and commit phases, but the army still collapses. It passed
+521 synthetic tests (88.64% coverage) and all required software checks.
+
+An independent reachable-expansion candidate (`e9da001`) addresses Power's
+depletion deadlock by capping the worker gate at attainable saturation minus two,
+with a sixteen-worker floor and a mineral-bearing destination. Its parent and
+candidate Power triplets are being compared at 3600 seconds; this is separate
+from the rejected siege experiment. Software validation passed 525 tests
+(88.55% coverage), locked checks and builds.
+
 The validated baseline is checked in on `feat/hardcoded-baseline-20261031`:
 runtime/trial fixes, R2 gameplay and passive belief/metric instrumentation.
 An isolated checkout of commit `67ed0f7` passed all locked checks and **492 tests,
 88.54% coverage**. Experimental early-tech and wave rules are kept on separate
 branches rather than being presented as accepted gameplay.
 
-The saved Timing recordings show the winning reference's first Robotics Facility
-around 180.4 seconds and first Immortal around 270.4. R2 reaches them around
-475.4 and 530.4, despite a faster first Stalker. The next hypothesis to investigate
-after the current batch is funding the first attainable Robotics investment
-without starving opening defenders, income, supply, or an emergency response.
-Actual trades and resolved outcomes decide whether that repair is useful.
+The saved Timing recordings motivated the earlier Robotics investments above:
+the winning reference's first Facility/Immortal arrive around 180.4/270.4 seconds,
+versus R2's 475.4/530.4. That delivery gap is real, but the subsequent regressions
+show why tech timing alone cannot establish a global improvement. Actual trades,
+army participation and resolved outcomes must decide the next repair.
 
 ## Evaluation discipline
 
