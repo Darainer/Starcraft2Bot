@@ -171,6 +171,9 @@ build at the 3600-second bound. This is one map/seed per build; held-out and
 community-bot strength remain unverified. See the
 [R2 production-recovery evaluation](docs/production-recovery-2026-10-31.md) for the
 separate baseline history and remaining acceptance gaps.
+The [opponent-inference collection plan](docs/opponent-inference-training.md)
+separates scouting gaps from recognition errors and archives causal facts for
+later supervised estimation. Gameplay RL remains a later milestone.
 
 ```bash
 uv sync --locked

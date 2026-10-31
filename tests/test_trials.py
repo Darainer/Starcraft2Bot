@@ -70,12 +70,29 @@ def test_trials_run_sequential_bounded_games_and_write_summary(monkeypatch, tmp_
         },
     )
     trials.main(
-        ["--profiles", "pressure", "air", "--duration", "600", "--seed", "42", "--opponent-build", "Macro"]
+        [
+            "--profiles",
+            "pressure",
+            "air",
+            "--duration",
+            "600",
+            "--seed",
+            "42",
+            "--opponent-build",
+            "Macro",
+            "--snapshot-interval",
+            "1",
+            "--scout-revisit",
+        ]
     )
     assert len(commands) == 2
     assert all("--fast-test" in command and "600" in command for command in commands)
     assert all(command[command.index("--seed") + 1] == "42" for command in commands)
     assert all(command[command.index("--opponent-build") + 1] == "Macro" for command in commands)
+    assert all(
+        command[command.index("--snapshot-interval") + 1] == "1" and "--scout-revisit" in command
+        for command in commands
+    )
     results = json.loads((tmp_path / "logs/latest-trials.json").read_text())
     assert [r["profile"] for r in results] == ["pressure", "air"]
     assert all(r["random_seed"] == 42 and r["opponent_build"] == "Macro" for r in results)

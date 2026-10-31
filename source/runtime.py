@@ -578,7 +578,7 @@ class RuntimeAssistant(EconomyAssistant):
         self._script_abilities = {}
         self._tactical_ms = 0.0
         self._micro_decisions = []
-        self.scouting = ScoutController()
+        self.scouting = ScoutController(revisit=getattr(report, "data", {}).get("scout_revisit", False))
         self.reinforcement = WarpReinforcement()
 
     async def on_start(self):
@@ -666,7 +666,8 @@ class RuntimeAssistant(EconomyAssistant):
             fast = getattr(self.report, "data", {}).get("fast_test", False)
             now = self.time if fast else time.monotonic()
             observation = getattr(self.state, "response_observation", None)
-            if observation is not None and now - self._last_tactical_snapshot >= 5:
+            interval = getattr(self.report, "data", {}).get("snapshot_interval", 5)
+            if observation is not None and now - self._last_tactical_snapshot >= interval:
                 self._last_tactical_snapshot = now
                 observed = MessageToDict(observation, preserving_proto_field_name=True)
                 if self._last_decision is None:

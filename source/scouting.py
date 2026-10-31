@@ -10,13 +10,14 @@ from source.endgame_sweep import BASE_TYPES, DEFENSE_TYPES
 from source.expansion_intel import expansion_sites, is_expansion
 from source.opponent_beliefs import OpponentBeliefModel
 from source.opponent_strategy import OpponentStrategyModel
+from source.scouting_costs import ScoutCosts
 from source.zerg_responses import ZergResponseSelector
 
 WORKERS = {U.PROBE, U.SCV, U.DRONE}
 
 
 class ScoutController:
-    def __init__(self):
+    def __init__(self, revisit=False):
         self.worker_tag = None
         self.last_assignment = -120
         self.worker_route_index = 0
@@ -33,6 +34,11 @@ class ScoutController:
         self.opponent_model = OpponentStrategyModel()
         self.belief_model = OpponentBeliefModel()
         self.zerg_responses = ZergResponseSelector()
+        self.revisit = revisit
+        self.revisit_started = False
+        self.revisit_active = False
+        self.revisit_until = 0
+        self.costs = ScoutCosts()
 
     def _rush_warning(self, bot, combat, buildings, report):
         """Short-lived opening alerts from visible evidence, never opponent settings."""
@@ -164,6 +170,8 @@ class ScoutController:
             if all_observers:
                 return {"phase": "human_owned", "unit_tag": all_observers.first.tag}
             return {"phase": "waiting_for_observer" if bot.settings.scouting else "disabled"}
+
+        self.costs.register(bot, observer, "observer")
 
         home = (
             bot.townhalls.ready.closest_to(bot.start_location).position
@@ -351,6 +359,13 @@ class ScoutController:
         else:
             report.pop("zerg_opening_response", None)
         observer_status = self._observer_tick(bot) if bot.settings.scouting else {"phase": "disabled"}
+        report["scouting_costs"] = self.costs.observe(bot, self.worker_tag)
+        report["scout_revisit"] = {
+            "enabled": self.revisit,
+            "started": self.revisit_started,
+            "active": self.revisit_active,
+            "until": self.revisit_until,
+        }
         return {"phase": worker_status, "observer": observer_status, "intel": report}
 
     def _remember(self, bot, combat, buildings, report):
@@ -414,7 +429,9 @@ class ScoutController:
         if scout is None:
             bot.scout_tag = None
             if self.opening_complete:
-                return "opening_complete"
+                if not self._begin_revisit(bot, enemies, report):
+                    return "opening_complete"
+                scout = bot.workers.find_by_tag(self.worker_tag)
             if bot.supply_workers >= 12 and bot.time - self.last_assignment >= 90:
                 candidates = bot.workers.filter(
                     lambda unit: bot.available(unit) and (unit.is_idle or unit.is_gathering)
@@ -423,6 +440,7 @@ class ScoutController:
                     scout = candidates.closest_to(bot.game_info.map_center)
                     self.worker_tag = bot.scout_tag = scout.tag
                     self.last_assignment = bot.time
+                    self.costs.register(bot, scout, "worker")
         if scout is None:
             return "observing" if report.get("enemy_seen") else "waiting_for_scout"
         if not bot.control.eligible(scout):
@@ -430,6 +448,9 @@ class ScoutController:
         threatened = enemies.filter(lambda unit: unit.can_attack_ground and unit.distance_to(scout) < 8)
         self.returning |= bool(threatened) or scout.health + scout.shield < 30
         route = self._worker_route(bot)
+        if self.revisit_active:
+            route = route[:1]
+            self.returning |= bot.time >= self.revisit_until or bool(bot.units(U.OBSERVER).ready)
         if not route and not self.returning:
             self.returning = True
             return "no_known_start"
@@ -439,13 +460,52 @@ class ScoutController:
         if self.returning:
             target = bot.start_location
             if scout.distance_to(target) <= 6:
+                self.costs.release(scout.tag)
                 self.worker_tag = bot.scout_tag = None
                 self.opening_complete = True
+                self.revisit_active = False
                 return "returned"
             phase = "returning"
         else:
             target = route[self.worker_route_index % len(route)]
-            phase = "scouting_enemy_start"
+            phase = "revisiting_enemy_natural" if self.revisit_active else "scouting_enemy_start"
         if not isinstance(scout.order_target, Point2) or scout.order_target.distance_to(target) > 2:
             bot.issue(scout.move(target), scout_order=True)
         return phase
+
+    def _begin_revisit(self, bot, enemies, report):
+        """One existing Probe, one natural inspection, bounded by time and safety."""
+        if (
+            not self.revisit
+            or self.revisit_started
+            or not 150 <= bot.time <= 210
+            or bot.supply_workers < 16
+            or bot.economic_emergency
+            or bot.settings.strategy != "auto"
+            or bot.settings.strategy_script
+            or bot.units(U.OBSERVER).ready
+            or enemies.filter(
+                lambda unit: unit.can_attack_ground and unit.distance_to(bot.start_location) < 32
+            )
+        ):
+            return False
+        route = self._worker_route(bot)
+        if len(route) < 2:
+            return False
+        if any(
+            route[0].distance_to(Point2(site["position"])) < 8 and 0 <= bot.time - site["last_checked"] < 45
+            for site in report.get("expansion_sites", [])
+        ):
+            return False
+        workers = bot.workers.filter(lambda unit: bot.available(unit) and (unit.is_idle or unit.is_gathering))
+        if not workers:
+            return False
+        worker = workers.closest_to(route[0])
+        self.worker_tag = bot.scout_tag = worker.tag
+        self.last_assignment = bot.time
+        self.worker_route_index = 0
+        self.returning = False
+        self.revisit_started = self.revisit_active = True
+        self.revisit_until = bot.time + 60
+        self.costs.register(bot, worker, "worker")
+        return True

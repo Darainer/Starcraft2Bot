@@ -53,6 +53,12 @@ def main(argv=None):
         "--fast-step-size", type=int, default=32, help="Simulation loops per API turn in accelerated tests"
     )
     parser.add_argument("--game-time-limit", type=int, help="End test after this many game seconds (30–3600)")
+    parser.add_argument(
+        "--snapshot-interval", type=int, default=5, help="Recorded observation interval (1–30 seconds)"
+    )
+    parser.add_argument(
+        "--scout-revisit", action="store_true", help="Experimental bounded natural-expansion revisit"
+    )
     parser.add_argument("--sc2-path", type=Path, help="SC2 installation root; overrides SC2PATH")
     parser.add_argument(
         "--sc2-version", default="latest", help="latest installed binary, or exact SDK version label"
@@ -85,6 +91,8 @@ def main(argv=None):
         parser.error("Fast tests require a new owned client, not an attached client")
     if not 4 <= args.fast_step_size <= 64:
         parser.error("Fast-test step size must be between 4 and 64 simulation loops")
+    if not 1 <= args.snapshot_interval <= 30:
+        parser.error("Snapshot interval must be between 1 and 30 seconds")
     try:
         settings = AssistantSettings.load(args.config) if args.config else AssistantSettings()
         if args.profile:
@@ -108,7 +116,7 @@ def main(argv=None):
     logger.remove()
     logger.add(sys.stderr, level=args.log_level)
     args.log_file.parent.mkdir(parents=True, exist_ok=True)
-    logger.add(str(args.log_file), level="DEBUG", rotation="5 MB", retention=3)
+    logger.add(str(args.log_file), level="DEBUG", rotation="5 MB", retention=None)
     try:
         install = inspect_installation(args.sc2_path, args.sc2_version)
         # Set before the SDK lazily resolves Paths on process launch.
@@ -142,6 +150,9 @@ def main(argv=None):
         opponent_build=args.opponent_build,
         random_seed=args.seed,
         game_time_limit=args.game_time_limit,
+        snapshot_interval=args.snapshot_interval,
+        scout_revisit=args.scout_revisit,
+        log_retention="all_rotations",
     )
     if args.seed is not None:
         random.seed(args.seed)

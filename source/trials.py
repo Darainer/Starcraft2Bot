@@ -54,6 +54,9 @@ def run_trial(args, settings, profile, opponent, build, trial_id, stamp):
         str(args.duration),
     ]
     environment = os.environ.copy()
+    command += ["--snapshot-interval", str(getattr(args, "snapshot_interval", 5))]
+    if getattr(args, "scout_revisit", False):
+        command.append("--scout-revisit")
     if args.seed is not None:
         command += ["--seed", str(args.seed)]
         environment["PYTHONHASHSEED"] = str(args.seed)
@@ -81,6 +84,8 @@ def run_trial(args, settings, profile, opponent, build, trial_id, stamp):
         random_seed=args.seed,
         game_time_limit=args.duration,
         fast_step_size=None if args.realtime else args.fast_step_size,
+        scout_revisit=getattr(args, "scout_revisit", False),
+        snapshot_interval=getattr(args, "snapshot_interval", 5),
         exit_code=completed.returncode,
         wall_seconds=round(perf_counter() - started, 3),
     )
@@ -104,6 +109,8 @@ def main(argv=None):
         "--duration", type=int, default=3600, help="Game-second limit (30-3600; default 3600)"
     )
     parser.add_argument("--fast-step-size", type=int, default=32)
+    parser.add_argument("--snapshot-interval", type=int, default=5)
+    parser.add_argument("--scout-revisit", action="store_true")
     parser.add_argument(
         "--difficulty",
         choices=["VeryEasy", "Easy", "Medium", "MediumHard", "Hard", "Harder", "VeryHard"],
@@ -125,6 +132,8 @@ def main(argv=None):
         parser.error("Parallel games must be 1-8")
     if not 4 <= args.fast_step_size <= 64:
         parser.error("Fast-test step size must be between 4 and 64 simulation loops")
+    if not 1 <= args.snapshot_interval <= 30:
+        parser.error("Snapshot interval must be between 1 and 30 seconds")
     try:
         settings = json.loads((ROOT / ".local/windows.json").read_text(encoding="utf-8-sig"))
     except (OSError, ValueError) as exc:
