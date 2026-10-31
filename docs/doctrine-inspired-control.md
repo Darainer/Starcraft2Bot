@@ -14,8 +14,7 @@ Directorate on 2026-10-31:
 
 | Official source | Verified edition | Relevant principle |
 | --- | --- | --- |
-| [ADP 5-0, The Operations Process](https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN18126-ADP_5-0-000-WEB-3.pdf) | 31 July 2019; active | Plan, prepare and execute with continuous assessment; maintain running estimates. Paragraphs 1-54–56 distinguish facts, assumptions, enemy/friendly status and recommendations. |
-| [ADP 6-0, Command and Control](https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN47032-ADP_6-0-000-WEB-1.pdf) | 7 July 2026; active | Use commander’s intent and mission command to support subordinate decision making. The 2019 publication is not cited as the current edition. |
+| [ADP 5-0, The Operations Process](https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN18126-ADP_5-0-000-WEB-3.pdf) | 31 July 2019; active | Plan, prepare and execute with continuous assessment. Paragraph 1-38 (p. 1-9) links intent to local decisions; 1-54–56 (p. 1-12) distinguishes facts, assumptions, force status and recommendations in running estimates. |
 | [ATP 2-01.3, Intelligence Preparation of the Operational Environment](https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN43736-ATP_2-01.3-003-WEB-7.pdf) | Basic publication: 1 March 2019; Change 3: 15 May 2025 | Develop enemy courses of action and discriminating indicators, locations and decision points. Paragraphs 6-34–36 and 6-64–67 provide the central model. |
 | [FM 3-98, Reconnaissance and Security Operations](https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN37194-FM_3-98-000-WEB-1.pdf) | 10 January 2023; active | Reconnaissance answers decision requirements in time; specify engagement/disengagement criteria. See paragraphs 3-53–56 and 4-6. |
 | [FM 4-0, Sustainment Operations](https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN46157-FM_4-0-000-WEB-1.pdf) | 20 March 2026; active | Integrate sustainment into operations to preserve freedom of action, operational reach and endurance. |
@@ -25,6 +24,10 @@ resolves important uncertainties; intent coordinates execution; sustainment make
 the plan supportable; assessment determines whether it worked. OODA can serve as
 a shorthand for rapid feedback within this structure. The selected Army stack
 provides more concrete design contracts for this project.
+
+The Army's [official 2019 explanation of mission command](https://www.army.mil/article/225414/combined_arms_center_launches_new_mission_command_doctrine)
+also supports purpose, direction and decentralized decisions. This is a dated
+explanation of the concept, not a claim that the 2019 ADP 6-0 remains current.
 
 ## Mapping into the bot
 
