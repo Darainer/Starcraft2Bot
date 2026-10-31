@@ -224,7 +224,8 @@ metrics, point and timer. Offline assessment replay reconstructs these typed
 records. This adds no RL action-vector outputs or replay-oracle features.
 
 Software checks use synthetic observations and real SDK unit/command objects.
-New live performance and ability effects remain pending. The next trials should
+The targeted live follow-up below distinguishes delivery effects from strength.
+Subsequent trials should
 isolate one failure and one switch, three matched repeats per arm at 3600 game
 seconds, retaining all facts/logs/replays and the fixed specialists as controls.
 Do not use this candidate to revise the previous campaign's win counts.
@@ -327,3 +328,36 @@ biological splash targets or suitable Zerg air; armored-heavy ground retains
 the Immortal/Colossus response. Fresh multiple-Ghost evidence constrains new
 shield-heavy investment without claiming that EMP was observed. Thresholds
 remain experimental. Test Power in one matched triplet before broadening.
+
+That selective-v3 triplet (`dbf4aee`) completed with three defeats at1089.6s.
+It delivered the first Colossus at579.6s versus630.0s in control, but no
+Archon or Oracle. The army trade ratio improved from0.518 to0.684 while own
+economic losses increased from4825 to5125; this is not a successful response.
+Do not broaden this candidate to a full matrix. All21 targeted benchmark games
+resolved as defeats, without timeouts/errors, with matching full loop-zero
+states and verified source/map/native-data/difficulty/replay identities.
+
+Delivery-v2 does establish actual Archon delivery: Power's first ready Archon
+at694.3s, three distinct Archons with sampled weapon cooldown, and Timing's
+first ready Archon at1054.3s with one firing participant. Its worse Power army
+ratio (0.473) accompanied less own economic loss (4150 versus4825) and more
+enemy economic damage (2800 versus1300). An army-only threshold would miss
+this distinction. Final score differences cannot attribute effects to a unit
+or justify promoting a candidate that still loses every repeat.
+
+Neither v2 nor v3 produced an Oracle. The positive target-memory change remains
+unvalidated in ordinary play. A separate retail diagnostic ran the real Oracle
+controller against debug-spawned nearby SCVs: beam buff appeared and one tracked
+worker died. Its [evidence](experiments/2026-10-31/oracle-beam-worker-diagnostic.json)
+is excluded from gameplay scores/training, just like the group-merge diagnostic.
+The next Oracle experiment needs an explicit bounded production/opportunity
+commitment before modifying attack micro again. It must preserve urgent defense,
+require current worker vision to attack and measure economic return and losses.
+
+The [status report](bot-status.md#targeted-oraclearchon-results) records the
+completed comparison and pending failure modes. All raw artifacts remain local;
+the [complete hash-verified fact archives](experiments/2026-10-31/targeted-observed-facts-archive.json)
+contain21 episodes/23649 facts with diagnostics excluded. Four frozen source
+commits preserve control/v1/v2/v3 for later comparison; no threshold is accepted
+as an elite tactic from these results. Economic-defense and local-regroup
+switches were off and need their own controlled test.
