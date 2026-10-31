@@ -55,6 +55,12 @@ def counter_response(row):
         tech = all(U[name].value in buildings for name in role.prerequisites) and any(
             U[name].value in buildings for name in role.producers
         )
+        if role.unit == "ARCHON":
+            tech = U.ARCHON.value in buildings or (
+                settings.get("archon_merge", False)
+                and all(U[name].value in buildings for name in role.prerequisites)
+                and sum(unit.get("unit_type") == U.HIGHTEMPLAR.value for unit in ready) >= 2
+            )
         if permitted and tech:
             feasible_supply += target
         units = [

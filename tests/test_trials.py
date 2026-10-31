@@ -87,6 +87,7 @@ def test_trials_run_sequential_bounded_games_and_write_summary(monkeypatch, tmp_
             "scouted",
             "--oracle-harass",
             "--oracle-beam",
+            "--archon-merge",
             "--defend-assets",
             "--local-regroup",
         ]
@@ -102,7 +103,7 @@ def test_trials_run_sequential_bounded_games_and_write_summary(monkeypatch, tmp_
     results = json.loads((tmp_path / "logs/latest-trials.json").read_text())
     assert [r["profile"] for r in results] == ["pressure", "air"]
     assert all(r["random_seed"] == 42 and r["opponent_build"] == "Macro" for r in results)
-    for flag in ("oracle_harass", "oracle_beam", "defend_assets", "local_regroup"):
+    for flag in ("oracle_harass", "oracle_beam", "archon_merge", "defend_assets", "local_regroup"):
         assert all("--" + flag.replace("_", "-") in command for command in commands)
         assert all(r[flag] is True for r in results)
     assert all(r["composition_policy"] == "scouted" for r in results)

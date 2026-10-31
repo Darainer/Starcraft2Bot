@@ -8,6 +8,7 @@ from sc2.position import Point2
 
 from source.army_waves import ArmyWaves
 from source.combat_assessment import visible_threats
+from source.composition import merging_templar
 from source.economy_assistant import ARMY_TARGETS
 from source.game_assessment import GameAssessment
 from source.missions import MissionPlanner, retreat_geometry, retreat_waypoint
@@ -90,7 +91,9 @@ class TacticalController:
                 "reason": "Attack control disabled or assistant paused",
                 "orders": [],
             }
-        army = bot.units.of_type(set(ARMY_TARGETS)).ready.filter(bot.control.eligible)
+        army = bot.units.of_type(set(ARMY_TARGETS)).ready.filter(
+            lambda unit: bot.control.eligible(unit) and not merging_templar(bot, unit)
+        )
         state = self.assessor.observe(bot, army, self.missions.records.get("main", {}))
         self.last_assessment = state
         legacy = TacticalSituation(
@@ -349,6 +352,13 @@ class TacticalController:
                     targets,
                     key=lambda e: (
                         assigned_damage.get(e.tag, 0) >= e.health + e.shield,
+                        -sum(
+                            (1.3 if other.is_biological else 1)
+                            for other in enemies
+                            if other.is_flying == e.is_flying and other.distance_to(e) <= 1 + other.radius
+                        )
+                        if unit.type_id == U.ARCHON
+                        else 0,
                         not e.can_attack,
                         e.health + e.shield,
                         unit.distance_to(e),

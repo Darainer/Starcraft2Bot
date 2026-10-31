@@ -17,10 +17,19 @@ SUPPLY = {
     "voidrays": 4,
     "high_templar": 2,
     "oracles": 3,
+    "archons": 4,
     "observers": 1,
     "warp_prisms": 2,
 }
-CAPS = {"zealots": 20, "stalkers": 44, "immortals": 12, "colossi": 4, "voidrays": 8, "high_templar": 4}
+CAPS = {
+    "zealots": 20,
+    "stalkers": 44,
+    "immortals": 12,
+    "colossi": 4,
+    "voidrays": 8,
+    "high_templar": 4,
+    "archons": 8,
+}
 SUPPORT = {"MEDIVAC", "RAVEN", "OVERSEER", "OBSERVER", "WARPPRISM", "OVERLORD"}
 SIEGE = {"SIEGETANK", "SIEGETANKSIEGED", "LURKERMP", "LURKERMPBURROWED"}
 VIKINGS = {"VIKINGFIGHTER"}
@@ -44,6 +53,7 @@ class CounterPlan:
     late_game: bool
     uncertainty: float
     evidence: tuple[str, ...]
+    morph_inputs: tuple[tuple[str, int], ...] = ()
 
 
 def propose_counter_plan(
@@ -57,6 +67,7 @@ def propose_counter_plan(
     own_army,
     support_targets,
     storm=False,
+    archon_merge=False,
     oracle_allowed=False,
     worker_opportunity=False,
     supply_costs=None,
@@ -142,6 +153,21 @@ def propose_counter_plan(
         weights[preferred] = weights.get(preferred, 0) + 0.15
     if storm and (splash or air_mass):
         weights["high_templar"] = 0.12
+    archon_role = archon_merge and (
+        family in {"zerg_swarm", "terran_bio", "terran_armored_bio", "zerg_armored"}
+        or family == "zerg_air"
+        and not any(unit.get("kind") == "BROODLORD" for unit in force)
+    )
+    if archon_role:
+        weights["archons"] = 0.28 if family in {"zerg_swarm", "zerg_air"} else 0.15
+        weights["zealots"] = weights.get("zealots", 0) * 0.5
+        if family == "zerg_air":
+            weights["stalkers"] *= 0.8
+        else:
+            weights["colossi"] *= 0.75
+        priority = (
+            ("archons", *priority) if family == "zerg_air" else (*priority[:1], "archons", *priority[1:])
+        )
     costs = {**SUPPLY, **(supply_costs or {})}
     if any(not isfinite(value) or value <= 0 for value in costs.values()):
         raise ValueError("Native supply costs must be positive and finite")
@@ -173,19 +199,31 @@ def propose_counter_plan(
     if splash:
         desired = 2 if vikings >= 4 else 3 if late else 2
         targets["colossi"] = max(targets["colossi"], desired)
-    if air_mass and not storm:
-        constraint = "Air mass: Storm is not enabled; ground-only splash cannot cover this demand"
+    if archon_role and (splash or air_mass):
+        targets["archons"] = max(2, targets["archons"])
+    if air_mass:
+        if archon_role:
+            constraint = (
+                "Archon air splash is short range; retain ranged anti-air and measure firing participation"
+            )
+        elif not storm:
+            constraint = "Air mass: neither Archon merging nor Storm covers this plan; ground-only splash cannot cover this demand"
 
     def allocated():
         return sum(targets[name] * costs[name] for name in targets)
 
-    protected = {"colossi": 2 if splash else 0, "observers": 2 if lurker else 0}
+    protected = {
+        "colossi": 2 if splash else 0,
+        "archons": 2 if archon_role and (splash or air_mass) else 0,
+        "observers": 2 if lurker else 0,
+    }
     for name in (
         "zealots",
         "stalkers",
         "immortals",
         "voidrays",
         "high_templar",
+        "archons",
         "colossi",
         "sentries",
         "warp_prisms",
@@ -223,12 +261,13 @@ def propose_counter_plan(
         goals.append("ROBOTICSBAY")
     if targets["voidrays"] or targets["oracles"]:
         goals.insert(0 if air > ground else len(goals), "STARGATE")
-    if targets["high_templar"]:
+    if targets["high_templar"] or targets["archons"]:
         goals.extend(("TWILIGHTCOUNCIL", "TEMPLARARCHIVE"))
     minimums = {
         "colossi": min(2, targets["colossi"]) if splash else 0,
         "immortals": min(2, targets["immortals"]) if armored >= 4 else 0,
         "stalkers": min(8, targets["stalkers"]) if air >= 4 else 0,
+        "archons": min(2, targets["archons"]) if splash or air_mass else 0,
     }
     return CounterPlan(
         family,
@@ -253,4 +292,5 @@ def propose_counter_plan(
             "Desired replacements; existing living units are retained",
             "Race-specific counter priors; combat/tech delivery requires validation",
         ),
+        (("high_templar", 2 * targets["archons"]),) if targets["archons"] else (),
     )

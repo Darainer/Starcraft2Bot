@@ -51,7 +51,7 @@ def main(argv=None):
     parser.add_argument("--strategy-script", type=Path, help="Local Python JSON strategy script")
     parser.add_argument("--playbook", choices=PLAYBOOK_CHOICES, help="Scouted repertoire or fixed experiment")
     parser.add_argument("--composition-policy", choices=COMPOSITION_POLICIES)
-    for name in ("oracle-harass", "oracle-beam", "defend-assets", "local-regroup"):
+    for name in ("oracle-harass", "oracle-beam", "archon-merge", "defend-assets", "local-regroup"):
         parser.add_argument("--" + name, action=argparse.BooleanOptionalAction, default=None)
     parser.add_argument("--attack", action=argparse.BooleanOptionalAction, default=None)
     parser.add_argument("--fast-test", action="store_true", help="Accelerated local autonomous evaluation")
@@ -111,7 +111,7 @@ def main(argv=None):
             settings.playbook = args.playbook
         if args.composition_policy:
             settings.composition_policy = args.composition_policy
-        for name in ("oracle_harass", "oracle_beam", "defend_assets", "local_regroup"):
+        for name in ("oracle_harass", "oracle_beam", "archon_merge", "defend_assets", "local_regroup"):
             if getattr(args, name) is not None:
                 setattr(settings, name, getattr(args, name))
         if args.attack is not None:

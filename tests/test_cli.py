@@ -68,7 +68,7 @@ def test_launch_is_one_shared_participant_paused_on_request(installed):
 
 
 def test_composition_and_individual_tactical_flags_can_be_enabled_and_revoked(installed):
-    flags = ("oracle_harass", "oracle_beam", "defend_assets", "local_regroup")
+    flags = ("oracle_harass", "oracle_beam", "archon_merge", "defend_assets", "local_regroup")
     run_assistant.main(
         ["--composition-policy", "scouted", *("--" + name.replace("_", "-") for name in flags)]
     )

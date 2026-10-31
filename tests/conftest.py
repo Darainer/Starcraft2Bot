@@ -79,9 +79,11 @@ def bot():
         U.IMMORTAL: (275, 100, 4),
         U.WARPPRISM: (250, 0, 2),
         U.OBSERVER: (25, 75, 1),
+        U.ARCHON: (175, 275, 4),
     }
     units = []
     kinds = set(creation) | {
+        U.ARCHON,
         U.MARINE,
         U.GHOST,
         U.MINERALFIELD,

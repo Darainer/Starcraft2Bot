@@ -2,6 +2,7 @@
 
 from dataclasses import replace
 
+from sc2.ids.ability_id import AbilityId as A
 from sc2.ids.unit_typeid import UnitTypeId as U
 
 from source.counter_composition import SUPPLY, propose_counter_plan
@@ -9,7 +10,7 @@ from source.counter_composition import SUPPLY, propose_counter_plan
 NAMES = ("zealots", "stalkers", "sentries", "immortals", "colossi", "voidrays", "high_templar")
 UNIT_NAMES = dict(
     zip(
-        (*NAMES, "oracles", "observers", "warp_prisms"),
+        (*NAMES, "oracles", "observers", "warp_prisms", "archons"),
         (
             U.ZEALOT,
             U.STALKER,
@@ -21,11 +22,33 @@ UNIT_NAMES = dict(
             U.ORACLE,
             U.OBSERVER,
             U.WARPPRISM,
+            U.ARCHON,
         ),
         strict=True,
     )
 )
 WORKERS = {U.PROBE, U.SCV, U.DRONE, U.MULE}
+MERGE_ORDERS = {A.MORPH_ARCHON, A.ARCHON_WARP_TARGET}
+
+
+def archon_permitted(bot):
+    s = bot.settings
+    return s.enabled and s.attack and s.archon_merge and s.strategy == "auto" and not s.strategy_script
+
+
+def merging_templar(bot, unit):
+    return unit.type_id == U.HIGHTEMPLAR and (
+        unit.tag in getattr(bot, "_archon_reserved_tags", set())
+        or any(order.ability.id in MERGE_ORDERS for order in unit.orders)
+    )
+
+
+def archon_committed(bot):
+    return bot.units(U.ARCHON).ready.amount + max(
+        bot.units(U.ARCHON).not_ready.amount,
+        bot.already_pending(U.ARCHON),
+        len(getattr(getattr(bot, "archon_controller", None), "pending", {})),
+    )
 
 
 def oracle_permitted(bot):
@@ -86,6 +109,7 @@ def scouted_counter_plan(bot):
         s.profile,
         s.max_workers,
         s.storm,
+        s.archon_merge,
         s.oracle_harass,
         s.oracle_beam,
         s.scouting,
@@ -105,6 +129,7 @@ def scouted_counter_plan(bot):
         own_army=bot.supply_army,
         support_targets=support,
         storm=s.storm,
+        archon_merge=archon_permitted(bot),
         oracle_allowed=oracle_permitted(bot) and not bot.economic_emergency,
         worker_opportunity=opportunity,
         supply_costs=costs,
@@ -131,6 +156,8 @@ def scouted_counter_plan(bot):
 
 def composition_targets(bot):
     targets = {name: getattr(bot.settings, name) for name in NAMES}
+    if archon_permitted(bot) and bot.settings.archons:
+        targets["archons"] = bot.settings.archons
     if not (bot.settings.enabled and bot.settings.attack and bot.settings.adaptive_composition):
         return targets
     counter = scouted_counter_plan(bot)
@@ -160,7 +187,7 @@ def composition_targets(bot):
     return targets
 
 
-def production_target(bot, name):
+def planned_target(bot, name):
     plan = getattr(bot, "strategic_plan", None)
     if (
         plan is not None
@@ -173,3 +200,14 @@ def production_target(bot, name):
         if name in targets:
             return targets[name]
     return composition_targets(bot).get(name, getattr(bot.settings, name))
+
+
+def production_target(bot, name):
+    target = planned_target(bot, name)
+    if name == "high_templar" and archon_permitted(bot):
+        # Final Archon supply already represents two Templars. Only uncommitted
+        # replacements need new inputs; in-flight sources still occupy unit counts.
+        missing = max(0, planned_target(bot, "archons") - archon_committed(bot))
+        sources = sum(merging_templar(bot, unit) for unit in bot.units(U.HIGHTEMPLAR))
+        target += 2 * int(missing) + sources
+    return target

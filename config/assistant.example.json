@@ -9,6 +9,7 @@
   "local_regroup": false,
   "oracle_harass": false,
   "oracle_beam": false,
+  "archon_merge": false,
   "warp_reinforcement": true,
   "warp_prisms": 1,
   "observers": 1,
@@ -41,5 +42,6 @@
   "high_templar": 0,
   "colossi": 0,
   "voidrays": 0,
-  "oracles": 0
+  "oracles": 0,
+  "archons": 0
 }

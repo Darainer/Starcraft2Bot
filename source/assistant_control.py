@@ -12,7 +12,15 @@ from source.counter_composition import COMPOSITION_POLICIES
 from source.strategy_portfolio import PLAYBOOK_CHOICES
 from source.strategy_profiles import COMPOSITION, PROFILES
 
-COMBAT_POWERS = ("blink", "storm", "feedback", "guardian_shield", "voidray_alignment", "oracle_beam")
+COMBAT_POWERS = (
+    "blink",
+    "storm",
+    "feedback",
+    "guardian_shield",
+    "voidray_alignment",
+    "oracle_beam",
+    "archon_merge",
+)
 ECONOMY = ("workers", "allocation", "supply", "gas", "expansion", "construction", "production", "upgrades")
 STRATEGIES = ("auto", "defend", "regroup", "push", "retreat")
 
@@ -43,6 +51,7 @@ class AssistantSettings:
     guardian_shield: bool = False
     voidray_alignment: bool = False
     oracle_beam: bool = False
+    archon_merge: bool = False
     oracle_harass: bool = False
     defend_assets: bool = False
     local_regroup: bool = False
@@ -71,6 +80,7 @@ class AssistantSettings:
     colossi: int = 0
     voidrays: int = 0
     oracles: int = 0
+    archons: int = 0
 
     def validate(self) -> AssistantSettings:
         defaults = type(self)()

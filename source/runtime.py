@@ -686,6 +686,7 @@ class RuntimeAssistant(EconomyAssistant):
                 decision = dict(self._last_decision)
                 decision["controller_ms"] = self._tactical_ms
                 decision["oracle_harass"] = self._oracle_report
+                decision["archon_merge"] = self._archon_report
                 decision["micro_since_last_sample"] = self._micro_decisions
                 self._micro_decisions = []
                 snapshot = {

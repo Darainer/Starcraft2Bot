@@ -136,16 +136,49 @@ and changed evidence can reframe replacement targets. These are experimental
 counter priors, not a combat simulator or a learned policy. Protoss still uses
 the existing overlay until its own recipes are evaluated.
 
-Targets share the 200-supply envelope with the configured worker cap,
+Targets share the 200-supply envelope with the larger of current workers and the configured worker cap,
 Observers, Sentries, Prisms and Oracles. Massed ground requires at least two
 Colossi, with later reinforcement favoring premium counters and splash.
-Air mass records an unmet splash constraint unless Storm is explicitly enabled;
+Air mass records an unmet splash constraint unless the plan includes permitted
+Archon merging or Storm;
 Colossi cannot supply anti-air splash. Living units are retained. Critical
 counter floors are replenished after losses, and later armies reserve periodic
 spending opportunities for upgrades. Upgrade focus follows our counter units:
 Stalkers fighting air still need ground weapon upgrades. Scout freshness,
 desired supply, tech goals, splash constraints and uncertainty are logged in
 `decision.counter_composition`; desired units are not evidence they were built.
+
+`--archon-merge` adds Archons to the swarm/bio and suitable Zerg air recipes.
+It defaults off; `!assist archon_merge on` enables the same explicit permission.
+Archons complement Colossi against ground and provide short-range air splash
+without needing Storm. They are not the preferred response to Lurkers, siege
+lines or Brood Lords, where reaching firing range is a major constraint.
+The plan budgets four final supply per Archon and records two High Templars
+per planned Archon in `morph_inputs`, separately from retained Storm casters.
+Production requests only the still-needed Templar inputs, funds their tech,
+honors resource reserves and accounts for in-flight merges without counting
+the final unit and its ingredients as simultaneous army targets.
+
+The merge controller retains the requested caster quota, protecting higher
+energy Templars, and pairs nearby eligible inputs away from visible combat.
+It reserves exactly two actors before spells and tactical movement, checks
+current legal abilities, then queues one pair per observation through `issue`.
+The pinned SDK combines the two adjacent targetless orders into one raw
+`MORPH_ARCHON` action with exactly two tags, following the
+[Blizzard example](https://github.com/Blizzard/s2client-api/blob/614acc00abb5355e4c94a1b0279b46e9d845b7ce/examples/common/bot_examples.cc#L801)
+and [Ares merge implementation](https://github.com/AresSC2/ares-sc2/blob/67187778f931035c8bb0380ef63a6cd9dedc478b/src/ares/custom_bot_ai.py#L372).
+Merging existing inputs adds no resource or supply charge; their training is
+paid normally. Pending pairs survive observation changes and release on actor
+transformation/disappearance, ownership change, action rejection or timeout.
+Queued merges remain unconfirmed until actual game observations resolve them.
+
+Archons join army assessment and ordinary fighting, with a visible same-domain
+cluster preference. The clustering radius is a targeting heuristic, not an
+engine splash model; no free splash DPS multiplier inflates engagement power.
+Their weapon uses ground upgrades even against air. Existing Archons prioritize
+shields after weapons. `decision.archon_merge` records pending pairs/events.
+For a focused candidate, combine `--composition-policy scouted --archon-merge`;
+Oracle and defense switches remain separate for later ablations.
 
 `--oracle-harass --oracle-beam` separately permits bounded worker raids and the
 beam toggle. Both default off. Automatic counter plans request at most two
@@ -196,7 +229,8 @@ isolate one failure and one switch, three matched repeats per arm at 3600 game
 seconds, retaining all facts/logs/replays and the fixed specialists as controls.
 Do not use this candidate to revise the previous campaign's win counts.
 
-After software checks, freeze one integration revision. Run pressure versus
+The completed campaign protocol was: after software checks, freeze one
+integration revision. Run pressure versus
 VeryHard Terran and Zerg on BelShirVestigeLE, explicit Rush/Timing/Power/Macro/Air,
 three repeats each on seed 20261025: 30 games. Add the six known failing Zerg
 Power/Macro conditions on development seed 2026103102. Use automatic package
@@ -207,7 +241,7 @@ computer difficulty and loop-zero starts. The new `playbook` setting is an
 explicit integration difference; compare physical starting state separately
 from settings when matching historical starts.
 
-Do not tune gameplay during or after this final set. Produce the comprehensive
-report and stop. These are fixed-start development gates on one map, not
+Its stop instruction was to avoid tuning during/after that final set, produce
+the report and stop. These are fixed-start development gates on one map, not
 independent samples, a new held-out benchmark or elite acceptance. Protoss,
 additional maps/seeds and established community bots remain outside this set.

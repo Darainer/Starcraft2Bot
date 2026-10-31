@@ -1,7 +1,23 @@
 # Python bot status
 
-Final snapshot, 2026-10-31. Evaluation and improvement work stopped after the
-requested final set and report.
+Status, 2026-10-31. The requested final campaign and report are complete.
+The user subsequently reopened implementation of composition, harassment and
+economic defense; no further live evaluation has run.
+
+The new experimental branch `feat/scouted-counter-composition-20261031` adds
+opt-in race/fielded-force counter recipes, splash floors, stronger late-game
+replacement targets, counter-tech investment and relevant upgrade priority.
+Archons now have a two-Templar production/merge path, caster preservation and
+ground/air combat roles; Oracle raids have a separate controller. Expiring
+asset-defense opportunities and bounded local regroup/re-engagement can be
+tested independently. See the [candidate settings and design](strategy-portfolio.md#opt-in-counter-composition-candidate).
+These additions have no live performance claim and are not promoted over the
+preserved references below.
+
+Current candidate software checks pass: locked sync, Ruff lint/format,
+configured Mypy, protocol/lifecycle tests, **690 synthetic tests with 89.80%
+coverage**, configuration smoke checks and source/wheel package builds. No SC2
+process was launched for these checks.
 
 The branch `feat/scouted-strategy-portfolio-20261031` contains five selectable
 response packages, with frozen gameplay `d0f8cf3`. The final result is **24 wins /
@@ -75,7 +91,7 @@ cutoffs; it is not a causal error attribution. Both information and logic need w
   [legal example](examples/sc2-observed-facts-v2.json) and
   [inference plan](opponent-inference-training.md) are available. A same-loop
   replay-oracle extractor and reliable trained estimator are still outstanding.
-- Locked sync, Ruff lint/format, configured Mypy, protocol/lifecycle tests,
+- For the frozen final campaign, locked sync, Ruff lint/format, configured Mypy, protocol/lifecycle tests,
   **598 synthetic tests (89.41% coverage)** and package builds passed. All 49
   source/config hashes, actual binary/data, map, starts, difficulty and replay
   files passed final verification. Shared human controls remain NOT_VERIFIED.

@@ -59,7 +59,7 @@ def run_trial(args, settings, profile, opponent, build, trial_id, stamp):
     command += ["--snapshot-interval", str(getattr(args, "snapshot_interval", 5))]
     command += ["--playbook", getattr(args, "playbook", "auto")]
     command += ["--composition-policy", getattr(args, "composition_policy", "legacy")]
-    for name in ("oracle_harass", "oracle_beam", "defend_assets", "local_regroup"):
+    for name in ("oracle_harass", "oracle_beam", "archon_merge", "defend_assets", "local_regroup"):
         if getattr(args, name, False):
             command.append("--" + name.replace("_", "-"))
     if getattr(args, "scout_revisit", False):
@@ -97,6 +97,7 @@ def run_trial(args, settings, profile, opponent, build, trial_id, stamp):
         composition_policy=getattr(args, "composition_policy", "legacy"),
         oracle_harass=getattr(args, "oracle_harass", False),
         oracle_beam=getattr(args, "oracle_beam", False),
+        archon_merge=getattr(args, "archon_merge", False),
         defend_assets=getattr(args, "defend_assets", False),
         local_regroup=getattr(args, "local_regroup", False),
         exit_code=completed.returncode,
@@ -126,7 +127,7 @@ def main(argv=None):
     parser.add_argument("--scout-revisit", action="store_true")
     parser.add_argument("--playbook", choices=PLAYBOOK_CHOICES, default="auto")
     parser.add_argument("--composition-policy", choices=COMPOSITION_POLICIES, default="legacy")
-    for name in ("oracle-harass", "oracle-beam", "defend-assets", "local-regroup"):
+    for name in ("oracle-harass", "oracle-beam", "archon-merge", "defend-assets", "local-regroup"):
         parser.add_argument("--" + name, action="store_true")
     parser.add_argument(
         "--difficulty",

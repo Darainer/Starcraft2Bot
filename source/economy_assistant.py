@@ -11,12 +11,17 @@ from sc2.ids.unit_typeid import UnitTypeId as U
 from sc2.ids.upgrade_id import UpgradeId as G
 from sc2.unit_command import UnitCommand
 
+from source.archon_merge import ArchonMerge
 from source.assistant_control import Control, within_budget
 from source.combat_assessment import visible_threats
 from source.composition import (
     UNIT_NAMES,
+    archon_committed,
+    archon_permitted,
     composition_targets,
+    merging_templar,
     oracle_permitted,
+    planned_target,
     production_target,
     scouted_counter_plan,
 )
@@ -32,6 +37,7 @@ ARMY_TARGETS = {
     U.HIGHTEMPLAR: "high_templar",
     U.COLOSSUS: "colossi",
     U.VOIDRAY: "voidrays",
+    U.ARCHON: "archons",
 }
 PRODUCERS = {
     U.GATEWAY: (U.STALKER, U.ZEALOT, U.SENTRY, U.HIGHTEMPLAR),
@@ -52,6 +58,7 @@ SPELLS = {
     A.EFFECT_VOIDRAYPRISMATICALIGNMENT,
     A.BEHAVIOR_PULSARBEAMON,
     A.BEHAVIOR_PULSARBEAMOFF,
+    A.MORPH_ARCHON,
 }
 GROUND_UPGRADES = tuple(
     getattr(G, f"{family}{level}")
@@ -93,6 +100,9 @@ class EconomyAssistant(BotAI):
         self._last_allocation = -10.0
         self._last_hud = -10.0
         self._used = set()
+        self._archon_reserved_tags = set()
+        self.archon_controller = ArchonMerge()
+        self._archon_report = {"enabled": False, "events": [], "pending_pairs": []}
         self._casts = {}
         self._storms = []
         self._last_upgrade = -60.0
@@ -117,7 +127,12 @@ class EconomyAssistant(BotAI):
         )
 
     def available(self, unit):
-        return unit.tag != self.scout_tag and unit.tag not in self._used and self.control.eligible(unit)
+        return (
+            unit.tag != self.scout_tag
+            and unit.tag not in self._used
+            and self.control.eligible(unit)
+            and not merging_templar(self, unit)
+        )
 
     def issue(self, command, paid=False, supply=False, scout_order=False):
         if not isinstance(command, UnitCommand):
@@ -189,6 +204,7 @@ class EconomyAssistant(BotAI):
                 error.ability_id,
                 error.result,
             )
+        self._archon_report = await self.archon_controller.tick(self)
         if self.settings.enabled:
             await self.powers()
         await self.on_tactical_step()
@@ -524,9 +540,13 @@ class EconomyAssistant(BotAI):
         if counter is not None:
             for goal in counter.tech_goals:
                 kind = getattr(U, goal)
-                if kind in {U.ROBOTICSFACILITY, U.ROBOTICSBAY, U.STARGATE} and await self.fund_first_robotics(
-                    home, completed_supply, kind
-                ):
+                if kind in {
+                    U.ROBOTICSFACILITY,
+                    U.ROBOTICSBAY,
+                    U.STARGATE,
+                    U.TWILIGHTCOUNCIL,
+                    U.TEMPLARARCHIVE,
+                } and await self.fund_first_robotics(home, completed_supply, kind):
                     return
         if self.economic_emergency and not first_defender:
             if s.production and self.produce(0):
@@ -715,13 +735,20 @@ class EconomyAssistant(BotAI):
         reachable builder. Emergency defense and the opening force stay ahead.
         """
         prior = getattr(self, "_first_tech_reservation", None)
-        if prior is not None and prior[0] in {U.ROBOTICSFACILITY, U.ROBOTICSBAY, U.STARGATE}:
+        if prior is not None and prior[0] in {
+            U.ROBOTICSFACILITY,
+            U.ROBOTICSBAY,
+            U.STARGATE,
+            U.TWILIGHTCOUNCIL,
+            U.TEMPLARARCHIVE,
+        }:
             self._first_tech_reservation = None
-        if kind not in {U.ROBOTICSFACILITY, U.ROBOTICSBAY, U.STARGATE}:
+        if kind not in {U.ROBOTICSFACILITY, U.ROBOTICSBAY, U.STARGATE, U.TWILIGHTCOUNCIL, U.TEMPLARARCHIVE}:
             raise ValueError("Unsupported Robotics investment")
         s = self.settings
         bay = kind == U.ROBOTICSBAY
         air = kind == U.STARGATE
+        merge = kind in {U.TWILIGHTCOUNCIL, U.TEMPLARARCHIVE}
         counter = scouted_counter_plan(self)
         if bay and not (
             active_playbook(self).fund_bay or counter is not None and kind.name in counter.tech_goals
@@ -729,12 +756,22 @@ class EconomyAssistant(BotAI):
             return False
         if air and not (counter is not None and kind.name in counter.tech_goals):
             return False
+        if merge and not (
+            counter is not None and archon_permitted(self) and dict(counter.targets)["archons"]
+        ):
+            return False
         if (
             not (s.enabled and s.attack and s.production and s.construction)
             or (self.economic_emergency and (not bay or completed_supply < 24))
-            or completed_supply < (12 if bay or air else 6)
-            or self.supply_workers < (20 if air else 16)
-            or not self.structures(U.ROBOTICSFACILITY if bay else U.CYBERNETICSCORE).ready
+            or completed_supply < (12 if bay or air or merge else 6)
+            or self.supply_workers < (20 if air or merge else 16)
+            or not self.structures(
+                U.ROBOTICSFACILITY
+                if bay
+                else U.TWILIGHTCOUNCIL
+                if kind == U.TEMPLARARCHIVE
+                else U.CYBERNETICSCORE
+            ).ready
             or self.structures(kind)
             or self.already_pending(kind)
         ):
@@ -747,6 +784,7 @@ class EconomyAssistant(BotAI):
         if (
             not bay
             and not air
+            and not merge
             and not (
                 targets["immortals"]
                 or targets["colossi"]
@@ -847,10 +885,19 @@ class EconomyAssistant(BotAI):
             (U.ROBOTICSBAY, int(targets["colossi"] > 0), U.ROBOTICSFACILITY),
             (
                 U.TWILIGHTCOUNCIL,
-                int(s.blink or targets["high_templar"] > 0 or (s.upgrades and self.supply_army >= 20)),
+                int(
+                    s.blink
+                    or targets["high_templar"] > 0
+                    or targets.get("archons", 0) > 0
+                    or (s.upgrades and self.supply_army >= 20)
+                ),
                 U.CYBERNETICSCORE,
             ),
-            (U.TEMPLARARCHIVE, int(targets["high_templar"] > 0), U.TWILIGHTCOUNCIL),
+            (
+                U.TEMPLARARCHIVE,
+                int(targets["high_templar"] > 0 or targets.get("archons", 0) > 0),
+                U.TWILIGHTCOUNCIL,
+            ),
             (
                 U.FORGE,
                 int(s.upgrades and self.supply_army >= 12) * (1 + int(self.supply_army >= 60)),
@@ -941,6 +988,19 @@ class EconomyAssistant(BotAI):
             for name in counter.priority:
                 kind = UNIT_NAMES[name]
                 if minimums.get(name, 0):
+                    if kind == U.ARCHON:
+                        missing = max(0, minimums[name] - archon_committed(self))
+                        if not missing:
+                            continue
+                        sources = sum(merging_templar(self, unit) for unit in self.units(U.HIGHTEMPLAR))
+                        choices.append(
+                            (
+                                U.GATEWAY,
+                                U.HIGHTEMPLAR,
+                                planned_target(self, "high_templar") + 2 * int(missing) + sources,
+                            )
+                        )
+                        continue
                     producer = U.GATEWAY if kind == U.STALKER else U.ROBOTICSFACILITY
                     choices.append((producer, kind, minimums[name]))
         for producer, kind, minimum in choices:
@@ -954,6 +1014,8 @@ class EconomyAssistant(BotAI):
                 if kind == U.STALKER
                 else U.ROBOTICSBAY
                 if kind == U.COLOSSUS
+                else U.TEMPLARARCHIVE
+                if kind == U.HIGHTEMPLAR
                 else U.ROBOTICSFACILITY
             )
             if not self.structures(prerequisite).ready or self.tech_requirement_progress(kind) < 1:
@@ -1055,6 +1117,12 @@ class EconomyAssistant(BotAI):
             else []
         )
         ground = [(upgrade, U.FORGE) for upgrade in GROUND_UPGRADES]
+        if counter is not None and self.units(U.ARCHON).ready:
+            ground = [
+                (getattr(G, f"{family}{level}"), U.FORGE)
+                for level in range(1, 4)
+                for family in ("PROTOSSGROUNDWEAPONSLEVEL", "PROTOSSSHIELDSLEVEL", "PROTOSSGROUNDARMORSLEVEL")
+            ]
         ground_first = counter is not None and counter.upgrade_focus == "ground"
         if counter is not None:
             current_air = self.units(U.VOIDRAY).amount * self.calculate_supply_cost(U.VOIDRAY)

@@ -5,6 +5,7 @@
   "patch_scope": "5.0.17; numerical runtime data takes precedence",
   "sources": {
     "protocol": {"title": "Blizzard SC2 unit-data protocol", "url": "https://github.com/Blizzard/s2client-proto/blob/master/s2clientprotocol/data.proto", "kind": "primary_specification"},
+    "archon_micro": {"title": "Sharky Archon combat controller", "url": "https://github.com/sharknice/Sharky/blob/2628ba1c5c2083aeeddf9f13c25bf6f218820a05/Sharky/MicroControllers/Protoss/ArchonMicroController.cs", "kind": "primary_bot_implementation_curated_splash_role_not_engine_geometry"},
     "unit_ids": {"title": "Blizzard unit and ability enumeration", "url": "https://github.com/Blizzard/s2client-api/blob/master/include/sc2api/sc2_typeenums.h", "kind": "primary_specification"},
     "patch": {"title": "Blizzard 5.0.17 patch notes", "url": "https://news.blizzard.com/en-gb/article/24309308/starcraft-ii-5-0-17-patch-notes", "kind": "primary_patch_notes"},
     "scouting": {"title": "Blizzard Game Guide: Scouting", "url": "https://news.blizzard.com/en-us/article/4488316/game-guide-scouting", "kind": "primary_guide_principles_only"},
@@ -37,7 +38,8 @@
     {"name": "immortals", "unit": "IMMORTAL", "supply": 4, "domains": ["ground"], "roles": ["ground", "armored_ground"], "producers": ["ROBOTICSFACILITY"], "prerequisites": ["CYBERNETICSCORE"], "sources": ["protocol", "unit_ids", "attacks"], "status": "curated_counter_role_hypothesis"},
     {"name": "colossi", "unit": "COLOSSUS", "supply": 6, "domains": ["ground"], "roles": ["ground", "light_ground"], "producers": ["ROBOTICSFACILITY"], "prerequisites": ["ROBOTICSBAY"], "sources": ["protocol", "unit_ids", "patch"], "status": "curated_counter_role_hypothesis"},
     {"name": "voidrays", "unit": "VOIDRAY", "supply": 4, "domains": ["ground", "air"], "roles": ["ground", "air", "armored_ground"], "producers": ["STARGATE"], "prerequisites": ["CYBERNETICSCORE"], "sources": ["protocol", "unit_ids"], "status": "curated_counter_role_hypothesis_alignment_not_assumed"},
-    {"name": "high_templar", "unit": "HIGHTEMPLAR", "supply": 2, "domains": ["ground"], "roles": ["ground", "light_ground"], "producers": ["GATEWAY", "WARPGATE"], "prerequisites": ["TEMPLARARCHIVE"], "requires_opt_in": "storm", "sources": ["protocol", "unit_ids", "patch"], "status": "conditional_spell_role_requires_research_and_energy"}
+    {"name": "high_templar", "unit": "HIGHTEMPLAR", "supply": 2, "domains": ["ground"], "roles": ["ground", "light_ground"], "producers": ["GATEWAY", "WARPGATE"], "prerequisites": ["TEMPLARARCHIVE"], "requires_opt_in": "storm", "sources": ["protocol", "unit_ids", "patch"], "status": "conditional_spell_role_requires_research_and_energy"},
+    {"name": "archons", "unit": "ARCHON", "supply": 4, "domains": ["ground", "air"], "roles": ["ground", "air", "light_ground"], "producers": ["HIGHTEMPLAR"], "prerequisites": ["TEMPLARARCHIVE"], "sources": ["protocol", "unit_ids", "archon_micro"], "status": "curated_short_range_splash_role; production_requires_two_templars_and_archon_merge_opt_in; no_automatic_splash_dps_multiplier"}
   ],
   "scouting_questions": [
     {"id": "commitment", "observables": ["forward_production", "approaching_force", "natural_occupancy"], "methods": ["worker", "observer"], "sources": ["scouting", "purpose"]},

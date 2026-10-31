@@ -16,6 +16,8 @@ def test_knowledge_catalog_has_valid_provenance_and_is_immutable_to_consumers():
     assert "air" in roles["stalkers"].domains
     assert "air" not in roles["immortals"].domains
     assert roles["high_templar"].requires_opt_in == "storm"
+    assert roles["archons"].domains == ("ground", "air")
+    assert roles["archons"].producers == ("HIGHTEMPLAR",)
     with pytest.raises(FrozenInstanceError):
         roles["immortals"].supply = 0
 
