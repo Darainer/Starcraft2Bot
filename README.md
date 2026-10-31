@@ -153,6 +153,9 @@ The separate [RL training plan](docs/rl-training-plan.md) covers teacher data,
 public opponents, headless Linux containers, patch compatibility and rollout
 throughput. [Winning-bot research](docs/research/winning-bot-tactics.md) supplies
 source-linked tactics and an inventory of public bots.
+The [military doctrine review](docs/doctrine-inspired-control.md) proposes the
+Army operations process as a structure for beliefs, decision-linked scouting,
+mission intent, counter readiness and sustainable income.
 The first belief/scouting live candidate was rejected; belief telemetry remains,
 while its control rules are disabled by default. The
 [hardcoded bot milestone](docs/hardcoded-elite-milestone.md) takes priority over RL training.
