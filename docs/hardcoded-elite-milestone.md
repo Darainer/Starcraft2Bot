@@ -63,10 +63,15 @@ combines R2 baseline spending with evidence-selected early Robotics, on its own
 branch at `b3aff99`. All six relevant historical winning games were verified as
 actual VeryHard computer opposition in runtime and game-info records. The
 candidate passed 526 synthetic tests and required software checks. Its frozen
-Macro/Timing live gate is pending: both API preflights failed before connection
-with `0x20010000` despite Full Access; no new gameplay outcomes exist. Historical
-observation replay supports the opening selection hypothesis and also identifies
-later Macro/Power force-trigger changes that still require retention testing.
+Macro/Timing gate completed with **six victories**: Macro 3/3 at 1145.4 seconds,
+Timing 3/3 at 1050.4. All starts, source hashes, map/binary identities, actual
+VeryHard difficulty and replays were verified. Opening evidence selects Timing's
+early Robotics; Macro keeps baseline opening spending and responds later to
+observed Roaches. Macro is 90 seconds slower than R2 but retains victory.
+Rush/Power/Air retention is running on the same source before any promotion.
+Two initial preflights failed before connection with `0x20010000`; after the user
+closed the ordinary SC2 client, unchanged preflight passed. These launch failures
+remain separate from gameplay outcomes.
 
 R2 completed the original shorter-bound matrix with 21 wins and nine defeats.
 At the new 3600-second bound, the reference wins Zerg Timing 3/3 at 1515.4 seconds;

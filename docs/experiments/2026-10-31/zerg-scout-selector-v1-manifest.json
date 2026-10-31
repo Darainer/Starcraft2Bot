@@ -71,8 +71,20 @@
         "ping_received": false
       }
     ],
-    "gameplay_trials": "Pending successful API preflight; no matches started",
+    "gameplay_trials": "Targeted Macro and Timing triplets completed with six victories; Rush/Power/Air retention running on the same source",
     "normal_client": "A Battle.net-launched client without API arguments was present and left untouched",
-    "hypothesis": "Normal-client coexistence may affect launch; unproven, awaiting close/retry comparison"
+    "hypothesis": "Normal-client coexistence may affect launch; preflight succeeded unchanged after user closed normal client, but causality is not isolated",
+    "successful_probe": {
+      "report": "runtime-20261031-145002-148241.json",
+      "phase": "probe_ok",
+      "ping": {
+        "game_version": "5.0.17.98310",
+        "base_build": 98310,
+        "data_build": 98310,
+        "data_version": "9C1F3D3D30CA252E33FC67CA05CBE1EA"
+      },
+      "normal_client_closed": "User confirmed and zero SC2 processes verified before preflight",
+      "human_control": "NOT_VERIFIED"
+    }
   }
 }

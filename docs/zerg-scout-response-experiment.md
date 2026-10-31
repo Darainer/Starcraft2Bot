@@ -84,7 +84,7 @@ sightings, positive expansion overrides, per-contact aging, ignored configured
 build labels, director serialization/expiry, user controls and actual spending
 with ownership guards. Human interaction remains unverified.
 
-## Offline replay and live preflight status
+## Offline replay and live trial status
 
 Candidate `b3aff99` is frozen in the
 [source manifest](experiments/2026-10-31/zerg-scout-selector-v1-manifest.json).
@@ -114,9 +114,29 @@ counterfactual victory.
 
 Tools and Configure completed in the frozen checkout. Two subsequent API-only
 preflights exited before connection with `536936448` (`0x20010000`), despite
-verified Full Access under the interactive user account. No match was started;
-these are infrastructure failures, not defeats or timeouts. A normal Battle.net
-client without an API port was open and left untouched. Its involvement is
-unproven. The next live step is to close that normal client, retry preflight,
-then run the frozen targeted triplets. No gameplay or launch-code change was
-made in response to the failure. Human control remains unverified.
+verified Full Access under the interactive user account. Those attempts started
+no matches and remain infrastructure failures, not defeats or timeouts. A normal
+Battle.net client without an API port was open and left untouched. The user
+subsequently closed it; zero clients were verified, and unchanged preflight then
+succeeded on 5.0.17.98310 / data `9C1F3D3D30CA252E33FC67CA05CBE1EA`.
+The normal client's causal involvement is not isolated. No gameplay or launch-code
+change was made. Human control remains unverified.
+
+The frozen targeted gate completed with **six victories**. Every repeat matched
+its loop-zero fingerprint, exact map/binary identity and frozen source; replays
+are nonempty and retained locally. Runtime and saved game-info both confirm
+VeryHard computer difficulty. See the
+[six-game verification](experiments/2026-10-31/zerg-scout-selector-v1-20261031-targeted-outcomes.json).
+
+| Build | Candidate result | First Robotics / Immortal completed | Response evidence |
+| --- | --- | --- | --- |
+| [Macro](evaluations/2026-10-31-zerg-scout-selector-v1-20261031-zerg-macro.md) | 3 victories, 1145.4 s each | 360.4 / 410.4 s | Baseline opening; observed Roach force at 305.4 s |
+| [Timing](evaluations/2026-10-31-zerg-scout-selector-v1-20261031-zerg-timing.md) | 3 victories, 1050.4 s each | 195.4 / 265.4 s | Early Pool at 45.4 s; later Roach-force confirmation |
+
+Macro retains victory while taking 90 more sampled game seconds than R2;
+Timing matches the earlier unconditional RoboticsV2 winner. These games resolved
+before either the old or extended bound. The selector has therefore combined the
+two targeted winning outcomes on the development scenario, rather than merely
+extending a timeout. Rush, Power and Air retention is now running on the same
+frozen source, with three repeats each and at most eight actual SC2 clients.
+No global promotion or broader strength claim has been made.
