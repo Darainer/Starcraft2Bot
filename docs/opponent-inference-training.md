@@ -88,6 +88,9 @@ human control.
 The exporter copies originals into a new local archive without deleting source
 files. It includes runtime reports, snapshots, console/debug rotations, game-info,
 game-data, available frozen-source manifests and replays, with content hashes.
+Short archive filenames avoid native Windows path limits; manifests retain the
+original basenames as well as content hashes. A partial export remains marked
+`building` and must not be used as a completed training corpus.
 It refuses active recordings and output overwrites. Failed/interrupted runs are
 retained; runs lacking valid completion/world provenance are excluded from
 training. Archives and datasets remain ignored by Git; commit only code and

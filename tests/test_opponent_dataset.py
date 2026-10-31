@@ -1,5 +1,6 @@
 import copy
 import json
+from pathlib import Path
 
 import pytest
 from s2clientprotocol import sc2api_pb2 as pb
@@ -88,6 +89,17 @@ def test_running_recordings_are_not_copied_as_complete(tmp_path):
     with pytest.raises(ValueError, match="still being written"):
         export_dataset([match], tmp_path / "out")
     assert json.loads((tmp_path / "out/manifest.json").read_text())["phase"] == "building"
+
+
+def test_long_rotated_log_names_archive_under_native_windows_paths(tmp_path):
+    match = recording(tmp_path)
+    source = Path(match["report"]).with_name("game." + "x" * 90 + ".log")
+    source.write_bytes(b"complete rotated log")
+    output = tmp_path / "longer-dataset-destination"
+    manifest = export_dataset([match], output)
+    asset = next(a for a in manifest["episodes"][0]["artifacts"] if a["source_basename"] == source.name)
+    assert (output / asset["file"]).read_bytes() == source.read_bytes()
+    assert asset["sha256"] == digest(source)
 
 
 def test_failed_no_snapshot_run_is_archived_but_not_training_data(tmp_path):

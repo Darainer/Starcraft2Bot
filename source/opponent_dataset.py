@@ -118,15 +118,18 @@ def export_dataset(matches, destination):
         if replay and Path(replay).is_file():
             assets.add(Path(replay))
         archived = []
-        for asset in sorted(assets):
+        for index, asset in enumerate(sorted(assets)):
             before = digest(asset)
-            target = raw_dir / asset.name
+            # Runtime names already contain timestamps/UUIDs. Repeating them
+            # below a content ID can exceed native Windows path limits.
+            target = raw_dir / f"a{index:03d}{asset.suffix}"
             shutil.copy2(asset, target)
             if digest(target) != before or digest(asset) != before:
                 raise ValueError("Source changed while archiving")
             archived.append(
                 {
                     "file": target.relative_to(destination).as_posix(),
+                    "source_basename": asset.name,
                     "sha256": before,
                     "bytes": target.stat().st_size,
                 }
