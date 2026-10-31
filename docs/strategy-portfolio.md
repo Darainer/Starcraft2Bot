@@ -318,3 +318,12 @@ records the observation/replay identity. Group merge validation now checks
 supported targetless catalog data and two distinct owned, ready, eligible,
 non-hallucinated Templars. Engine errors and confirmation expiry remain tracked.
 Per-unit replies continue to gate ordinary individual combat abilities.
+
+Delivery v2 (`abf76b1`) delivered a ready Archon in Power at694.3s and recorded
+weapon-cooldown participation, but still lost3/3 at1164.6s. Timing also lost3/3
+at1329.6s. It is not promoted as stronger play. The next narrow composition
+candidate reserves the automatic Archon investment for massed light/melee
+biological splash targets or suitable Zerg air; armored-heavy ground retains
+the Immortal/Colossus response. Fresh multiple-Ghost evidence constrains new
+shield-heavy investment without claiming that EMP was observed. Thresholds
+remain experimental. Test Power in one matched triplet before broadening.

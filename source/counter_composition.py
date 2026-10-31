@@ -153,10 +153,22 @@ def propose_counter_plan(
         weights[preferred] = weights.get(preferred, 0) + 0.15
     if storm and (splash or air_mass):
         weights["high_templar"] = 0.12
-    archon_role = archon_merge and (
-        family in {"zerg_swarm", "terran_bio", "terran_armored_bio", "zerg_armored"}
-        or family == "zerg_air"
-        and not any(unit.get("kind") == "BROODLORD" for unit in force)
+    splash_prey = sum(
+        unit["supply"]
+        for unit in force
+        if not unit.get("air")
+        and unit.get("kind") in {"ZERGLING", "BANELING", "MARINE", "HYDRALISK", "REAPER"}
+    )
+    shield_risk = sum(unit.get("kind") == "GHOST" for unit in force) >= 2
+    archon_role = (
+        archon_merge
+        and not shield_risk
+        and (
+            family in {"zerg_swarm", "terran_bio", "terran_armored_bio", "zerg_armored"}
+            and splash_prey >= max(8, ground * 0.6)
+            or family == "zerg_air"
+            and not any(unit.get("kind") == "BROODLORD" for unit in force)
+        )
     )
     if archon_role:
         weights["archons"] = 0.28 if family in {"zerg_swarm", "zerg_air"} else 0.15

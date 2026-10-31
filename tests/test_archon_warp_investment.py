@@ -21,7 +21,7 @@ def setup(bot, make_unit, populate):
     bot.state.upgrades.add(G.WARPGATERESEARCH)
     bot.scout_report = {
         "enemy_unit_evidence": [
-            dict(tag=str(i), kind="ROACH", supply=2, armored=True, seen_seconds=650) for i in range(16)
+            dict(tag=str(i), kind="ZERGLING", supply=0.5, light=True, seen_seconds=650) for i in range(32)
         ]
     }
     populate(
