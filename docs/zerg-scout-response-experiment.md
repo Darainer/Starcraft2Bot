@@ -83,3 +83,40 @@ build all passed. Synthetic tests cover missing/stale evidence, first versus las
 sightings, positive expansion overrides, per-contact aging, ignored configured
 build labels, director serialization/expiry, user controls and actual spending
 with ownership guards. Human interaction remains unverified.
+
+## Offline replay and live preflight status
+
+Candidate `b3aff99` is frozen in the
+[source manifest](experiments/2026-10-31/zerg-scout-selector-v1-manifest.json).
+The [historical observation replay](experiments/2026-10-31/zerg-selector-historical-replay.json)
+covers all fifteen R2 Zerg recordings and the three RoboticsV2 Timing recordings.
+At the 180-second horizon it selects early Robotics for both sets of Timing
+recordings and retains baseline spending in the other four R2 build conditions.
+This is six development trajectory groups, with three reproducibility repeats
+each, not eighteen independent opponents or new match outcomes.
+
+The older R2 logs predate per-contact scouting telemetry. For them, the replay
+reconstructs Pool/Warren timestamps and armed non-worker contacts only from
+contemporaneous **Visible Enemy** raw units, using the saved game-data supply.
+It retains contacts for 45 seconds and removes recorded deaths. Snapshots,
+aggregate memory timestamps and configured build labels are excluded. Sampling
+can miss transient contacts or shift sighting times relative to the live loop.
+RoboticsV2 uses its recorded per-contact telemetry directly. Input snapshot and
+game-data hashes are retained in the artifact.
+
+The replay also exposes an important retention risk: Macro's observed Roaches
+trigger the force response around 305.4 seconds and Power's around 315.4 seconds.
+Neither is claimed to be a Timing classification. First Robotics has not yet
+completed in Macro at that point, so this later switch can still change spending.
+Only actual Macro/Timing trials can establish whether this combination retains
+both wins; the source remains frozen rather than assuming replay selection is a
+counterfactual victory.
+
+Tools and Configure completed in the frozen checkout. Two subsequent API-only
+preflights exited before connection with `536936448` (`0x20010000`), despite
+verified Full Access under the interactive user account. No match was started;
+these are infrastructure failures, not defeats or timeouts. A normal Battle.net
+client without an API port was open and left untouched. Its involvement is
+unproven. The next live step is to close that normal client, retry preflight,
+then run the frozen targeted triplets. No gameplay or launch-code change was
+made in response to the failure. Human control remains unverified.

@@ -58,6 +58,16 @@ bot or registering a competition account is a separate action from local testing
 
 ## Current evidence and next repair
 
+Latest experiment: the [scout-driven Zerg response](zerg-scout-response-experiment.md)
+combines R2 baseline spending with evidence-selected early Robotics, on its own
+branch at `b3aff99`. All six relevant historical winning games were verified as
+actual VeryHard computer opposition in runtime and game-info records. The
+candidate passed 526 synthetic tests and required software checks. Its frozen
+Macro/Timing live gate is pending: both API preflights failed before connection
+with `0x20010000` despite Full Access; no new gameplay outcomes exist. Historical
+observation replay supports the opening selection hypothesis and also identifies
+later Macro/Power force-trigger changes that still require retention testing.
+
 R2 completed the original shorter-bound matrix with 21 wins and nine defeats.
 At the new 3600-second bound, the reference wins Zerg Timing 3/3 at 1515.4 seconds;
 R2 loses 3/3 at 1205.4 seconds. The later belief/scouting revision has synthetic
