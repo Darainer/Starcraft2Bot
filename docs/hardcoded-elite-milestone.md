@@ -223,3 +223,13 @@ opponent recognition, intended counter-role fit, delivered readiness and tech
 availability. Those measurements diagnose failures; none alone certifies playing
 strength. Autonomous performance and shared human-control acceptance remain
 separate, with human control still unverified.
+
+
+## Current consolidated status
+
+The [overall bot status](bot-status.md) separates frozen Zerg and Terran results
+and current integration gaps. Zerg won 15/15 on the original seed and another
+15/15 on an instrumented second seed, but the third seed finished 9/15 with
+Power and Macro triplets lost. The adjusted Terran specialist's Rush/Timing
+triplets both won on its separate branch. No one revision has passed the
+combined integrated gate; elite acceptance remains incomplete.

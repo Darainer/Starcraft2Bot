@@ -16,7 +16,7 @@ strength against established community bots.
 | --- | --- | --- |
 | Zerg combined response, `b3aff99` | 15/15 victories: Rush, Timing, Power, Macro, Air, three repeats each | One map and seed 20261025 |
 | Same Zerg gameplan, instrumented reference `2be052b` | Additional 15/15 victories across the same five builds on seed 2026103101 | Development collection, not a held-out reliability test |
-| Third Zerg seed, 2026103102 | Rush and Timing triplets won; first Power repeat lost at 1237.5 s | Remaining games are running; this exposes a generalization failure |
+| Third Zerg seed, 2026103102 | 9/15 victories: Rush, Timing and Air each 3/3; Power 0/3 at 1237.5 s and Macro 0/3 at 1068.2 s | A reproducible generalization failure; Zerg is not solved |
 | Terran Rush/Timing specialist, `287dbd5` | Rush 3/3 at 1090.4 s; Timing 3/3 at 1180.4 s | Separate experiment; its global version failed Zerg retention |
 | Terran Power/Macro/Air in R2 | Each 3/3 in the original suite | Retest with the integrated Terran specialist |
 | Protoss, additional maps, community bots | No accepted playing-strength gate | Required before elite acceptance |
@@ -35,6 +35,7 @@ a universal replacement; a Terran race guard and retention tests are still neede
 
 Evidence: [Zerg combination](zerg-scout-response-experiment.md),
 [additional-seed reference](evaluations/2026-10-31-scouting-evidence-reference-newseed.md),
+[third-seed failures](evaluations/2026-10-31-scouting-evidence-reference-newseed2.md),
 [Terran Timing](evaluations/2026-10-31-engagement-range-v1-20261031-terran-timing.md),
 [Terran Rush](evaluations/2026-10-31-engagement-range-v1-20261031-terran-rush.md),
 and the [full milestone history](hardcoded-elite-milestone.md).
@@ -61,8 +62,12 @@ multiple nearby workers or army threats, and verifies visibility before marking
 the inspection complete. Its first recorded trajectories discover Macro's
 expansion around 186.4 seconds, versus 295.7 in the matched reference, and
 Timing's first army contact around 174.6 versus 193.9 seconds. These are discovery
-times, not enemy construction starts or total army truth. Match outcomes and
-retention are still pending; the extra mining opportunity cost must be assessed.
+times, not enemy construction starts or total army truth. The six
+original-seed Macro/Timing targets all won (1050.0 / 1002.9 s). By 240 s,
+assigned-worker opportunity increased by 70.7 / 46.1 worker-seconds respectively,
+with no confirmed worker-scout deaths by that horizon. These are mining
+opportunity proxies, not measured resource loss. A matched Power/Macro
+third-seed comparison is running; broader retention remains pending.
 
 ## Data, software and RL handoff
 
@@ -91,9 +96,9 @@ contract, grouped splitting, supervision limitations and scouting experiments.
 
 ## Next work
 
-Finish the frozen scouting and third-seed blocks; preserve every result,
-including Power defeats, and diagnose the failing condition. Retain a scout
-change only after it delivers useful facts at acceptable cost and retains wins.
+The third-seed reference block is complete and its Power/Macro defeats are
+preserved. Finish the frozen matched scouting comparison on those failures.
+Retain a scout change only after it delivers useful facts at acceptable cost and retains wins.
 Then integrate the Terran specialist behind an explicit race guard and run its
 targeted gates followed by retention. Protoss, new-map/seed holdouts and community
 opponents remain necessary before calling this an elite bot or accepted teacher.

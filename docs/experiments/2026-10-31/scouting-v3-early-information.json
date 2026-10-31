@@ -1,0 +1,239 @@
+{
+  "scope": "Causal first recorded sightings and assigned worker opportunity proxy. Fixed-start repeated development trajectories; no construction-time, hidden-army truth or causal outcome attribution.",
+  "records": [
+    {
+      "matrix": "scouting-evidence-reference-targets",
+      "recording": "runtime-20261031-152341-130739-bf72083b71384b4aa0e88720b46f0059-001.json",
+      "trial_id": 1,
+      "build": "Macro",
+      "revisit": false,
+      "first_fact_through_360_seconds": {
+        "fresh_site_inspection": 37.5,
+        "fresh_enemy_side_inspection": 37.5,
+        "fresh_army_contact": 294.643,
+        "fresh_expansion": 295.714,
+        "fresh_force": 302.143
+      },
+      "costs_through_240_seconds": {
+        "sample_seconds": 238.929,
+        "worker_opportunity_seconds": 85.71428571428571,
+        "confirmed_worker_losses": 0
+      }
+    },
+    {
+      "matrix": "scouting-evidence-reference-targets",
+      "recording": "runtime-20261031-152341-130739-bf72083b71384b4aa0e88720b46f0059-002.json",
+      "trial_id": 2,
+      "build": "Macro",
+      "revisit": false,
+      "first_fact_through_360_seconds": {
+        "fresh_site_inspection": 37.5,
+        "fresh_enemy_side_inspection": 37.5,
+        "fresh_army_contact": 294.643,
+        "fresh_expansion": 295.714,
+        "fresh_force": 302.143
+      },
+      "costs_through_240_seconds": {
+        "sample_seconds": 238.929,
+        "worker_opportunity_seconds": 85.71428571428571,
+        "confirmed_worker_losses": 0
+      }
+    },
+    {
+      "matrix": "scouting-evidence-reference-targets",
+      "recording": "runtime-20261031-152341-130739-bf72083b71384b4aa0e88720b46f0059-003.json",
+      "trial_id": 3,
+      "build": "Macro",
+      "revisit": false,
+      "first_fact_through_360_seconds": {
+        "fresh_site_inspection": 37.5,
+        "fresh_enemy_side_inspection": 37.5,
+        "fresh_army_contact": 294.643,
+        "fresh_expansion": 295.714,
+        "fresh_force": 302.143
+      },
+      "costs_through_240_seconds": {
+        "sample_seconds": 238.929,
+        "worker_opportunity_seconds": 85.71428571428571,
+        "confirmed_worker_losses": 0
+      }
+    },
+    {
+      "matrix": "scouting-evidence-reference-targets",
+      "recording": "runtime-20261031-152341-130739-bf72083b71384b4aa0e88720b46f0059-004.json",
+      "trial_id": 4,
+      "build": "Timing",
+      "revisit": false,
+      "first_fact_through_360_seconds": {
+        "fresh_site_inspection": 37.5,
+        "fresh_enemy_side_inspection": 37.5,
+        "fresh_technology": 45.0,
+        "fresh_army_contact": 193.929,
+        "fresh_force": 240.0,
+        "fresh_expansion": 268.929
+      },
+      "costs_through_240_seconds": {
+        "sample_seconds": 238.929,
+        "worker_opportunity_seconds": 87.85714285714285,
+        "confirmed_worker_losses": 0
+      }
+    },
+    {
+      "matrix": "scouting-evidence-reference-targets",
+      "recording": "runtime-20261031-152341-130739-bf72083b71384b4aa0e88720b46f0059-005.json",
+      "trial_id": 5,
+      "build": "Timing",
+      "revisit": false,
+      "first_fact_through_360_seconds": {
+        "fresh_site_inspection": 37.5,
+        "fresh_enemy_side_inspection": 37.5,
+        "fresh_technology": 45.0,
+        "fresh_army_contact": 193.929,
+        "fresh_force": 240.0,
+        "fresh_expansion": 268.929
+      },
+      "costs_through_240_seconds": {
+        "sample_seconds": 238.929,
+        "worker_opportunity_seconds": 87.85714285714285,
+        "confirmed_worker_losses": 0
+      }
+    },
+    {
+      "matrix": "scouting-evidence-reference-targets",
+      "recording": "runtime-20261031-152341-130739-bf72083b71384b4aa0e88720b46f0059-006.json",
+      "trial_id": 6,
+      "build": "Timing",
+      "revisit": false,
+      "first_fact_through_360_seconds": {
+        "fresh_site_inspection": 37.5,
+        "fresh_enemy_side_inspection": 37.5,
+        "fresh_technology": 45.0,
+        "fresh_army_contact": 193.929,
+        "fresh_force": 240.0,
+        "fresh_expansion": 268.929
+      },
+      "costs_through_240_seconds": {
+        "sample_seconds": 238.929,
+        "worker_opportunity_seconds": 87.85714285714285,
+        "confirmed_worker_losses": 0
+      }
+    },
+    {
+      "matrix": "scouting-evidence-v3-revisit-targets",
+      "recording": "runtime-20261031-155344-118531-3f88fd63960e406cbaaec9658f04d2c4-001.json",
+      "trial_id": 1,
+      "build": "Macro",
+      "revisit": true,
+      "first_fact_through_360_seconds": {
+        "fresh_site_inspection": 37.5,
+        "fresh_enemy_side_inspection": 37.5,
+        "fresh_army_contact": 186.429,
+        "fresh_expansion": 186.429,
+        "fresh_force": 298.929
+      },
+      "costs_through_240_seconds": {
+        "sample_seconds": 238.929,
+        "worker_opportunity_seconds": 156.42857142857142,
+        "confirmed_worker_losses": 0
+      }
+    },
+    {
+      "matrix": "scouting-evidence-v3-revisit-targets",
+      "recording": "runtime-20261031-155344-118531-3f88fd63960e406cbaaec9658f04d2c4-002.json",
+      "trial_id": 2,
+      "build": "Macro",
+      "revisit": true,
+      "first_fact_through_360_seconds": {
+        "fresh_site_inspection": 37.5,
+        "fresh_enemy_side_inspection": 37.5,
+        "fresh_army_contact": 186.429,
+        "fresh_expansion": 186.429,
+        "fresh_force": 298.929
+      },
+      "costs_through_240_seconds": {
+        "sample_seconds": 238.929,
+        "worker_opportunity_seconds": 156.42857142857142,
+        "confirmed_worker_losses": 0
+      }
+    },
+    {
+      "matrix": "scouting-evidence-v3-revisit-targets",
+      "recording": "runtime-20261031-155344-118531-3f88fd63960e406cbaaec9658f04d2c4-003.json",
+      "trial_id": 3,
+      "build": "Macro",
+      "revisit": true,
+      "first_fact_through_360_seconds": {
+        "fresh_site_inspection": 37.5,
+        "fresh_enemy_side_inspection": 37.5,
+        "fresh_army_contact": 186.429,
+        "fresh_expansion": 186.429,
+        "fresh_force": 298.929
+      },
+      "costs_through_240_seconds": {
+        "sample_seconds": 238.929,
+        "worker_opportunity_seconds": 156.42857142857142,
+        "confirmed_worker_losses": 0
+      }
+    },
+    {
+      "matrix": "scouting-evidence-v3-revisit-targets",
+      "recording": "runtime-20261031-155344-118531-3f88fd63960e406cbaaec9658f04d2c4-004.json",
+      "trial_id": 4,
+      "build": "Timing",
+      "revisit": true,
+      "first_fact_through_360_seconds": {
+        "fresh_site_inspection": 37.5,
+        "fresh_enemy_side_inspection": 37.5,
+        "fresh_technology": 45.0,
+        "fresh_army_contact": 174.643,
+        "fresh_force": 250.714,
+        "fresh_expansion": 271.071
+      },
+      "costs_through_240_seconds": {
+        "sample_seconds": 238.929,
+        "worker_opportunity_seconds": 133.92857142857142,
+        "confirmed_worker_losses": 0
+      }
+    },
+    {
+      "matrix": "scouting-evidence-v3-revisit-targets",
+      "recording": "runtime-20261031-155344-118531-3f88fd63960e406cbaaec9658f04d2c4-005.json",
+      "trial_id": 5,
+      "build": "Timing",
+      "revisit": true,
+      "first_fact_through_360_seconds": {
+        "fresh_site_inspection": 37.5,
+        "fresh_enemy_side_inspection": 37.5,
+        "fresh_technology": 45.0,
+        "fresh_army_contact": 174.643,
+        "fresh_force": 250.714,
+        "fresh_expansion": 271.071
+      },
+      "costs_through_240_seconds": {
+        "sample_seconds": 238.929,
+        "worker_opportunity_seconds": 133.92857142857142,
+        "confirmed_worker_losses": 0
+      }
+    },
+    {
+      "matrix": "scouting-evidence-v3-revisit-targets",
+      "recording": "runtime-20261031-155344-118531-3f88fd63960e406cbaaec9658f04d2c4-006.json",
+      "trial_id": 6,
+      "build": "Timing",
+      "revisit": true,
+      "first_fact_through_360_seconds": {
+        "fresh_site_inspection": 37.5,
+        "fresh_enemy_side_inspection": 37.5,
+        "fresh_technology": 45.0,
+        "fresh_army_contact": 174.643,
+        "fresh_force": 250.714,
+        "fresh_expansion": 271.071
+      },
+      "costs_through_240_seconds": {
+        "sample_seconds": 238.929,
+        "worker_opportunity_seconds": 133.92857142857142,
+        "confirmed_worker_losses": 0
+      }
+    }
+  ]
+}

@@ -187,7 +187,7 @@ future/full-replay inputs would answer a different question and cause leakage.
 [Hostetler et al.](https://proceedings.mlr.press/r10/hostetler12a.html) explicitly
 model limited, costly reconnaissance. This motivates recording the observation
 process and costs, rather than treating missing features as negative evidence.
-[Synnaeve and Bessière](https://arxiv.org/abs/1111.3735) learn build-tree models from
+[Synnaeve and BessiÃ¨re](https://arxiv.org/abs/1111.3735) learn build-tree models from
 replays and noisy observations, supporting technology-path targets.
 [Defogger](https://arxiv.org/html/1812.00054) evaluates objective hidden-state tasks
 and memory baselines; its full-bot results also show that prediction noise can
@@ -262,6 +262,32 @@ behavior. V3 must demonstrate useful facts and retain wins before promotion.
 
 The frozen reference's first unused-seed block (2026103101) completed **15/15
 wins**, with three repeats of all five builds. A second unused seed (2026103102)
-is collecting the same block. These are additional development groups, not
+finished **9/15 wins**: Rush, Timing and Air each won 3/3, while Power lost
+3/3 at 1237.5 s and Macro lost 3/3 at 1068.2 s. See the
+[third-seed evaluation](evaluations/2026-10-31-scouting-evidence-reference-newseed2.md)
+and [verified outcomes](experiments/2026-10-31/scouting-reference-newseed2-outcomes.json). These are additional development groups, not
 untouched classifier test groups. Three seed groups on one map still do not
 establish reliable prediction across maps or opponent families.
+
+
+V3 completed the six original-seed targets with **6/6 wins**: Macro 1050.0 s and
+Timing 1002.9 s in each repeat. Its
+[verified results](experiments/2026-10-31/scouting-targeted-v3-outcomes.json) and
+[evaluation](evaluations/2026-10-31-scouting-evidence-v3-revisit-targets.md) are kept
+separate from the unchanged reference. The
+[early-information comparison](experiments/2026-10-31/scouting-v3-early-information.json)
+shows the same first sightings in all three matched repeats: Macro expansion
+186.4 s versus 295.7 s; Timing army contact 174.6 s versus 193.9 s. Timing's
+expansion discovery did not improve (271.1 s versus 268.9 s). Additional assigned
+worker opportunity through 240 s is 70.7 worker-seconds for Macro and 46.1 for
+Timing, with no confirmed worker-scout deaths through that horizon. This is an
+opportunity proxy, not directly measured lost minerals.
+
+The more informative revisit is now compared, without tuning its source, on
+seed 2026103102's Power/Macro failures: three repeats of each, the same 3600 s
+bound, six clients under the global limit of eight. This targets the newly
+exposed failure rather than spending a full matrix on an unproven candidate.
+Earlier sightings and changed game outcomes alone cannot causally separate
+information value from the scout's economic and interaction effects. The generic
+classifier remains unchanged; replay-oracle targets and a trained predictor are
+still outstanding.
