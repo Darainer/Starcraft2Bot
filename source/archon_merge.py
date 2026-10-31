@@ -157,8 +157,24 @@ class ArchonMerge:
             bot._archon_reserved_tags.add(unit.tag)
 
     async def queue_merge(self, bot, actors):
-        legal = await bot.get_available_abilities(actors)
-        if len(legal) != 2 or any(A.MORPH_ARCHON not in abilities for abilities in legal):
+        # Retail98310 omits this GROUP ability from both forms of per-unit
+        # query, even for adjacent Templars. Exact-two-tag execution is live
+        # verified. Validate catalog support and group actors here; individual
+        # ability replies cannot establish group-command availability.
+        data = bot.game_data.abilities.get(A.MORPH_ARCHON.value)
+        if data is None or not data._proto.available or data._proto.target != 1:
+            return False
+        if (
+            len(actors) != 2
+            or len({unit.tag for unit in actors}) != 2
+            or any(
+                unit.type_id != U.HIGHTEMPLAR
+                or not unit.is_mine
+                or not unit.is_ready
+                or unit.is_hallucination
+                for unit in actors
+            )
+        ):
             return False
         pair = tuple(unit.tag for unit in actors)
         reserved = bot._archon_reserved_tags.intersection(pair)

@@ -82,7 +82,7 @@ def test_pair_admission_requires_permission_ownership_legality_and_safe_position
     elif blocked == "hallucination":
         templars[0]._proto.is_hallucination = True
     elif blocked == "legal":
-        bot.get_available_abilities.return_value = [[A.MORPH_ARCHON], []]
+        bot.game_data.abilities[A.MORPH_ARCHON.value]._proto.available = False
     elif blocked == "separated":
         templars[1]._proto.pos.x = 40
     else:
@@ -108,6 +108,16 @@ def test_high_energy_storm_caster_reserve_survives_merge_before_other_controller
         action.unit.tag in bot._archon_reserved_tags and action.ability != A.MORPH_ARCHON
         for action in bot.actions
     )
+
+
+def test_per_unit_ability_omission_does_not_block_verified_group_command(bot, make_unit, populate):
+    setup(bot, make_unit, populate)
+    bot.get_available_abilities.return_value = [[], []]
+    result = asyncio.run(bot.archon_controller.tick(bot))
+    assert result["pending_pairs"]
+    wire = list(combine_actions(bot.actions))
+    assert len(wire) == 1 and len(wire[0].unit_command.unit_tags) == 2
+    assert wire[0].unit_command.ability_id == A.MORPH_ARCHON.value
 
 
 @pytest.mark.parametrize("ended", ["error", "death", "release", "timeout", "transformed"])

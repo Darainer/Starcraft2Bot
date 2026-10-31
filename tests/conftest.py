@@ -60,7 +60,9 @@ def bot():
     bot.is_visible = lambda point: True
     bot.in_pathing_grid = lambda point: True
     bot.get_next_expansion = AsyncMock(return_value=Point2((30, 0)))
-    abilities = [data_pb2.AbilityData(ability_id=a.value, link_name=a.name) for a in A if a.value]
+    abilities = [
+        data_pb2.AbilityData(ability_id=a.value, link_name=a.name, available=True) for a in A if a.value
+    ]
     creation = {}
     for producer in (U.PROBE, U.NEXUS, U.GATEWAY, U.ROBOTICSFACILITY, U.STARGATE):
         creation.update({kind: info["ability"] for kind, info in TRAIN_INFO[producer].items()})

@@ -161,8 +161,8 @@ the final unit and its ingredients as simultaneous army targets.
 
 The merge controller retains the requested caster quota, protecting higher
 energy Templars, and pairs nearby eligible inputs away from visible combat.
-It reserves exactly two actors before spells and tactical movement, checks
-current legal abilities, then queues one pair per observation through `issue`.
+It reserves exactly two actors before spells and tactical movement, validates
+catalog/group support, then queues one pair per observation through `issue`.
 The pinned SDK combines the two adjacent targetless orders into one raw
 `MORPH_ARCHON` action with exactly two tags, following the
 [Blizzard example](https://github.com/Blizzard/s2client-api/blob/614acc00abb5355e4c94a1b0279b46e9d845b7ce/examples/common/bot_examples.cc#L801)
@@ -307,3 +307,14 @@ Oracle inspection retains its own120-second positive worker-line memory and
 requires clustered workers for a long chase; nearby single-worker opportunities
 remain possible. Composition weights, unit caps and the comparison settings
 stay unchanged. Run the same two matched triplets before further tuning.
+
+A separate retail98310 mechanism diagnostic found another gate defect:
+`MORPH_ARCHON` is absent from both regular and resource-ignoring per-unit
+ability replies, yet the exact-two-tag command produces one ready Archon with
+no action error. The diagnostic spawned its inputs through the debug API and
+is **excluded from wins/losses and training**; its
+[sanitized evidence](experiments/2026-10-31/archon-group-command-diagnostic.json)
+records the observation/replay identity. Group merge validation now checks
+supported targetless catalog data and two distinct owned, ready, eligible,
+non-hallucinated Templars. Engine errors and confirmation expiry remain tracked.
+Per-unit replies continue to gate ordinary individual combat abilities.
