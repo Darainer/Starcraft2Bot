@@ -2,9 +2,10 @@
 
 Updated 2026-10-31 during live scouting/data collection.
 
-The current branch contains the combined Zerg response and optional scouting
-experiments. The separately successful Terran specialist still needs race-scoped
-integration and regression testing. The combined elite milestone is incomplete.
+The integration branch now contains a selectable Zerg/Terran response repertoire
+and optional scouting. The frozen final integrated evaluation is pending. Earlier
+specialist results remain separate evidence; the combined elite milestone is
+incomplete. See the [repertoire design](strategy-portfolio.md).
 
 ## Playing strength
 
@@ -66,8 +67,9 @@ times, not enemy construction starts or total army truth. The six
 original-seed Macro/Timing targets all won (1050.0 / 1002.9 s). By 240 s,
 assigned-worker opportunity increased by 70.7 / 46.1 worker-seconds respectively,
 with no confirmed worker-scout deaths by that horizon. These are mining
-opportunity proxies, not measured resource loss. A matched Power/Macro
-third-seed comparison is running; broader retention remains pending.
+opportunity proxies, not measured resource loss. The matched third-seed comparison finished: Macro won 3/3 at 920.4 s, while
+Power lost 3/3 at 997.5 s. Earlier information helped expose different trajectories
+but did not solve Power; the integrated final suite remains pending.
 
 ## Data, software and RL handoff
 
@@ -77,13 +79,14 @@ third-seed comparison is running; broader retention remains pending.
 - A complete [fact-schema-v2 corpus](experiments/2026-10-31/observed-facts-v2-first-corpus.json)
   contains the first 27 games, 12929 fact records and 299 hashed original
   artifacts, about 3.28 GB. Additional completed archives and live collection
-  expand this. The first corpus has one world split group; repeats must stay
-  together. A [legal input example](examples/sc2-observed-facts-v2.json) is checked in.
+  expand this. The [completed archive index](experiments/2026-10-31/observed-facts-v2-corpus-index.json)
+  now covers 75 unique games, 52759 fact records, 888 hashed artifacts (12.66 GB)
+  and three world groups. The first corpus has one group; repeats stay together. A [legal input example](examples/sc2-observed-facts-v2.json) is checked in.
 - Inputs contain causal observed facts, timestamps and missingness, with public
   map geometry. Labels, outcomes, inferred beliefs and future/oracle state are
   separate. A same-loop replay oracle-label extractor is not implemented yet;
   there is no reliable trained opponent estimator deployed in this branch.
-- Latest gameplay source passed **570 synthetic tests, 89.28% coverage**, locked
+- Latest integration source passed **598 synthetic tests, 89.41% coverage**, locked
   sync, lint, formatting, configured Mypy, protocol/lifecycle tests and packaging.
   Exact SC2 binary/data, map, starting fingerprints and replays are checked live.
   Shared human controls remain unverified.
@@ -97,8 +100,8 @@ contract, grouped splitting, supervision limitations and scouting experiments.
 ## Next work
 
 The third-seed reference block is complete and its Power/Macro defeats are
-preserved. Finish the frozen matched scouting comparison on those failures.
-Retain a scout change only after it delivers useful facts at acceptable cost and retains wins.
-Then integrate the Terran specialist behind an explicit race guard and run its
-targeted gates followed by retention. Protoss, new-map/seed holdouts and community
+preserved. The matched scouting comparison is also complete. The response repertoire now
+scopes Terran funding/range and Zerg early-tech/counter-completion independently.
+Run the declared frozen final 36 games, publish the comprehensive report, then
+stop without further tuning. Protoss, new-map/seed holdouts and community
 opponents remain necessary before calling this an elite bot or accepted teacher.

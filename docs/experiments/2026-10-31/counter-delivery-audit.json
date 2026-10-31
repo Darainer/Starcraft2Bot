@@ -1,0 +1,37 @@
+{
+  "source_commit": "2be052b",
+  "seed": 2026103102,
+  "matrix": "scouting-evidence-reference-newseed2",
+  "scope": "Read-only audit of three repeats each. Correlated observed snapshots strictly before first Colossus completion; no counterfactual outcome claim.",
+  "qualifying_observation": "Positive requested Colossus target; own ready Robotics Bay; idle powered unselected unreleased Robotics Facility; >=6 free supply; >=8 unique light-ground enemy contacts individually observed at most45 seconds ago.",
+  "scenarios": [
+    {
+      "build": "Power",
+      "repeats": 3,
+      "bay_ready_seconds": 503.6,
+      "first_colossus_seconds": 983.6,
+      "qualifying_samples_per_repeat": 333,
+      "below_300_minerals_or_200_gas_per_repeat": 333,
+      "example": {
+        "time_seconds": 508.9,
+        "minerals": 25,
+        "gas": 145,
+        "fresh_light_ground_contacts": 17
+      }
+    },
+    {
+      "build": "Macro",
+      "repeats": 3,
+      "bay_ready_seconds": 498.2,
+      "first_colossus_seconds": 866.8,
+      "qualifying_samples_per_repeat": 109,
+      "below_300_minerals_or_200_gas_per_repeat": 107,
+      "example": {
+        "time_seconds": 510.0,
+        "minerals": 125,
+        "gas": 213,
+        "fresh_light_ground_contacts": 9
+      }
+    }
+  ]
+}

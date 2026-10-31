@@ -187,7 +187,7 @@ future/full-replay inputs would answer a different question and cause leakage.
 [Hostetler et al.](https://proceedings.mlr.press/r10/hostetler12a.html) explicitly
 model limited, costly reconnaissance. This motivates recording the observation
 process and costs, rather than treating missing features as negative evidence.
-[Synnaeve and BessiÃ¨re](https://arxiv.org/abs/1111.3735) learn build-tree models from
+[Synnaeve and BessiÃƒÂ¨re](https://arxiv.org/abs/1111.3735) learn build-tree models from
 replays and noisy observations, supporting technology-path targets.
 [Defogger](https://arxiv.org/html/1812.00054) evaluates objective hidden-state tasks
 and memory baselines; its full-bot results also show that prediction noise can
@@ -291,3 +291,13 @@ Earlier sightings and changed game outcomes alone cannot causally separate
 information value from the scout's economic and interaction effects. The generic
 classifier remains unchanged; replay-oracle targets and a trained predictor are
 still outstanding.
+
+
+The matched V3 third-seed block finished **3W/3D**: Macro 3/3 wins at 920.4 s,
+Power 3/3 defeats at 997.5 s. The reference lost both triplets. Preserve the
+[verified outcomes](experiments/2026-10-31/scouting-thirdseed-v3-outcomes.json) and
+[evaluation](evaluations/2026-10-31-scouting-evidence-v3-revisit-newseed2-failures.md).
+This supports useful earlier reconnaissance while exposing an unresolved Power
+weakness; the changed worker economy prevents attributing the Macro outcome
+solely to inference. The [strategy repertoire](strategy-portfolio.md) now keeps
+bounded counter and tactical options together for the final integration suite.
