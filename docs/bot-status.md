@@ -1,107 +1,94 @@
 # Python bot status
 
-Updated 2026-10-31 during live scouting/data collection.
+Final snapshot, 2026-10-31. Evaluation and improvement work stopped after the
+requested final set and report.
 
-The integration branch now contains a selectable Zerg/Terran response repertoire
-and optional scouting. The frozen final integrated evaluation is pending. Earlier
-specialist results remain separate evidence; the combined elite milestone is
-incomplete. See the [repertoire design](strategy-portfolio.md).
+The branch `feat/scouted-strategy-portfolio-20261031` contains five selectable
+response packages, with frozen gameplay `d0f8cf3`. The final result is **24 wins /
+12 losses / 0 timeouts across 36 games** against verified built-in VeryHard.
+The integration fails the combined reliability gate and remains experimental.
+The elite milestone is incomplete.
 
-## Playing strength
+Read the [comprehensive final report](final-bot-report-2026-10-31.md) for evidence,
+selection traces, reconnaissance costs, metrics, source identities and limitations.
+The [repertoire design](strategy-portfolio.md) explains automatic and fixed choices.
 
-All results below concern built-in **VeryHard** opposition, the highest
-non-cheating protocol difficulty. They do not establish human ladder rank or
-strength against established community bots.
+## Final playing strength
 
-| Component | Completed evidence | Remaining qualification |
-| --- | --- | --- |
-| Zerg combined response, `b3aff99` | 15/15 victories: Rush, Timing, Power, Macro, Air, three repeats each | One map and seed 20261025 |
-| Same Zerg gameplan, instrumented reference `2be052b` | Additional 15/15 victories across the same five builds on seed 2026103101 | Development collection, not a held-out reliability test |
-| Third Zerg seed, 2026103102 | 9/15 victories: Rush, Timing and Air each 3/3; Power 0/3 at 1237.5 s and Macro 0/3 at 1068.2 s | A reproducible generalization failure; Zerg is not solved |
-| Terran Rush/Timing specialist, `287dbd5` | Rush 3/3 at 1090.4 s; Timing 3/3 at 1180.4 s | Separate experiment; its global version failed Zerg retention |
-| Terran Power/Macro/Air in R2 | Each 3/3 in the original suite | Retest with the integrated Terran specialist |
-| Protoss, additional maps, community bots | No accepted playing-strength gate | Required before elite acceptance |
+Main seed 20261025, pressure, three fixed-start repeats per build:
 
-These are different frozen revisions and comparison groups. Do not pool their
-results into a claim that one revision won a combined Terran/Zerg matrix. Three
-fixed-start repeats measure reproducibility, not three independent opponents.
-R2's original full matrix was 21 wins / 9 defeats at a 1500-second bound; current
-trials use 3600 seconds. The reported victories resolved before either bound.
+| Opponent | Rush | Timing | Power | Macro | Air | Total |
+| --- | --- | --- | --- | --- | --- | --- |
+| Zerg | 3W | 3W | 3D | 3W | 3W | 12W / 3D |
+| Terran | 3D | 3D | 3D | 3W | 3W | 6W / 9D |
 
-The Terran specialist funds the requested counter-tech and closes local combat
-distance when actors cannot actually fire. Earlier funding alone won Terran Rush
-3/3 at 805.4 seconds but did not repair Timing. The combined counter-tech/range
-variant won both targeted Terran triplets. Its Zerg losses prevent treating it as
-a universal replacement; a Terran race guard and retention tests are still needed.
+The additional seed 2026103102 won **6/6**: Zerg Power and Macro each 3/3.
+Power resolved at 1954.3 game seconds, after the old 1500-second bound. Both
+3600-second reference variants had lost that Power triplet. This is a targeted
+gain, while the main-seed Power and Terran regressions prevent promotion.
+All final matches used a 3600-second limit; none timed out.
 
-Evidence: [Zerg combination](zerg-scout-response-experiment.md),
-[additional-seed reference](evaluations/2026-10-31-scouting-evidence-reference-newseed.md),
-[third-seed failures](evaluations/2026-10-31-scouting-evidence-reference-newseed2.md),
-[Terran Timing](evaluations/2026-10-31-engagement-range-v1-20261031-terran-timing.md),
-[Terran Rush](evaluations/2026-10-31-engagement-range-v1-20261031-terran-rush.md),
-and the [full milestone history](hardcoded-elite-milestone.md).
+The earlier Zerg selector `b3aff99` won 15/15 on the original seed; the instrumented
+reference `2be052b` won another 15/15 on seed 2026103101. The earlier fixed Terran
+specialist `287dbd5` won Rush 3/3 and Timing 3/3 on its separate branch. These remain
+results for those revisions, not wins attributable to the integrated selector.
+Repeated starts measure reproducibility rather than independent opponents.
 
-## Strategic inference and scouting
+All results concern built-in **VeryHard**, the highest non-cheating protocol
+difficulty. Protoss, additional maps, untouched seed groups and established
+community opponents remain unvalidated. Human ladder/elite strength is not established.
 
-The original generic five-label classifier is weak: 5.5% scenario-averaged,
-time-weighted label accuracy in the first Zerg development suite, with Unknown
-counted as incorrect. Configured AI build is only an evaluation/weak auxiliary
-label; it is not complete truth about changing enemy intent.
+## Strategy and reconnaissance
 
-Both information and logic need improvement. Expansion/tech sightings often
-arrive late, while early-Pool, first-pressure and armored-force rules are too
-coarse to describe overlapping strategic components. We have not established a
-causal percentage of errors attributable to either factor.
+The executable repertoire includes baseline, Zerg early Robotics, Terran
+counter-tech, Terran counter-tech with local range closing, and Zerg completion
+of a requested first Colossus. Selection consumes positive timestamped scouting
+and own readiness, records uncertainty/evidence and expires stale choices.
+Configured AI build, future state and outcome do not enter selection. Existing
+operational objectives and adaptive composition remain available. Historical
+experiments and their results are cataloged alongside the retained components.
 
-The first two bounded revisit variants each retained all six Macro/Timing wins,
-but an undamaged Probe turned back on a passing Drone before reaching the natural.
-They did not pass the early-information objective. Faster wins alone are not
-evidence of better recognition.
+V3 reconnaissance discovers Macro's expansion around 186.4 s versus 295.7 s in the
+matched reference. Timing's first army contact improves from 193.9 to 174.6 s.
+By 240 s, the additional worker opportunity cost is 70.7/46.1 worker-seconds for
+Macro/Timing, with no confirmed worker-scout deaths through that horizon.
+The final 36 average 153.1 assigned-Probe-away seconds per game; six Observer
+losses are confirmed, with twelve missing entries kept uncertain.
 
-The current frozen third variant (`0f673b2`) withdraws on actual damage,
-multiple nearby workers or army threats, and verifies visibility before marking
-the inspection complete. Its first recorded trajectories discover Macro's
-expansion around 186.4 seconds, versus 295.7 in the matched reference, and
-Timing's first army contact around 174.6 versus 193.9 seconds. These are discovery
-times, not enemy construction starts or total army truth. The six
-original-seed Macro/Timing targets all won (1050.0 / 1002.9 s). By 240 s,
-assigned-worker opportunity increased by 70.7 / 46.1 worker-seconds respectively,
-with no confirmed worker-scout deaths by that horizon. These are mining
-opportunity proxies, not measured resource loss. The matched third-seed comparison finished: Macro won 3/3 at 920.4 s, while
-Power lost 3/3 at 997.5 s. Earlier information helped expose different trajectories
-but did not solve Power; the integrated final suite remains pending.
+The unchanged generic classifier scores 18.4% time-weighted configured-build label
+accuracy, 22.9% commitment coverage and 0.619 Brier on the final 12 conditions.
+Planned role-fit/readiness proxies are 91.8%/90.3%, measurable on 35.9% of recorded
+time. These high proxies do not certify successful engagements or optimal choices.
+During the first 240 s, 72.0% of time lacks the counted fresh army/tech/positive
+expansion features. This includes quiet early phases and heuristic freshness
+cutoffs; it is not a causal error attribution. Both information and logic need work.
 
 ## Data, software and RL handoff
 
-- Logs/replays remain local and ignored by Git. New runs retain every debug-log
-  rotation and record one-second sampled observations for collection. Old deleted
-  rotations cannot be reconstructed.
-- A complete [fact-schema-v2 corpus](experiments/2026-10-31/observed-facts-v2-first-corpus.json)
-  contains the first 27 games, 12929 fact records and 299 hashed original
-  artifacts, about 3.28 GB. Additional completed archives and live collection
-  expand this. The [completed archive index](experiments/2026-10-31/observed-facts-v2-corpus-index.json)
-  now covers 75 unique games, 52759 fact records, 888 hashed artifacts (12.66 GB)
-  and three world groups. The first corpus has one group; repeats stay together. A [legal input example](examples/sc2-observed-facts-v2.json) is checked in.
-- Inputs contain causal observed facts, timestamps and missingness, with public
-  map geometry. Labels, outcomes, inferred beliefs and future/oracle state are
-  separate. A same-loop replay oracle-label extractor is not implemented yet;
-  there is no reliable trained opponent estimator deployed in this branch.
-- Latest integration source passed **598 synthetic tests, 89.41% coverage**, locked
-  sync, lint, formatting, configured Mypy, protocol/lifecycle tests and packaging.
-  Exact SC2 binary/data, map, starting fingerprints and replays are checked live.
-  Shared human controls remain unverified.
-- The RL model is being built in the user's other session. This session retains
-  the [two-layer architecture](game-agnostic-architecture.md) and supplies SC2
-  facts through its adapter. It does not implement or train the gameplay learner.
+- The [completed archive index](experiments/2026-10-31/observed-facts-v2-corpus-index.json)
+  covers 111 distinct recordings, 87958 factual records, 1365 hashed artifacts
+  (21.15 GB), and four world split groups. Raw artifacts remain local and ignored
+  by Git; sanitized results/provenance are committed. Draft/incomplete exports
+  are excluded. All surviving historical files remain preserved.
+- The `sc2-observed-facts-v2` input contract separates causal observations from
+  labels, results, inferred beliefs and oracle state. A
+  [legal example](examples/sc2-observed-facts-v2.json) and
+  [inference plan](opponent-inference-training.md) are available. A same-loop
+  replay-oracle extractor and reliable trained estimator are still outstanding.
+- Locked sync, Ruff lint/format, configured Mypy, protocol/lifecycle tests,
+  **598 synthetic tests (89.41% coverage)** and package builds passed. All 49
+  source/config hashes, actual binary/data, map, starts, difficulty and replay
+  files passed final verification. Shared human controls remain NOT_VERIFIED.
+- The [approved two-layer architecture](game-agnostic-architecture.md),
+  [doctrine background](doctrine-inspired-control.md), [RL design](rl-architecture.md)
+  and [environment plan](rl-training-plan.md) remain available to the user's
+  separate RL session. This session supplies the SC2 data/repertoire and has not
+  trained a learner. The current bot is not an accepted elite teacher.
 
-See the [opponent-inference plan](opponent-inference-training.md) for the data
-contract, grouped splitting, supervision limitations and scouting experiments.
+## Stopping point
 
-## Next work
-
-The third-seed reference block is complete and its Power/Macro defeats are
-preserved. The matched scouting comparison is also complete. The response repertoire now
-scopes Terran funding/range and Zerg early-tech/counter-completion independently.
-Run the declared frozen final 36 games, publish the comprehensive report, then
-stop without further tuning. Protoss, new-map/seed holdouts and community
-opponents remain necessary before calling this an elite bot or accepted teacher.
+No further tuning or evaluation batches are running from this session. Future
+priorities, if resumed, are matched fixed-versus-auto/recon ablations, improved
+investment commitment and combat suitability, richer strategy estimation, and
+untouched map/seed/community gates. The baseline and specialized branches remain
+preserved; no candidate is promoted merely because its software checks pass.

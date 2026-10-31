@@ -87,7 +87,7 @@ from the enemy's configured build.
 
 ## Preserved experiment lineage
 
-Existing commits and reports preserve every completed experiment, including
+The recorded experiment lineage retains source commits and reports, including
 negative results. Rejected global edits are recorded here rather than silently
 overwriting a successful component. These entries are historical source
 snapshots, not additional automatically enabled packages.
@@ -114,6 +114,11 @@ finishes, classification proxies and targeted wins do not certify a generally
 stronger bot.
 
 ## Final evaluation boundary
+
+The declared set is complete: **24W/12D/0T across 36 games**. See the
+[final report](final-bot-report-2026-10-31.md). The integration remains experimental;
+no further tuning or games follow this set. The protocol below records the
+frozen evaluation boundary.
 
 After software checks, freeze one integration revision. Run pressure versus
 VeryHard Terran and Zerg on BelShirVestigeLE, explicit Rush/Timing/Power/Macro/Air,

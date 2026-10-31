@@ -1,4 +1,4 @@
-# Starcraft2Bot — human economy assistant
+# Starcraft2Bot â€” human economy assistant
 
 An API assistant intended to manage Protoss economy and build-out while you
 control the army with normal mouse and keyboard, or delegate movement and attacks
@@ -165,13 +165,15 @@ while its control rules are disabled by default. The
 
 ## Validation
 
-See the [overall bot status](docs/bot-status.md) for current Zerg/Terran results,
-integration gaps, scouting/data work and remaining acceptance gates.
+The [final bot report](docs/final-bot-report-2026-10-31.md) records the completed
+36-game integration set: 24 wins, 12 losses and no timeouts. The automatic
+selector remains experimental. See [overall status](docs/bot-status.md) for
+Zerg/Terran results, retained specialists and remaining acceptance gates.
 The [scouted strategy repertoire](docs/strategy-portfolio.md) brings the retained
 Zerg/Terran response packages onto one integration branch, with evidence-based
 selection and explicit fixed-package experiments.
 
-The experimental [scout-selected Zerg response](docs/zerg-scout-response-experiment.md)
+The historical `b3aff99` [scout-selected Zerg response](docs/zerg-scout-response-experiment.md)
 completed 15/15 VeryHard Zerg development wins: three repeats of each explicit
 build at the 3600-second bound. This is one map/seed per build; held-out and
 community-bot strength remain unverified. See the

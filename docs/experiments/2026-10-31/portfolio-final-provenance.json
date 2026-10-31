@@ -1,0 +1,275 @@
+{
+  "source_commit": "d0f8cf3",
+  "candidate_manifest_sha256": "9edefb087d5cebefbe171a57c2bb2b21de4a2e4afa7c7993a0f8ab071deea50f",
+  "frozen_files_verified": 49,
+  "source_config_sha256": {
+    "config/assistant.example.json": "69da82319d5a6c6c9f619a7f301d1be739d56968605fe66d74619fba14e3db44",
+    "pyproject.toml": "0d3b8c64157ed895a8e7dc0f16e0fafddb736a32f528dc100c984f2ad3cc872e",
+    "source/__init__.py": "85f308974fcb510a722756b2087cf4b7233d7643fb8d9c7e648386a9981e9dab",
+    "source/action_intents.py": "133e31cca221b0cc8fe904600f5e24dd49b99a63cc757bf2814da5bc9ba4a08c",
+    "source/analyze_session.py": "11523ce7b47aae0ddd6b697bf9d973c6536b626080b2fc901922bdfbad34cef3",
+    "source/army_waves.py": "535bb826eceaa18cb62c07f5cc31f8f43be7c988f363b424566473ee641e8f53",
+    "source/assistant_control.py": "b19be27162b23c8bc1b91ccc87e6102d2151f4843176789dfdce9a007ea65ee5",
+    "source/benchmark_controllers.py": "a2fa5594d8e8d06301b35df533c43ebbf197289a6b4b5a7095dae3b2bfcdedb6",
+    "source/combat_assessment.py": "db233bccfeaac8d8173ceb4eaa60782626002213b1b951d76dd6785018dfbdb3",
+    "source/composition.py": "df7e6d93e98478a9ba2dcefac58a059efeb508213922af0440fa49b5aa6bd8fa",
+    "source/control_cli.py": "7db29b956c9293f424b00442dbe417f5a7b27e301a86dc6d95d392adaf1aa049",
+    "source/data/game_ontology.v1.json": "1ff84b97139e7fa0f850f5c8b3c50e90c086152e5e52a84986a061f2df5eae76",
+    "source/economy_assistant.py": "c209929751b601933e41c195efae7994f3aa6ff728b183c251879bf6073737d4",
+    "source/endgame_sweep.py": "0e9104f1d98cb9eca02de1867b92c18a3361b6dc296b64c652bd458b0a5bdf3d",
+    "source/evaluate_matches.py": "f3f589c402903d65304a436f3522a8f58a447631a91671f3b496da3ad8262de0",
+    "source/expansion_intel.py": "1cfa53c22b743cb8a62452a28b0fa5704e6e4aa6f6aeb13b10b87bd381946abe",
+    "source/experimental_scouting.py": "081e26a016e4fe9529ac5d9db108f9bc8e92c4d647ef26f297bf7b240b1dfd11",
+    "source/game_assessment.py": "189a2d73d67fe6286154174243ae4113508ece941815d8540ddc60829674466a",
+    "source/game_ontology.py": "682e90f282a4743d5e6e2f689a673618a800dd4c6b5365efe69c9330a3f042a9",
+    "source/layout.py": "90ad04a164e4a031230c93edaed4fd11bf56cdbab0935402765181559cba1871",
+    "source/local_control.py": "491e46fdb99e1c7bb268751bd2e278a6716b854a96d221d88439f9ffd7970ea1",
+    "source/missions.py": "943b3f5b56aa505329422bbb2f506b5efff8c23cd7be23d62e422c896132bc67",
+    "source/opponent_beliefs.py": "80bf3deff073141b36163a9839dfbb909e72ae5480a05e4a0891900717329293",
+    "source/opponent_dataset.py": "388a3b2919ba1aca89a9811ee8922c2fc271d7ba26a58c8df55adf9fc0c12334",
+    "source/opponent_strategy.py": "cb21f8dbd847b0db62dd90b99a3669442f46ed83631402c0eb6e24f418382f8c",
+    "source/replay_strategy.py": "0ecae6b485f3eb02a24880811cde6b9d38c4e0f3b6e5f0492080068de7e110b8",
+    "source/run_assistant.py": "d89c2506a9b06b413f52a66477fcf61e46e3328e44bee2d35e7e912794080311",
+    "source/run_SC2_game.py": "e73158a13334a2f9504aa3a68b3fcc0827989d6a9f39aa4d8642ebe6ddcd8fa7",
+    "source/runtime.py": "14028b428763bd4a49cc4b27a827b43c815891630d04bc4d87b34556c0b73318",
+    "source/scouting.py": "3cbdebb8c52159704e182c83cfe77136d54d8e486e3b67148a901054277e348d",
+    "source/scouting_costs.py": "a611f71e87fe7fb2c1224c3bd5039a63b75c44ef51349b2da0e0e97943acd6f1",
+    "source/scouting_diagnostics.py": "59c8de59823f24084d981cd1d0dde98946877a72fa1c22f6dc46bab74e36aa51",
+    "source/scouting_facts.py": "e8e977a16b34e6b419b336a01da1c352d13bd6835d0b6e50565f74ea207fda42",
+    "source/scouting_value.py": "e981aad9de521a84d1e42023182ef8a8aa1fd4fcc611e2b95a0cef73a8ed76e3",
+    "source/session_review.py": "bdfb4da6420dab45ad948b8376fac928d362259783d67145805c05328aa41615",
+    "source/setup_sc2_bot.py": "d1e793af3edf16676c0382eb9b4186a3455ff446a5cf0ff565929bc290481af4",
+    "source/strategic_plan.py": "c32c66ab7c958b3cbeb8c779deeed4d037a37c81dd5c7f67017ce976baa675d3",
+    "source/strategy_director.py": "428c22d06fd79c64176a9a1ab505011208b2565350c92662e0a06261fa74ee8e",
+    "source/strategy_policies.py": "54f593c6a10d3918d4810c1bbfe614c9cf9d811605bb5ac5dddc468d735d793c",
+    "source/strategy_portfolio.py": "f073e069273af3a3cf0f5741221137f92e6c5049c3074826cf6c917d629803f7",
+    "source/strategy_profiles.py": "710c8211be5e8575dbe5c10a8e074bffbe1b057fc172523d17b3024f3d04f757",
+    "source/strategy_review.py": "54a7ed96a528c75c56413bcbae95b6a9e930705b9c7e9f225ab7c976a03f1b43",
+    "source/strategy_scripts.py": "5805d683c678241a0c608456904c15292c47e95ca1cb00467658d815f14af986",
+    "source/tactics.py": "16cd8f84a77076a89e8286dfd7d7c876d2845f979c2d44e634d07e2299366be2",
+    "source/ThreeBaseVoidRay.py": "d7b54d2db9e09336fad514f2446f630691a8c818096cd3bbb9a721e9e04b2c61",
+    "source/trials.py": "717289d56295e014d12df2a23c7fc2c0e4b4d521e68f0b03e8223d0368cd7230",
+    "source/warp_reinforcement.py": "c51c66878abb4652cec5cd84e1ff6baa5d5bfe905b43ed461b60977ea3b38c68",
+    "source/zerg_responses.py": "21b6c987b69a9103305690e88973ad7c2ea13cbc4e8dc823aae37d70c83f72d4",
+    "uv.lock": "3ecbda6908bb8f3498435b64b71ea91749caf70269be68062ad7e4762e804b39"
+  },
+  "software_checks": {
+    "tests": 598,
+    "coverage_percent": 89.41,
+    "locked_sync": true,
+    "ruff_lint_format": true,
+    "configured_mypy": true,
+    "protocol_lifecycle_tests": true,
+    "build_sdist_wheel": true
+  },
+  "api_probe_recording": "runtime-20261031-161610-155135.json",
+  "native_full_access_context_verified": true,
+  "manual_human_controls": "NOT_VERIFIED",
+  "scope": "Final frozen development suite. Explicit setting/bound differences are recorded; original references are unmodified. All repeats grouped, not independent. Exact per-game map/ping/computer difficulty and replay hashes are in the outcome artifacts.",
+  "groups": [
+    {
+      "matrix": "portfolio-final-main",
+      "race": "Terran",
+      "build": "Air",
+      "seed": 20261025,
+      "repeats": 3,
+      "loop_zero": true,
+      "initial_state_sha256": "18882b17f23b05ccdcff5b79b60ee9d3c1947c5c5e433684b489c1492a9b29b1",
+      "reference_matrix": "production-v5-r2-20261031-terran-air",
+      "reference_initial_state_sha256": "3f08e5f88ca51593dfc1301078aa4e13ccd36801434e420e738b988f1ccc8488",
+      "reference_limit": 1500,
+      "current_limit": 3600,
+      "added_setting": {
+        "playbook": "auto"
+      },
+      "physical_world_and_other_settings_match": true
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "race": "Terran",
+      "build": "Macro",
+      "seed": 20261025,
+      "repeats": 3,
+      "loop_zero": true,
+      "initial_state_sha256": "a6ab4e66fdbd2ef11241c9400ae7865db3008151bcc5d4502dc5128fe07d74c8",
+      "reference_matrix": "production-v5-r2-20261031-terran-remaining",
+      "reference_initial_state_sha256": "6164df79a2fd07e0a12d229c637dc55456176bdf693a71cf96252f9b755121b5",
+      "reference_limit": 1500,
+      "current_limit": 3600,
+      "added_setting": {
+        "playbook": "auto"
+      },
+      "physical_world_and_other_settings_match": true
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "race": "Terran",
+      "build": "Power",
+      "seed": 20261025,
+      "repeats": 3,
+      "loop_zero": true,
+      "initial_state_sha256": "ce81e2f7640b65a50e0163a2c114aceae3c583dc47a620022cc331f0b014d0ee",
+      "reference_matrix": "production-v5-r2-20261031-terran-power",
+      "reference_initial_state_sha256": "f1b973eeb564adbba946d36b8d89b8ff750d02dbac66555c9a99bd899cd637c7",
+      "reference_limit": 1500,
+      "current_limit": 3600,
+      "added_setting": {
+        "playbook": "auto"
+      },
+      "physical_world_and_other_settings_match": true
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "race": "Terran",
+      "build": "Rush",
+      "seed": 20261025,
+      "repeats": 3,
+      "loop_zero": true,
+      "initial_state_sha256": "13b543e42411b3be46b7c20d0782c350f26fcf89f4e8248a5e67d89c3d625cb0",
+      "reference_matrix": "production-v5-r2-20261031-terran-remaining",
+      "reference_initial_state_sha256": "bea15753f20ba5e01f9ca29c631cf6a8048ef87abf816a6dc1d237a8988b5b9c",
+      "reference_limit": 1500,
+      "current_limit": 3600,
+      "added_setting": {
+        "playbook": "auto"
+      },
+      "physical_world_and_other_settings_match": true
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "race": "Terran",
+      "build": "Timing",
+      "seed": 20261025,
+      "repeats": 3,
+      "loop_zero": true,
+      "initial_state_sha256": "ea34292ed60856d45a2c32615e1036bd6c151e85c011816dd24c4ad98b3c47f6",
+      "reference_matrix": "production-v5-r2-20261031-terran-remaining",
+      "reference_initial_state_sha256": "7449d961cc2ae1f323477f51f3db9cd43b174a6af0bea799cbeb9945cf6dd8dd",
+      "reference_limit": 1500,
+      "current_limit": 3600,
+      "added_setting": {
+        "playbook": "auto"
+      },
+      "physical_world_and_other_settings_match": true
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "race": "Zerg",
+      "build": "Air",
+      "seed": 20261025,
+      "repeats": 3,
+      "loop_zero": true,
+      "initial_state_sha256": "8302895cee59c3afb84165d1a7efaa7b38b6c899eb83224adcb97e239550c43e",
+      "reference_matrix": "zerg-scout-selector-v1-20261031-complete",
+      "reference_initial_state_sha256": "f1b823d82ebec07ab6e8db3dc1703f6c2af638e0d0fe2203f8dc9f174cea4862",
+      "reference_limit": 3600,
+      "current_limit": 3600,
+      "added_setting": {
+        "playbook": "auto"
+      },
+      "physical_world_and_other_settings_match": true
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "race": "Zerg",
+      "build": "Macro",
+      "seed": 20261025,
+      "repeats": 3,
+      "loop_zero": true,
+      "initial_state_sha256": "659acba88d3bf844f804ce5f57398db9f7ac026fdebe3e080676d01ec9b227f9",
+      "reference_matrix": "zerg-scout-selector-v1-20261031-complete",
+      "reference_initial_state_sha256": "bdaab2bba2df0338b810b707166a9448fb54ba1a4fe26db7e01e02bea54025c7",
+      "reference_limit": 3600,
+      "current_limit": 3600,
+      "added_setting": {
+        "playbook": "auto"
+      },
+      "physical_world_and_other_settings_match": true
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "race": "Zerg",
+      "build": "Power",
+      "seed": 20261025,
+      "repeats": 3,
+      "loop_zero": true,
+      "initial_state_sha256": "781758d7dcfcedabfb1fff253dfdcfa578974505f0623e63cd9973964a179804",
+      "reference_matrix": "zerg-scout-selector-v1-20261031-complete",
+      "reference_initial_state_sha256": "aa1fd29169deae94adc79cecbc1409e9c52d2cca1cf4eb76f06dc950d244e4b8",
+      "reference_limit": 3600,
+      "current_limit": 3600,
+      "added_setting": {
+        "playbook": "auto"
+      },
+      "physical_world_and_other_settings_match": true
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "race": "Zerg",
+      "build": "Rush",
+      "seed": 20261025,
+      "repeats": 3,
+      "loop_zero": true,
+      "initial_state_sha256": "828d9f5d66d9d0975a1b1bb3d13eb3625a230c04450c9f58a1860213c2314010",
+      "reference_matrix": "zerg-scout-selector-v1-20261031-complete",
+      "reference_initial_state_sha256": "843f4283faa0aecb90e6b93ee1be6ed4d381ae653519626165d9329986a96f1d",
+      "reference_limit": 3600,
+      "current_limit": 3600,
+      "added_setting": {
+        "playbook": "auto"
+      },
+      "physical_world_and_other_settings_match": true
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "race": "Zerg",
+      "build": "Timing",
+      "seed": 20261025,
+      "repeats": 3,
+      "loop_zero": true,
+      "initial_state_sha256": "95a4547b58e231afb7d678d148f8c0414852fcc6b613397078c8e28019ae0d87",
+      "reference_matrix": "zerg-scout-selector-v1-20261031-complete",
+      "reference_initial_state_sha256": "b5e9fed55f291afeaf3cbbc30e51723f634d9d5c8f5e5d23427f87bd10462762",
+      "reference_limit": 3600,
+      "current_limit": 3600,
+      "added_setting": {
+        "playbook": "auto"
+      },
+      "physical_world_and_other_settings_match": true
+    },
+    {
+      "matrix": "portfolio-final-known-failures",
+      "race": "Zerg",
+      "build": "Macro",
+      "seed": 2026103102,
+      "repeats": 3,
+      "loop_zero": true,
+      "initial_state_sha256": "ffe8f9fa783b074d622f410911ba1cc317ac151e6896a1d249abc7be403cefb0",
+      "reference_matrix": "scouting-evidence-reference-newseed2",
+      "reference_initial_state_sha256": "2bb45598529575da2913ffe0a3cf0092be218bb0c6304fc5513732e32ba0090b",
+      "reference_limit": 3600,
+      "current_limit": 3600,
+      "added_setting": {
+        "playbook": "auto"
+      },
+      "physical_world_and_other_settings_match": true
+    },
+    {
+      "matrix": "portfolio-final-known-failures",
+      "race": "Zerg",
+      "build": "Power",
+      "seed": 2026103102,
+      "repeats": 3,
+      "loop_zero": true,
+      "initial_state_sha256": "48144915d8a9bec5466c5e3b44dcddf85511be84bb327f4a2f88518fa4bf2cf6",
+      "reference_matrix": "scouting-evidence-reference-newseed2",
+      "reference_initial_state_sha256": "4d083d920d4df7d96918f73f48920f0e22badfed82a96fca85017b29b5513562",
+      "reference_limit": 3600,
+      "current_limit": 3600,
+      "added_setting": {
+        "playbook": "auto"
+      },
+      "physical_world_and_other_settings_match": true
+    }
+  ]
+}

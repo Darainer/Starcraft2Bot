@@ -1,0 +1,329 @@
+{
+  "scope": "Matched development conditions at3600s; source/feature differences recorded in individual verified outcomes. Earlier milestones and trade ratios describe trajectories, not isolated causal effects.",
+  "records": [
+    {
+      "arm": "reference",
+      "matrix": "scouting-evidence-reference-newseed2",
+      "recording": "runtime-20261031-154757-540900-f88daf83d4884acda04ee90b536c9f7a-007.json",
+      "trial_id": 7,
+      "build": "Power",
+      "seed": 2026103102,
+      "limit_seconds": 3600,
+      "result": "Result.Defeat",
+      "last_sample_seconds": 1237.5,
+      "first_completed_seconds": {
+        "ROBOTICSFACILITY": 352.5,
+        "IMMORTAL": 405.0,
+        "ROBOTICSBAY": 503.6,
+        "COLOSSUS": 983.6
+      },
+      "army_trade_ratio": 0.588
+    },
+    {
+      "arm": "reference",
+      "matrix": "scouting-evidence-reference-newseed2",
+      "recording": "runtime-20261031-154757-540900-f88daf83d4884acda04ee90b536c9f7a-008.json",
+      "trial_id": 8,
+      "build": "Power",
+      "seed": 2026103102,
+      "limit_seconds": 3600,
+      "result": "Result.Defeat",
+      "last_sample_seconds": 1237.5,
+      "first_completed_seconds": {
+        "ROBOTICSFACILITY": 352.5,
+        "IMMORTAL": 405.0,
+        "ROBOTICSBAY": 503.6,
+        "COLOSSUS": 983.6
+      },
+      "army_trade_ratio": 0.588
+    },
+    {
+      "arm": "reference",
+      "matrix": "scouting-evidence-reference-newseed2",
+      "recording": "runtime-20261031-154757-540900-f88daf83d4884acda04ee90b536c9f7a-009.json",
+      "trial_id": 9,
+      "build": "Power",
+      "seed": 2026103102,
+      "limit_seconds": 3600,
+      "result": "Result.Defeat",
+      "last_sample_seconds": 1237.5,
+      "first_completed_seconds": {
+        "ROBOTICSFACILITY": 352.5,
+        "IMMORTAL": 405.0,
+        "ROBOTICSBAY": 503.6,
+        "COLOSSUS": 983.6
+      },
+      "army_trade_ratio": 0.588
+    },
+    {
+      "arm": "reference",
+      "matrix": "scouting-evidence-reference-newseed2",
+      "recording": "runtime-20261031-154757-540900-f88daf83d4884acda04ee90b536c9f7a-010.json",
+      "trial_id": 10,
+      "build": "Macro",
+      "seed": 2026103102,
+      "limit_seconds": 3600,
+      "result": "Result.Defeat",
+      "last_sample_seconds": 1068.2,
+      "first_completed_seconds": {
+        "ROBOTICSFACILITY": 351.4,
+        "IMMORTAL": 410.4,
+        "ROBOTICSBAY": 498.2,
+        "COLOSSUS": 866.8
+      },
+      "army_trade_ratio": 0.783
+    },
+    {
+      "arm": "reference",
+      "matrix": "scouting-evidence-reference-newseed2",
+      "recording": "runtime-20261031-154757-540900-f88daf83d4884acda04ee90b536c9f7a-011.json",
+      "trial_id": 11,
+      "build": "Macro",
+      "seed": 2026103102,
+      "limit_seconds": 3600,
+      "result": "Result.Defeat",
+      "last_sample_seconds": 1068.2,
+      "first_completed_seconds": {
+        "ROBOTICSFACILITY": 351.4,
+        "IMMORTAL": 410.4,
+        "ROBOTICSBAY": 498.2,
+        "COLOSSUS": 866.8
+      },
+      "army_trade_ratio": 0.783
+    },
+    {
+      "arm": "reference",
+      "matrix": "scouting-evidence-reference-newseed2",
+      "recording": "runtime-20261031-154757-540900-f88daf83d4884acda04ee90b536c9f7a-012.json",
+      "trial_id": 12,
+      "build": "Macro",
+      "seed": 2026103102,
+      "limit_seconds": 3600,
+      "result": "Result.Defeat",
+      "last_sample_seconds": 1068.2,
+      "first_completed_seconds": {
+        "ROBOTICSFACILITY": 351.4,
+        "IMMORTAL": 410.4,
+        "ROBOTICSBAY": 498.2,
+        "COLOSSUS": 866.8
+      },
+      "army_trade_ratio": 0.783
+    },
+    {
+      "arm": "revisit_v3",
+      "matrix": "scouting-evidence-v3-revisit-newseed2-failures",
+      "recording": "runtime-20261031-160635-413503-e5c7ebeeb6754096b5dd1e859b335c77-001.json",
+      "trial_id": 1,
+      "build": "Power",
+      "seed": 2026103102,
+      "limit_seconds": 3600,
+      "result": "Result.Defeat",
+      "last_sample_seconds": 997.5,
+      "first_completed_seconds": {
+        "ROBOTICSFACILITY": 279.6,
+        "IMMORTAL": 371.8,
+        "ROBOTICSBAY": 522.9,
+        "COLOSSUS": null
+      },
+      "army_trade_ratio": 0.579
+    },
+    {
+      "arm": "revisit_v3",
+      "matrix": "scouting-evidence-v3-revisit-newseed2-failures",
+      "recording": "runtime-20261031-160635-413503-e5c7ebeeb6754096b5dd1e859b335c77-002.json",
+      "trial_id": 2,
+      "build": "Power",
+      "seed": 2026103102,
+      "limit_seconds": 3600,
+      "result": "Result.Defeat",
+      "last_sample_seconds": 997.5,
+      "first_completed_seconds": {
+        "ROBOTICSFACILITY": 279.6,
+        "IMMORTAL": 371.8,
+        "ROBOTICSBAY": 522.9,
+        "COLOSSUS": null
+      },
+      "army_trade_ratio": 0.579
+    },
+    {
+      "arm": "revisit_v3",
+      "matrix": "scouting-evidence-v3-revisit-newseed2-failures",
+      "recording": "runtime-20261031-160635-413503-e5c7ebeeb6754096b5dd1e859b335c77-003.json",
+      "trial_id": 3,
+      "build": "Power",
+      "seed": 2026103102,
+      "limit_seconds": 3600,
+      "result": "Result.Defeat",
+      "last_sample_seconds": 997.5,
+      "first_completed_seconds": {
+        "ROBOTICSFACILITY": 279.6,
+        "IMMORTAL": 371.8,
+        "ROBOTICSBAY": 522.9,
+        "COLOSSUS": null
+      },
+      "army_trade_ratio": 0.579
+    },
+    {
+      "arm": "revisit_v3",
+      "matrix": "scouting-evidence-v3-revisit-newseed2-failures",
+      "recording": "runtime-20261031-160635-413503-e5c7ebeeb6754096b5dd1e859b335c77-004.json",
+      "trial_id": 4,
+      "build": "Macro",
+      "seed": 2026103102,
+      "limit_seconds": 3600,
+      "result": "Result.Victory",
+      "last_sample_seconds": 920.4,
+      "first_completed_seconds": {
+        "ROBOTICSFACILITY": 292.5,
+        "IMMORTAL": 371.8,
+        "ROBOTICSBAY": 664.3,
+        "COLOSSUS": 767.1
+      },
+      "army_trade_ratio": 2.354
+    },
+    {
+      "arm": "revisit_v3",
+      "matrix": "scouting-evidence-v3-revisit-newseed2-failures",
+      "recording": "runtime-20261031-160635-413503-e5c7ebeeb6754096b5dd1e859b335c77-005.json",
+      "trial_id": 5,
+      "build": "Macro",
+      "seed": 2026103102,
+      "limit_seconds": 3600,
+      "result": "Result.Victory",
+      "last_sample_seconds": 920.4,
+      "first_completed_seconds": {
+        "ROBOTICSFACILITY": 292.5,
+        "IMMORTAL": 371.8,
+        "ROBOTICSBAY": 664.3,
+        "COLOSSUS": 767.1
+      },
+      "army_trade_ratio": 2.354
+    },
+    {
+      "arm": "revisit_v3",
+      "matrix": "scouting-evidence-v3-revisit-newseed2-failures",
+      "recording": "runtime-20261031-160635-413503-e5c7ebeeb6754096b5dd1e859b335c77-006.json",
+      "trial_id": 6,
+      "build": "Macro",
+      "seed": 2026103102,
+      "limit_seconds": 3600,
+      "result": "Result.Victory",
+      "last_sample_seconds": 920.4,
+      "first_completed_seconds": {
+        "ROBOTICSFACILITY": 292.5,
+        "IMMORTAL": 371.8,
+        "ROBOTICSBAY": 664.3,
+        "COLOSSUS": 767.1
+      },
+      "army_trade_ratio": 2.354
+    },
+    {
+      "arm": "portfolio",
+      "matrix": "portfolio-final-known-failures",
+      "recording": "runtime-20261031-164446-850599-f72bf454e4c6417d8c9195073b5912c0-001.json",
+      "trial_id": 1,
+      "build": "Power",
+      "seed": 2026103102,
+      "limit_seconds": 3600,
+      "result": "Result.Victory",
+      "last_sample_seconds": 1954.3,
+      "first_completed_seconds": {
+        "ROBOTICSFACILITY": 279.6,
+        "IMMORTAL": 371.8,
+        "ROBOTICSBAY": 522.9,
+        "COLOSSUS": 585.0
+      },
+      "army_trade_ratio": 1.659
+    },
+    {
+      "arm": "portfolio",
+      "matrix": "portfolio-final-known-failures",
+      "recording": "runtime-20261031-164446-850599-f72bf454e4c6417d8c9195073b5912c0-002.json",
+      "trial_id": 2,
+      "build": "Power",
+      "seed": 2026103102,
+      "limit_seconds": 3600,
+      "result": "Result.Victory",
+      "last_sample_seconds": 1954.3,
+      "first_completed_seconds": {
+        "ROBOTICSFACILITY": 279.6,
+        "IMMORTAL": 371.8,
+        "ROBOTICSBAY": 522.9,
+        "COLOSSUS": 585.0
+      },
+      "army_trade_ratio": 1.659
+    },
+    {
+      "arm": "portfolio",
+      "matrix": "portfolio-final-known-failures",
+      "recording": "runtime-20261031-164446-850599-f72bf454e4c6417d8c9195073b5912c0-003.json",
+      "trial_id": 3,
+      "build": "Power",
+      "seed": 2026103102,
+      "limit_seconds": 3600,
+      "result": "Result.Victory",
+      "last_sample_seconds": 1954.3,
+      "first_completed_seconds": {
+        "ROBOTICSFACILITY": 279.6,
+        "IMMORTAL": 371.8,
+        "ROBOTICSBAY": 522.9,
+        "COLOSSUS": 585.0
+      },
+      "army_trade_ratio": 1.659
+    },
+    {
+      "arm": "portfolio",
+      "matrix": "portfolio-final-known-failures",
+      "recording": "runtime-20261031-164446-850599-f72bf454e4c6417d8c9195073b5912c0-004.json",
+      "trial_id": 4,
+      "build": "Macro",
+      "seed": 2026103102,
+      "limit_seconds": 3600,
+      "result": "Result.Victory",
+      "last_sample_seconds": 911.8,
+      "first_completed_seconds": {
+        "ROBOTICSFACILITY": 292.5,
+        "IMMORTAL": 371.8,
+        "ROBOTICSBAY": 664.3,
+        "COLOSSUS": 717.9
+      },
+      "army_trade_ratio": 2.424
+    },
+    {
+      "arm": "portfolio",
+      "matrix": "portfolio-final-known-failures",
+      "recording": "runtime-20261031-164446-850599-f72bf454e4c6417d8c9195073b5912c0-005.json",
+      "trial_id": 5,
+      "build": "Macro",
+      "seed": 2026103102,
+      "limit_seconds": 3600,
+      "result": "Result.Victory",
+      "last_sample_seconds": 911.8,
+      "first_completed_seconds": {
+        "ROBOTICSFACILITY": 292.5,
+        "IMMORTAL": 371.8,
+        "ROBOTICSBAY": 664.3,
+        "COLOSSUS": 717.9
+      },
+      "army_trade_ratio": 2.424
+    },
+    {
+      "arm": "portfolio",
+      "matrix": "portfolio-final-known-failures",
+      "recording": "runtime-20261031-164446-850599-f72bf454e4c6417d8c9195073b5912c0-006.json",
+      "trial_id": 6,
+      "build": "Macro",
+      "seed": 2026103102,
+      "limit_seconds": 3600,
+      "result": "Result.Victory",
+      "last_sample_seconds": 911.8,
+      "first_completed_seconds": {
+        "ROBOTICSFACILITY": 292.5,
+        "IMMORTAL": 371.8,
+        "ROBOTICSBAY": 664.3,
+        "COLOSSUS": 717.9
+      },
+      "army_trade_ratio": 2.424
+    }
+  ]
+}

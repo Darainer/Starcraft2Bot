@@ -225,11 +225,15 @@ strength. Autonomous performance and shared human-control acceptance remain
 separate, with human control still unverified.
 
 
-## Current consolidated status
+## Final integration and stopping point
 
-The [overall bot status](bot-status.md) separates frozen Zerg and Terran results
-and current integration gaps. Zerg won 15/15 on the original seed and another
-15/15 on an instrumented second seed, but the third seed finished 9/15 with
-Power and Macro triplets lost. The adjusted Terran specialist's Rush/Timing
-triplets both won on its separate branch. No one revision has passed the
-combined integrated gate; elite acceptance remains incomplete.
+The [comprehensive final report](final-bot-report-2026-10-31.md) records the
+integrated repertoire at `d0f8cf3`: **24W/12D/0T across 36 games**. Main-seed Zerg
+finished 12W/3D and Terran 6W/9D; the additional known-failure Zerg Power/Macro
+block won 6/6, including Power victories at 1954.3 s under the 3600-second bound.
+
+The main-seed Power and Terran regressions reject global promotion. Earlier
+Zerg 15/15 blocks and the separate Terran Rush/Timing 6/6 specialist remain tied
+to their own frozen revisions. The repertoire and negative results are preserved
+on the feature branch. The elite milestone remains incomplete; work stopped
+after the final set and report at the user's request.

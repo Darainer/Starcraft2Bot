@@ -1,5 +1,10 @@
 # Opponent inference from objective scouting facts
 
+Final snapshot: the [comprehensive report](final-bot-report-2026-10-31.md) closes
+the 36-game integration set with 24W/12D/0T. The completed corpus now contains 111
+recordings and four world groups. Evaluation work is stopped; the studies below
+preserve their original comparison groups and limitations.
+
 This work prepares a supervised opponent-state estimator. The user is building
 the gameplay RL model in a separate session; this session supplies scouting,
 factual data and inference interfaces through the SC2 adapter. The Python bot
@@ -160,7 +165,7 @@ itself. `diagnostics.json` is evaluation-only and is never a predictor input.
    Keep predictions in shadow mode until their downstream value is verified.
 4. Group whole world starts together: map, binary/data, game seed, opponent race
    and starting spawn. All repeats, configured builds, bot revisions and scouting
-   variants of that world stay in one split. The fifteen current games form
+   variants of that world stay in one split. The first fifteen games form
    **one split group**. One additional seed produces only two groups, still
    insufficient for independent train/validation/test splits. Obtain more seeds,
    maps and opponent policies; reserve untouched groups before training.
@@ -187,7 +192,7 @@ future/full-replay inputs would answer a different question and cause leakage.
 [Hostetler et al.](https://proceedings.mlr.press/r10/hostetler12a.html) explicitly
 model limited, costly reconnaissance. This motivates recording the observation
 process and costs, rather than treating missing features as negative evidence.
-[Synnaeve and BessiÃƒÂ¨re](https://arxiv.org/abs/1111.3735) learn build-tree models from
+[Synnaeve and BessiÃƒÆ’Ã‚Â¨re](https://arxiv.org/abs/1111.3735) learn build-tree models from
 replays and noisy observations, supporting technology-path targets.
 [Defogger](https://arxiv.org/html/1812.00054) evaluates objective hidden-state tasks
 and memory baselines; its full-bot results also show that prediction noise can
