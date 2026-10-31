@@ -1,0 +1,2925 @@
+{
+  "scope": "Representative fixed-start prefixes only; nearest observation at or before each horizon. Old5s/new1s sampling differs. First home contact can be a lone scout and does not establish a committed attack. Not causal outcome attribution.",
+  "records": [
+    {
+      "label": "old_zerg",
+      "matrix": "zerg-scout-selector-v1-20261031-complete",
+      "recording": "runtime-20261031-145557-987810-0c07c01cf52d410bbff7edae2d18dc72-001.json",
+      "first_home_threat": {
+        "time": 220.4,
+        "supply": 1,
+        "incoming": null,
+        "visible_enemies": {
+          "ZERGLING": 1
+        }
+      },
+      "horizons": {
+        "180": {
+          "t": 175.4,
+          "player": {
+            "player_id": 1,
+            "minerals": 30,
+            "vespene": 6,
+            "food_cap": 39,
+            "food_used": 33,
+            "food_army": 14,
+            "food_workers": 19,
+            "idle_worker_count": 0,
+            "army_count": 5,
+            "warp_gate_count": 0
+          },
+          "own_composition": {
+            "CYBERNETICSCORE": 1,
+            "PROBE": 18,
+            "PYLON": 3,
+            "GATEWAY": 2,
+            "NEXUS": 1,
+            "ZEALOT": 4,
+            "ASSIMILATOR": 1,
+            "STALKER": 1
+          },
+          "objective": "develop",
+          "wave_phase": "hold",
+          "package": "legacy_fixed",
+          "threat_supply": 0,
+          "score": {
+            "lost_minerals": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "lost_vespene": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_minerals": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_vespene": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            }
+          }
+        },
+        "240": {
+          "t": 235.4,
+          "player": {
+            "player_id": 1,
+            "minerals": 0,
+            "vespene": 20,
+            "food_cap": 47,
+            "food_used": 41,
+            "food_army": 22,
+            "food_workers": 19,
+            "idle_worker_count": 0,
+            "army_count": 9,
+            "warp_gate_count": 0
+          },
+          "own_composition": {
+            "PROBE": 19,
+            "SENTRY": 2,
+            "PYLON": 4,
+            "ZEALOT": 6,
+            "CYBERNETICSCORE": 1,
+            "GATEWAY": 2,
+            "NEXUS": 1,
+            "STALKER": 1,
+            "ASSIMILATOR": 1,
+            "FORGE": 1
+          },
+          "objective": "develop",
+          "wave_phase": "hold",
+          "package": "legacy_fixed",
+          "threat_supply": 0,
+          "score": {
+            "lost_minerals": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "lost_vespene": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_minerals": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_vespene": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            }
+          }
+        },
+        "300": {
+          "t": 295.4,
+          "player": {
+            "player_id": 1,
+            "minerals": 75,
+            "vespene": 76,
+            "food_cap": 70,
+            "food_used": 53,
+            "food_army": 26,
+            "food_workers": 25,
+            "idle_worker_count": 0,
+            "army_count": 12,
+            "warp_gate_count": 0
+          },
+          "own_composition": {
+            "PROBE": 24,
+            "ZEALOT": 9,
+            "CYBERNETICSCORE": 1,
+            "PYLON": 5,
+            "GATEWAY": 2,
+            "SENTRY": 2,
+            "STALKER": 1,
+            "NEXUS": 2,
+            "FORGE": 1,
+            "ASSIMILATOR": 1
+          },
+          "objective": "pressure",
+          "wave_phase": "advance",
+          "package": "legacy_fixed",
+          "threat_supply": 0,
+          "score": {
+            "lost_minerals": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "lost_vespene": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_minerals": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_vespene": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            }
+          }
+        },
+        "360": {
+          "t": 355.4,
+          "player": {
+            "player_id": 1,
+            "minerals": 65,
+            "vespene": 85,
+            "food_cap": 78,
+            "food_used": 57,
+            "food_army": 19,
+            "food_workers": 36,
+            "idle_worker_count": 0,
+            "army_count": 9,
+            "warp_gate_count": 3
+          },
+          "own_composition": {
+            "ZEALOT": 8,
+            "PROBE": 34,
+            "CYBERNETICSCORE": 1,
+            "ASSIMILATOR": 2,
+            "PYLON": 6,
+            "FORGE": 1,
+            "ROBOTICSFACILITY": 1,
+            "NEXUS": 2,
+            "WARPGATE": 3,
+            "SENTRY": 1
+          },
+          "objective": "develop",
+          "wave_phase": "hold",
+          "package": "legacy_fixed",
+          "threat_supply": 0,
+          "score": {
+            "lost_minerals": {
+              "none": 0.0,
+              "army": 1025.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "lost_vespene": {
+              "none": 0.0,
+              "army": 250.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_minerals": {
+              "none": 0.0,
+              "army": 525.0,
+              "economy": 50.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_vespene": {
+              "none": 0.0,
+              "army": 25.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            }
+          }
+        },
+        "480": {
+          "t": 475.4,
+          "player": {
+            "player_id": 1,
+            "minerals": 75,
+            "vespene": 119,
+            "food_cap": 117,
+            "food_used": 91,
+            "food_army": 47,
+            "food_workers": 41,
+            "idle_worker_count": 0,
+            "army_count": 23,
+            "warp_gate_count": 3
+          },
+          "own_composition": {
+            "STALKER": 2,
+            "PROBE": 38,
+            "CYBERNETICSCORE": 1,
+            "TWILIGHTCOUNCIL": 1,
+            "ZEALOT": 15,
+            "PYLON": 9,
+            "ASSIMILATOR": 3,
+            "WARPGATE": 3,
+            "SENTRY": 2,
+            "NEXUS": 3,
+            "IMMORTAL": 1,
+            "WARPPRISM": 1,
+            "FORGE": 1,
+            "ROBOTICSFACILITY": 1,
+            "OBSERVER": 1
+          },
+          "objective": "pressure",
+          "wave_phase": "advance",
+          "package": "legacy_fixed",
+          "threat_supply": 0,
+          "score": {
+            "lost_minerals": {
+              "none": 0.0,
+              "army": 1025.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "lost_vespene": {
+              "none": 0.0,
+              "army": 250.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_minerals": {
+              "none": 0.0,
+              "army": 550.0,
+              "economy": 50.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_vespene": {
+              "none": 0.0,
+              "army": 25.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            }
+          }
+        },
+        "600": {
+          "t": 595.4,
+          "player": {
+            "player_id": 1,
+            "minerals": 25,
+            "vespene": 457,
+            "food_cap": 141,
+            "food_used": 121,
+            "food_army": 65,
+            "food_workers": 56,
+            "idle_worker_count": 0,
+            "army_count": 26,
+            "warp_gate_count": 4
+          },
+          "own_composition": {
+            "STALKER": 10,
+            "PYLON": 12,
+            "PROBE": 51,
+            "ZEALOT": 9,
+            "WARPGATE": 4,
+            "ROBOTICSBAY": 1,
+            "ASSIMILATOR": 5,
+            "NEXUS": 3,
+            "ROBOTICSFACILITY": 2,
+            "SENTRY": 2,
+            "IMMORTAL": 2,
+            "TWILIGHTCOUNCIL": 1,
+            "WARPPRISM": 1,
+            "OBSERVER": 1,
+            "FORGE": 1,
+            "CYBERNETICSCORE": 1
+          },
+          "objective": "pressure",
+          "wave_phase": "assemble",
+          "package": "legacy_fixed",
+          "threat_supply": 0,
+          "score": {
+            "lost_minerals": {
+              "none": 0.0,
+              "army": 2425.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "lost_vespene": {
+              "none": 0.0,
+              "army": 250.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_minerals": {
+              "none": 0.0,
+              "army": 850.0,
+              "economy": 550.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_vespene": {
+              "none": 0.0,
+              "army": 25.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            }
+          }
+        }
+      }
+    },
+    {
+      "label": "final_zerg",
+      "matrix": "portfolio-final-main",
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-022.json",
+      "first_home_threat": {
+        "time": 217.5,
+        "supply": 1,
+        "incoming": null,
+        "visible_enemies": {
+          "ZERGLING": 1
+        }
+      },
+      "horizons": {
+        "180": {
+          "t": 180.0,
+          "player": {
+            "player_id": 1,
+            "minerals": 70,
+            "vespene": 64,
+            "food_cap": 39,
+            "food_used": 31,
+            "food_army": 12,
+            "food_workers": 19,
+            "idle_worker_count": 0,
+            "army_count": 5,
+            "warp_gate_count": 0
+          },
+          "own_composition": {
+            "PROBE": 18,
+            "GATEWAY": 2,
+            "ZEALOT": 4,
+            "CYBERNETICSCORE": 1,
+            "NEXUS": 1,
+            "PYLON": 3,
+            "ASSIMILATOR": 1,
+            "STALKER": 1
+          },
+          "objective": "develop",
+          "wave_phase": "hold",
+          "package": "baseline",
+          "threat_supply": 0,
+          "score": {
+            "lost_minerals": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "lost_vespene": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_minerals": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_vespene": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            }
+          }
+        },
+        "240": {
+          "t": 238.9,
+          "player": {
+            "player_id": 1,
+            "minerals": 45,
+            "vespene": 24,
+            "food_cap": 47,
+            "food_used": 39,
+            "food_army": 20,
+            "food_workers": 19,
+            "idle_worker_count": 1,
+            "army_count": 9,
+            "warp_gate_count": 0
+          },
+          "own_composition": {
+            "ASSIMILATOR": 1,
+            "PROBE": 18,
+            "PYLON": 4,
+            "ZEALOT": 6,
+            "SENTRY": 2,
+            "GATEWAY": 2,
+            "NEXUS": 1,
+            "STALKER": 1,
+            "CYBERNETICSCORE": 1
+          },
+          "objective": "develop",
+          "wave_phase": "hold",
+          "package": "baseline",
+          "threat_supply": 0,
+          "score": {
+            "lost_minerals": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "lost_vespene": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_minerals": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_vespene": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            }
+          }
+        },
+        "300": {
+          "t": 300.0,
+          "player": {
+            "player_id": 1,
+            "minerals": 55,
+            "vespene": 13,
+            "food_cap": 70,
+            "food_used": 55,
+            "food_army": 27,
+            "food_workers": 26,
+            "idle_worker_count": 0,
+            "army_count": 13,
+            "warp_gate_count": 2
+          },
+          "own_composition": {
+            "PROBE": 25,
+            "ZEALOT": 9,
+            "SENTRY": 2,
+            "ASSIMILATOR": 1,
+            "PYLON": 5,
+            "NEXUS": 2,
+            "STALKER": 1,
+            "CYBERNETICSCORE": 1,
+            "ROBOTICSFACILITY": 1,
+            "WARPGATE": 2,
+            "FORGE": 1
+          },
+          "objective": "pressure",
+          "wave_phase": "engage",
+          "package": "zerg_early_robotics",
+          "threat_supply": 0,
+          "score": {
+            "lost_minerals": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "lost_vespene": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_minerals": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_vespene": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            }
+          }
+        },
+        "360": {
+          "t": 360.0,
+          "player": {
+            "player_id": 1,
+            "minerals": 45,
+            "vespene": 79,
+            "food_cap": 78,
+            "food_used": 67,
+            "food_army": 33,
+            "food_workers": 34,
+            "idle_worker_count": 0,
+            "army_count": 15,
+            "warp_gate_count": 3
+          },
+          "own_composition": {
+            "ZEALOT": 10,
+            "CYBERNETICSCORE": 1,
+            "PROBE": 32,
+            "ROBOTICSFACILITY": 1,
+            "NEXUS": 2,
+            "PYLON": 6,
+            "STALKER": 2,
+            "WARPGATE": 3,
+            "SENTRY": 2,
+            "ASSIMILATOR": 2,
+            "FORGE": 1,
+            "OBSERVER": 1
+          },
+          "objective": "pressure",
+          "wave_phase": "advance",
+          "package": "baseline",
+          "threat_supply": 0,
+          "score": {
+            "lost_minerals": {
+              "none": 0.0,
+              "army": 400.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "lost_vespene": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_minerals": {
+              "none": 0.0,
+              "army": 375.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_vespene": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            }
+          }
+        },
+        "480": {
+          "t": 478.9,
+          "player": {
+            "player_id": 1,
+            "minerals": 340,
+            "vespene": 317,
+            "food_cap": 102,
+            "food_used": 80,
+            "food_army": 41,
+            "food_workers": 39,
+            "idle_worker_count": 0,
+            "army_count": 19,
+            "warp_gate_count": 3
+          },
+          "own_composition": {
+            "ZEALOT": 11,
+            "PYLON": 9,
+            "STALKER": 3,
+            "ASSIMILATOR": 3,
+            "PROBE": 36,
+            "WARPGATE": 3,
+            "NEXUS": 2,
+            "SENTRY": 2,
+            "FORGE": 1,
+            "IMMORTAL": 1,
+            "ROBOTICSFACILITY": 1,
+            "TWILIGHTCOUNCIL": 1,
+            "CYBERNETICSCORE": 1,
+            "OBSERVER": 1
+          },
+          "objective": "pressure",
+          "wave_phase": "regroup",
+          "package": "baseline",
+          "threat_supply": 0,
+          "score": {
+            "lost_minerals": {
+              "none": 0.0,
+              "army": 1300.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "lost_vespene": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_minerals": {
+              "none": 0.0,
+              "army": 775.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_vespene": {
+              "none": 0.0,
+              "army": 175.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            }
+          }
+        },
+        "600": {
+          "t": 600.0,
+          "player": {
+            "player_id": 1,
+            "minerals": 225,
+            "vespene": 461,
+            "food_cap": 133,
+            "food_used": 109,
+            "food_army": 53,
+            "food_workers": 56,
+            "idle_worker_count": 0,
+            "army_count": 21,
+            "warp_gate_count": 3
+          },
+          "own_composition": {
+            "ROBOTICSFACILITY": 1,
+            "PROBE": 51,
+            "SENTRY": 2,
+            "PYLON": 11,
+            "ASSIMILATOR": 5,
+            "FORGE": 1,
+            "ZEALOT": 8,
+            "IMMORTAL": 2,
+            "ROBOTICSBAY": 1,
+            "WARPGATE": 3,
+            "STALKER": 6,
+            "WARPPRISM": 1,
+            "NEXUS": 3,
+            "TWILIGHTCOUNCIL": 1,
+            "COLOSSUS": 1,
+            "OBSERVER": 1,
+            "CYBERNETICSCORE": 1
+          },
+          "objective": "recover",
+          "wave_phase": "recover",
+          "package": "zerg_counter_completion",
+          "threat_supply": 0,
+          "score": {
+            "lost_minerals": {
+              "none": 0.0,
+              "army": 2750.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "lost_vespene": {
+              "none": 0.0,
+              "army": 100.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_minerals": {
+              "none": 0.0,
+              "army": 1150.0,
+              "economy": 950.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_vespene": {
+              "none": 0.0,
+              "army": 350.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            }
+          }
+        }
+      }
+    },
+    {
+      "label": "new_seed",
+      "matrix": "portfolio-final-known-failures",
+      "recording": "runtime-20261031-164446-850599-f72bf454e4c6417d8c9195073b5912c0-001.json",
+      "first_home_threat": {
+        "time": 316.1,
+        "supply": 1,
+        "incoming": null,
+        "visible_enemies": {
+          "EGG": 3,
+          "LARVA": 3,
+          "ROACH": 5,
+          "DRONE": 7,
+          "OVERLORD": 3,
+          "ZERGLING": 7,
+          "HATCHERY": 1
+        }
+      },
+      "horizons": {
+        "180": {
+          "t": 180.0,
+          "player": {
+            "player_id": 1,
+            "minerals": 90,
+            "vespene": 64,
+            "food_cap": 39,
+            "food_used": 31,
+            "food_army": 12,
+            "food_workers": 19,
+            "idle_worker_count": 0,
+            "army_count": 5,
+            "warp_gate_count": 0
+          },
+          "own_composition": {
+            "PROBE": 18,
+            "CYBERNETICSCORE": 1,
+            "PYLON": 3,
+            "ZEALOT": 4,
+            "ASSIMILATOR": 1,
+            "STALKER": 1,
+            "GATEWAY": 2,
+            "NEXUS": 1
+          },
+          "objective": "develop",
+          "wave_phase": "hold",
+          "package": "baseline",
+          "threat_supply": 0,
+          "score": {
+            "lost_minerals": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "lost_vespene": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_minerals": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 50.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_vespene": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            }
+          }
+        },
+        "240": {
+          "t": 238.9,
+          "player": {
+            "player_id": 1,
+            "minerals": 60,
+            "vespene": 20,
+            "food_cap": 47,
+            "food_used": 39,
+            "food_army": 20,
+            "food_workers": 19,
+            "idle_worker_count": 0,
+            "army_count": 9,
+            "warp_gate_count": 0
+          },
+          "own_composition": {
+            "PROBE": 18,
+            "STALKER": 1,
+            "CYBERNETICSCORE": 1,
+            "PYLON": 4,
+            "GATEWAY": 2,
+            "SENTRY": 2,
+            "ASSIMILATOR": 1,
+            "ZEALOT": 6,
+            "NEXUS": 1
+          },
+          "objective": "develop",
+          "wave_phase": "hold",
+          "package": "baseline",
+          "threat_supply": 0,
+          "score": {
+            "lost_minerals": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "lost_vespene": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_minerals": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 50.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_vespene": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            }
+          }
+        },
+        "300": {
+          "t": 300.0,
+          "player": {
+            "player_id": 1,
+            "minerals": 55,
+            "vespene": 13,
+            "food_cap": 70,
+            "food_used": 55,
+            "food_army": 27,
+            "food_workers": 26,
+            "idle_worker_count": 0,
+            "army_count": 13,
+            "warp_gate_count": 2
+          },
+          "own_composition": {
+            "PYLON": 5,
+            "NEXUS": 2,
+            "ZEALOT": 9,
+            "PROBE": 25,
+            "STALKER": 1,
+            "ROBOTICSFACILITY": 1,
+            "ASSIMILATOR": 1,
+            "FORGE": 1,
+            "SENTRY": 2,
+            "WARPGATE": 2,
+            "CYBERNETICSCORE": 1
+          },
+          "objective": "pressure",
+          "wave_phase": "engage",
+          "package": "zerg_early_robotics",
+          "threat_supply": 0,
+          "score": {
+            "lost_minerals": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "lost_vespene": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_minerals": {
+              "none": 0.0,
+              "army": 175.0,
+              "economy": 50.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_vespene": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            }
+          }
+        },
+        "360": {
+          "t": 360.0,
+          "player": {
+            "player_id": 1,
+            "minerals": 45,
+            "vespene": 79,
+            "food_cap": 70,
+            "food_used": 60,
+            "food_army": 25,
+            "food_workers": 34,
+            "idle_worker_count": 0,
+            "army_count": 10,
+            "warp_gate_count": 2
+          },
+          "own_composition": {
+            "PROBE": 33,
+            "ZEALOT": 7,
+            "PYLON": 5,
+            "FORGE": 1,
+            "GATEWAY": 1,
+            "WARPGATE": 2,
+            "STALKER": 2,
+            "OBSERVER": 1,
+            "ASSIMILATOR": 2,
+            "ROBOTICSFACILITY": 1,
+            "CYBERNETICSCORE": 1,
+            "NEXUS": 2
+          },
+          "objective": "pressure",
+          "wave_phase": "advance",
+          "package": "baseline",
+          "threat_supply": 0,
+          "score": {
+            "lost_minerals": {
+              "none": 0.0,
+              "army": 800.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "lost_vespene": {
+              "none": 0.0,
+              "army": 200.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_minerals": {
+              "none": 0.0,
+              "army": 625.0,
+              "economy": 50.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_vespene": {
+              "none": 0.0,
+              "army": 75.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            }
+          }
+        },
+        "480": {
+          "t": 478.9,
+          "player": {
+            "player_id": 1,
+            "minerals": 205,
+            "vespene": 53,
+            "food_cap": 102,
+            "food_used": 88,
+            "food_army": 47,
+            "food_workers": 41,
+            "idle_worker_count": 0,
+            "army_count": 22,
+            "warp_gate_count": 3
+          },
+          "own_composition": {
+            "PROBE": 38,
+            "NEXUS": 2,
+            "STALKER": 6,
+            "PYLON": 9,
+            "WARPGATE": 3,
+            "SENTRY": 2,
+            "ZEALOT": 10,
+            "OBSERVER": 1,
+            "ASSIMILATOR": 3,
+            "ROBOTICSFACILITY": 1,
+            "FORGE": 1,
+            "CYBERNETICSCORE": 1,
+            "TWILIGHTCOUNCIL": 1,
+            "IMMORTAL": 1
+          },
+          "objective": "pressure",
+          "wave_phase": "assemble",
+          "package": "baseline",
+          "threat_supply": 0,
+          "score": {
+            "lost_minerals": {
+              "none": 0.0,
+              "army": 1200.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "lost_vespene": {
+              "none": 0.0,
+              "army": 200.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_minerals": {
+              "none": 0.0,
+              "army": 650.0,
+              "economy": 50.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_vespene": {
+              "none": 0.0,
+              "army": 75.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            }
+          }
+        },
+        "600": {
+          "t": 600.0,
+          "player": {
+            "player_id": 1,
+            "minerals": 100,
+            "vespene": 527,
+            "food_cap": 149,
+            "food_used": 127,
+            "food_army": 71,
+            "food_workers": 56,
+            "idle_worker_count": 1,
+            "army_count": 33,
+            "warp_gate_count": 4
+          },
+          "own_composition": {
+            "STALKER": 12,
+            "PROBE": 56,
+            "WARPGATE": 4,
+            "NEXUS": 3,
+            "ASSIMILATOR": 5,
+            "PYLON": 13,
+            "ZEALOT": 15,
+            "IMMORTAL": 1,
+            "COLOSSUS": 1,
+            "SENTRY": 2,
+            "TWILIGHTCOUNCIL": 1,
+            "CYBERNETICSCORE": 1,
+            "ROBOTICSBAY": 1,
+            "FORGE": 1,
+            "ROBOTICSFACILITY": 1,
+            "OBSERVER": 1,
+            "WARPPRISM": 1
+          },
+          "objective": "recover",
+          "wave_phase": "recover",
+          "package": "zerg_counter_completion",
+          "threat_supply": 55.0,
+          "score": {
+            "lost_minerals": {
+              "none": 0.0,
+              "army": 1900.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "lost_vespene": {
+              "none": 0.0,
+              "army": 200.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_minerals": {
+              "none": 0.0,
+              "army": 825.0,
+              "economy": 150.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_vespene": {
+              "none": 0.0,
+              "army": 125.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            }
+          }
+        }
+      }
+    },
+    {
+      "label": "fixed_rush",
+      "matrix": "engagement-range-v1-20261031-terran-rush",
+      "recording": "runtime-20261031-110615-191814-0053a73dc6cc4e93a4758789f605a9da-001.json",
+      "first_home_threat": {
+        "time": 195.4,
+        "supply": 8,
+        "incoming": {
+          "seen_seconds": 195.0,
+          "unit_count": 8,
+          "supply": 8.0,
+          "positions": [
+            [
+              77.75927734375,
+              26.519775390625
+            ],
+            [
+              77.513671875,
+              27.35205078125
+            ],
+            [
+              77.34130859375,
+              29.119873046875
+            ],
+            [
+              75.76220703125,
+              27.654052734375
+            ],
+            [
+              77.667236328125,
+              29.729736328125
+            ],
+            [
+              77.100341796875,
+              28.453125
+            ],
+            [
+              78.580810546875,
+              27.16748046875
+            ],
+            [
+              77.78125,
+              28.3515625
+            ]
+          ],
+          "unit_types": [
+            "MARINE",
+            "MARINE",
+            "MARINE",
+            "MARINE",
+            "MARINE",
+            "MARINE",
+            "MARINE",
+            "MARINE"
+          ]
+        },
+        "visible_enemies": {
+          "MARINE": 8
+        }
+      },
+      "horizons": {
+        "180": {
+          "t": 175.4,
+          "player": {
+            "player_id": 1,
+            "minerals": 275,
+            "vespene": 30,
+            "food_cap": 31,
+            "food_used": 25,
+            "food_army": 6,
+            "food_workers": 19,
+            "idle_worker_count": 0,
+            "army_count": 2,
+            "warp_gate_count": 0
+          },
+          "own_composition": {
+            "PROBE": 18,
+            "ASSIMILATOR": 1,
+            "PYLON": 2,
+            "GATEWAY": 1,
+            "CYBERNETICSCORE": 1,
+            "ZEALOT": 1,
+            "STALKER": 1,
+            "NEXUS": 1
+          },
+          "objective": "develop",
+          "wave_phase": "hold",
+          "package": "legacy_fixed",
+          "threat_supply": 0,
+          "score": {
+            "lost_minerals": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "lost_vespene": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_minerals": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_vespene": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            }
+          }
+        },
+        "240": {
+          "t": 235.4,
+          "player": {
+            "player_id": 1,
+            "minerals": 455,
+            "vespene": 11,
+            "food_cap": 39,
+            "food_used": 32,
+            "food_army": 11,
+            "food_workers": 21,
+            "idle_worker_count": 0,
+            "army_count": 4,
+            "warp_gate_count": 1
+          },
+          "own_composition": {
+            "OBSERVER": 1,
+            "PYLON": 3,
+            "PROBE": 20,
+            "CYBERNETICSCORE": 1,
+            "ZEALOT": 1,
+            "ROBOTICSFACILITY": 1,
+            "WARPGATE": 1,
+            "ASSIMILATOR": 1,
+            "STALKER": 2,
+            "NEXUS": 1
+          },
+          "objective": "stabilize",
+          "wave_phase": "hold",
+          "package": "legacy_fixed",
+          "threat_supply": 10,
+          "score": {
+            "lost_minerals": {
+              "none": 0.0,
+              "army": 200.0,
+              "economy": 400.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "lost_vespene": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_minerals": {
+              "none": 0.0,
+              "army": 100.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_vespene": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            }
+          }
+        },
+        "300": {
+          "t": 295.4,
+          "player": {
+            "player_id": 1,
+            "minerals": 680,
+            "vespene": 25,
+            "food_cap": 39,
+            "food_used": 38,
+            "food_army": 17,
+            "food_workers": 21,
+            "idle_worker_count": 0,
+            "army_count": 6,
+            "warp_gate_count": 1
+          },
+          "own_composition": {
+            "STALKER": 2,
+            "IMMORTAL": 1,
+            "PROBE": 20,
+            "ZEALOT": 2,
+            "ROBOTICSFACILITY": 1,
+            "WARPGATE": 1,
+            "CYBERNETICSCORE": 1,
+            "NEXUS": 1,
+            "PYLON": 3,
+            "ASSIMILATOR": 1,
+            "GATEWAY": 1,
+            "OBSERVER": 1
+          },
+          "objective": "stabilize",
+          "wave_phase": "hold",
+          "package": "legacy_fixed",
+          "threat_supply": 0,
+          "score": {
+            "lost_minerals": {
+              "none": 0.0,
+              "army": 525.0,
+              "economy": 400.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "lost_vespene": {
+              "none": 0.0,
+              "army": 50.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_minerals": {
+              "none": 0.0,
+              "army": 600.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_vespene": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            }
+          }
+        },
+        "360": {
+          "t": 355.4,
+          "player": {
+            "player_id": 1,
+            "minerals": 65,
+            "vespene": 35,
+            "food_cap": 55,
+            "food_used": 52,
+            "food_army": 31,
+            "food_workers": 21,
+            "idle_worker_count": 0,
+            "army_count": 13,
+            "warp_gate_count": 2
+          },
+          "own_composition": {
+            "PROBE": 20,
+            "SENTRY": 1,
+            "STALKER": 3,
+            "ZEALOT": 6,
+            "OBSERVER": 1,
+            "WARPGATE": 2,
+            "PYLON": 5,
+            "ROBOTICSFACILITY": 1,
+            "IMMORTAL": 2,
+            "ASSIMILATOR": 1,
+            "CYBERNETICSCORE": 1,
+            "FORGE": 1,
+            "NEXUS": 1
+          },
+          "objective": "pressure",
+          "wave_phase": "advance",
+          "package": "legacy_fixed",
+          "threat_supply": 0,
+          "score": {
+            "lost_minerals": {
+              "none": 0.0,
+              "army": 525.0,
+              "economy": 400.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "lost_vespene": {
+              "none": 0.0,
+              "army": 50.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_minerals": {
+              "none": 0.0,
+              "army": 600.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_vespene": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            }
+          }
+        },
+        "480": {
+          "t": 475.4,
+          "player": {
+            "player_id": 1,
+            "minerals": 375,
+            "vespene": 59,
+            "food_cap": 78,
+            "food_used": 70,
+            "food_army": 39,
+            "food_workers": 31,
+            "idle_worker_count": 0,
+            "army_count": 17,
+            "warp_gate_count": 2
+          },
+          "own_composition": {
+            "PROBE": 30,
+            "WARPGATE": 2,
+            "ZEALOT": 6,
+            "PYLON": 6,
+            "IMMORTAL": 2,
+            "STALKER": 6,
+            "ROBOTICSFACILITY": 1,
+            "GATEWAY": 1,
+            "CYBERNETICSCORE": 1,
+            "FORGE": 1,
+            "SENTRY": 1,
+            "NEXUS": 2,
+            "ASSIMILATOR": 1,
+            "ROBOTICSBAY": 1,
+            "OBSERVER": 1,
+            "WARPPRISMPHASING": 1
+          },
+          "objective": "pressure",
+          "wave_phase": "engage",
+          "package": "legacy_fixed",
+          "threat_supply": 0,
+          "score": {
+            "lost_minerals": {
+              "none": 0.0,
+              "army": 925.0,
+              "economy": 400.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "lost_vespene": {
+              "none": 0.0,
+              "army": 50.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_minerals": {
+              "none": 0.0,
+              "army": 1300.0,
+              "economy": 500.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_vespene": {
+              "none": 0.0,
+              "army": 50.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            }
+          }
+        },
+        "600": {
+          "t": 595.4,
+          "player": {
+            "player_id": 1,
+            "minerals": 900,
+            "vespene": 175,
+            "food_cap": 110,
+            "food_used": 63,
+            "food_army": 29,
+            "food_workers": 34,
+            "idle_worker_count": 0,
+            "army_count": 13,
+            "warp_gate_count": 3
+          },
+          "own_composition": {
+            "PROBE": 32,
+            "PYLON": 10,
+            "ASSIMILATOR": 2,
+            "ZEALOT": 6,
+            "NEXUS": 2,
+            "IMMORTAL": 2,
+            "CYBERNETICSCORE": 1,
+            "WARPPRISM": 1,
+            "WARPGATE": 3,
+            "ROBOTICSBAY": 1,
+            "FORGE": 1,
+            "STALKER": 3,
+            "OBSERVER": 1,
+            "ROBOTICSFACILITY": 1
+          },
+          "objective": "recover",
+          "wave_phase": "recover",
+          "package": "legacy_fixed",
+          "threat_supply": 0,
+          "score": {
+            "lost_minerals": {
+              "none": 0.0,
+              "army": 3250.0,
+              "economy": 400.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "lost_vespene": {
+              "none": 0.0,
+              "army": 700.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_minerals": {
+              "none": 0.0,
+              "army": 3050.0,
+              "economy": 950.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_vespene": {
+              "none": 0.0,
+              "army": 200.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            }
+          }
+        }
+      }
+    },
+    {
+      "label": "final_rush",
+      "matrix": "portfolio-final-main",
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-001.json",
+      "first_home_threat": {
+        "time": 192.9,
+        "supply": 8,
+        "incoming": {
+          "seen_seconds": 192.85714285714286,
+          "unit_count": 8,
+          "supply": 8.0,
+          "positions": [
+            [
+              77.346923828125,
+              29.1396484375
+            ],
+            [
+              77.784912109375,
+              29.719482421875
+            ],
+            [
+              77.094482421875,
+              28.412109375
+            ],
+            [
+              75.73291015625,
+              27.673828125
+            ],
+            [
+              76.263916015625,
+              28.317626953125
+            ],
+            [
+              77.732177734375,
+              26.54296875
+            ],
+            [
+              78.6005859375,
+              27.185791015625
+            ],
+            [
+              77.780029296875,
+              28.350341796875
+            ]
+          ],
+          "unit_types": [
+            "MARINE",
+            "MARINE",
+            "MARINE",
+            "MARINE",
+            "MARINE",
+            "MARINE",
+            "MARINE",
+            "MARINE"
+          ]
+        },
+        "visible_enemies": {
+          "MARINE": 8
+        }
+      },
+      "horizons": {
+        "180": {
+          "t": 180.0,
+          "player": {
+            "player_id": 1,
+            "minerals": 325,
+            "vespene": 38,
+            "food_cap": 31,
+            "food_used": 25,
+            "food_army": 6,
+            "food_workers": 19,
+            "idle_worker_count": 0,
+            "army_count": 2,
+            "warp_gate_count": 0
+          },
+          "own_composition": {
+            "ZEALOT": 1,
+            "STALKER": 1,
+            "CYBERNETICSCORE": 1,
+            "NEXUS": 1,
+            "PROBE": 18,
+            "PYLON": 2,
+            "ASSIMILATOR": 1,
+            "GATEWAY": 1
+          },
+          "objective": "develop",
+          "wave_phase": "hold",
+          "package": "baseline",
+          "threat_supply": 0,
+          "score": {
+            "lost_minerals": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "lost_vespene": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_minerals": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_vespene": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            }
+          }
+        },
+        "240": {
+          "t": 238.9,
+          "player": {
+            "player_id": 1,
+            "minerals": 440,
+            "vespene": 19,
+            "food_cap": 39,
+            "food_used": 32,
+            "food_army": 11,
+            "food_workers": 21,
+            "idle_worker_count": 1,
+            "army_count": 4,
+            "warp_gate_count": 1
+          },
+          "own_composition": {
+            "PROBE": 20,
+            "OBSERVER": 1,
+            "PYLON": 3,
+            "ROBOTICSFACILITY": 1,
+            "WARPGATE": 1,
+            "CYBERNETICSCORE": 1,
+            "ASSIMILATOR": 1,
+            "STALKER": 2,
+            "NEXUS": 1,
+            "ZEALOT": 1
+          },
+          "objective": "recover",
+          "wave_phase": "recover",
+          "package": "terran_counter_range",
+          "threat_supply": 10,
+          "score": {
+            "lost_minerals": {
+              "none": 0.0,
+              "army": 200.0,
+              "economy": 400.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "lost_vespene": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_minerals": {
+              "none": 0.0,
+              "army": 100.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_vespene": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            }
+          }
+        },
+        "300": {
+          "t": 300.0,
+          "player": {
+            "player_id": 1,
+            "minerals": 630,
+            "vespene": 31,
+            "food_cap": 47,
+            "food_used": 34,
+            "food_army": 15,
+            "food_workers": 19,
+            "idle_worker_count": 0,
+            "army_count": 6,
+            "warp_gate_count": 1
+          },
+          "own_composition": {
+            "ZEALOT": 2,
+            "PYLON": 4,
+            "PROBE": 18,
+            "GATEWAY": 1,
+            "OBSERVER": 1,
+            "STALKER": 2,
+            "CYBERNETICSCORE": 1,
+            "ROBOTICSFACILITY": 1,
+            "NEXUS": 1,
+            "IMMORTAL": 1,
+            "ASSIMILATOR": 1,
+            "WARPGATE": 1
+          },
+          "objective": "stabilize",
+          "wave_phase": "hold",
+          "package": "terran_counter_range",
+          "threat_supply": 0,
+          "score": {
+            "lost_minerals": {
+              "none": 0.0,
+              "army": 650.0,
+              "economy": 500.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "lost_vespene": {
+              "none": 0.0,
+              "army": 100.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_minerals": {
+              "none": 0.0,
+              "army": 250.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_vespene": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            }
+          }
+        },
+        "360": {
+          "t": 360.0,
+          "player": {
+            "player_id": 1,
+            "minerals": 225,
+            "vespene": 45,
+            "food_cap": 55,
+            "food_used": 44,
+            "food_army": 25,
+            "food_workers": 19,
+            "idle_worker_count": 0,
+            "army_count": 12,
+            "warp_gate_count": 2
+          },
+          "own_composition": {
+            "STALKER": 3,
+            "PROBE": 18,
+            "PYLON": 5,
+            "ZEALOT": 5,
+            "ROBOTICSFACILITY": 1,
+            "WARPPRISM": 1,
+            "OBSERVER": 1,
+            "ASSIMILATOR": 1,
+            "IMMORTAL": 1,
+            "FORGE": 1,
+            "WARPGATE": 2,
+            "CYBERNETICSCORE": 1,
+            "SENTRY": 1,
+            "NEXUS": 1
+          },
+          "objective": "pressure",
+          "wave_phase": "advance",
+          "package": "baseline",
+          "threat_supply": 0,
+          "score": {
+            "lost_minerals": {
+              "none": 0.0,
+              "army": 650.0,
+              "economy": 500.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "lost_vespene": {
+              "none": 0.0,
+              "army": 100.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_minerals": {
+              "none": 0.0,
+              "army": 250.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_vespene": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            }
+          }
+        },
+        "480": {
+          "t": 478.9,
+          "player": {
+            "player_id": 1,
+            "minerals": 715,
+            "vespene": 115,
+            "food_cap": 86,
+            "food_used": 54,
+            "food_army": 25,
+            "food_workers": 29,
+            "idle_worker_count": 0,
+            "army_count": 12,
+            "warp_gate_count": 3
+          },
+          "own_composition": {
+            "PROBE": 28,
+            "ROBOTICSFACILITY": 1,
+            "NEXUS": 2,
+            "ASSIMILATOR": 1,
+            "PYLON": 7,
+            "IMMORTAL": 1,
+            "ZEALOT": 3,
+            "STALKER": 5,
+            "FORGE": 1,
+            "WARPGATE": 3,
+            "SENTRY": 1,
+            "WARPPRISM": 1,
+            "OBSERVER": 1,
+            "CYBERNETICSCORE": 1
+          },
+          "objective": "pressure",
+          "wave_phase": "recover",
+          "package": "terran_counter_range",
+          "threat_supply": 0,
+          "score": {
+            "lost_minerals": {
+              "none": 0.0,
+              "army": 1300.0,
+              "economy": 500.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "lost_vespene": {
+              "none": 0.0,
+              "army": 200.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_minerals": {
+              "none": 0.0,
+              "army": 1350.0,
+              "economy": 50.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_vespene": {
+              "none": 0.0,
+              "army": 75.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            }
+          }
+        },
+        "600": {
+          "t": 600.0,
+          "player": {
+            "player_id": 1,
+            "minerals": 540,
+            "vespene": 107,
+            "food_cap": 102,
+            "food_used": 83,
+            "food_army": 49,
+            "food_workers": 34,
+            "idle_worker_count": 0,
+            "army_count": 22,
+            "warp_gate_count": 3
+          },
+          "own_composition": {
+            "ZEALOT": 11,
+            "WARPGATE": 3,
+            "ASSIMILATOR": 2,
+            "PROBE": 33,
+            "SENTRY": 1,
+            "STALKER": 5,
+            "OBSERVER": 1,
+            "PYLON": 9,
+            "ROBOTICSFACILITY": 1,
+            "IMMORTAL": 3,
+            "CYBERNETICSCORE": 1,
+            "NEXUS": 2,
+            "FORGE": 1,
+            "ROBOTICSBAY": 1,
+            "WARPPRISM": 1
+          },
+          "objective": "pressure",
+          "wave_phase": "advance",
+          "package": "terran_counter_range",
+          "threat_supply": 0,
+          "score": {
+            "lost_minerals": {
+              "none": 0.0,
+              "army": 2475.0,
+              "economy": 500.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "lost_vespene": {
+              "none": 0.0,
+              "army": 350.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_minerals": {
+              "none": 0.0,
+              "army": 1850.0,
+              "economy": 150.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_vespene": {
+              "none": 0.0,
+              "army": 200.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            }
+          }
+        }
+      }
+    },
+    {
+      "label": "fixed_timing",
+      "matrix": "engagement-range-v1-20261031-terran-timing",
+      "recording": "runtime-20261031-110231-595566-d09647961649442bb13e64233a145126-001.json",
+      "first_home_threat": {
+        "time": 250.4,
+        "supply": 14.0,
+        "incoming": {
+          "seen_seconds": 249.64285714285717,
+          "unit_count": 12,
+          "supply": 14.0,
+          "positions": [
+            [
+              70.350830078125,
+              36.558349609375
+            ],
+            [
+              72.7197265625,
+              34.608642578125
+            ],
+            [
+              71.052978515625,
+              34.665771484375
+            ],
+            [
+              70.372802734375,
+              34.561279296875
+            ],
+            [
+              71.706298828125,
+              34.1865234375
+            ],
+            [
+              71.5830078125,
+              32.365478515625
+            ],
+            [
+              71.528564453125,
+              33.5185546875
+            ],
+            [
+              70.685791015625,
+              35.497802734375
+            ],
+            [
+              71.152099609375,
+              32.9423828125
+            ],
+            [
+              70.94677734375,
+              32.102783203125
+            ],
+            [
+              69.809326171875,
+              34.165771484375
+            ],
+            [
+              71.60009765625,
+              31.677001953125
+            ]
+          ],
+          "unit_types": [
+            "MARAUDER",
+            "MARINE",
+            "MARINE",
+            "MARINE",
+            "MARINE",
+            "MARINE",
+            "MARINE",
+            "MARAUDER",
+            "MARINE",
+            "MARINE",
+            "MARINE",
+            "MARINE"
+          ]
+        },
+        "visible_enemies": {
+          "MARINE": 10,
+          "MARAUDER": 2
+        }
+      },
+      "horizons": {
+        "180": {
+          "t": 175.4,
+          "player": {
+            "player_id": 1,
+            "minerals": 320,
+            "vespene": 26,
+            "food_cap": 31,
+            "food_used": 25,
+            "food_army": 6,
+            "food_workers": 19,
+            "idle_worker_count": 0,
+            "army_count": 2,
+            "warp_gate_count": 0
+          },
+          "own_composition": {
+            "PROBE": 18,
+            "ZEALOT": 1,
+            "GATEWAY": 1,
+            "PYLON": 2,
+            "STALKER": 1,
+            "ASSIMILATOR": 1,
+            "NEXUS": 1,
+            "CYBERNETICSCORE": 1
+          },
+          "objective": "develop",
+          "wave_phase": "hold",
+          "package": "legacy_fixed",
+          "threat_supply": 0,
+          "score": {
+            "lost_minerals": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "lost_vespene": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_minerals": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_vespene": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            }
+          }
+        },
+        "240": {
+          "t": 235.4,
+          "player": {
+            "player_id": 1,
+            "minerals": 370,
+            "vespene": 11,
+            "food_cap": 54,
+            "food_used": 40,
+            "food_army": 15,
+            "food_workers": 23,
+            "idle_worker_count": 0,
+            "army_count": 6,
+            "warp_gate_count": 1
+          },
+          "own_composition": {
+            "PROBE": 22,
+            "CYBERNETICSCORE": 1,
+            "PYLON": 3,
+            "ROBOTICSFACILITY": 1,
+            "ZEALOT": 2,
+            "OBSERVER": 1,
+            "WARPGATE": 1,
+            "NEXUS": 2,
+            "STALKER": 2,
+            "ASSIMILATOR": 1
+          },
+          "objective": "stabilize",
+          "wave_phase": "hold",
+          "package": "legacy_fixed",
+          "threat_supply": 0,
+          "score": {
+            "lost_minerals": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "lost_vespene": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_minerals": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_vespene": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            }
+          }
+        },
+        "300": {
+          "t": 295.4,
+          "player": {
+            "player_id": 1,
+            "minerals": 50,
+            "vespene": 87,
+            "food_cap": 62,
+            "food_used": 46,
+            "food_army": 19,
+            "food_workers": 26,
+            "idle_worker_count": 0,
+            "army_count": 6,
+            "warp_gate_count": 1
+          },
+          "own_composition": {
+            "PYLON": 4,
+            "PROBE": 24,
+            "ROBOTICSFACILITY": 1,
+            "ZEALOT": 3,
+            "CYBERNETICSCORE": 1,
+            "ASSIMILATOR": 2,
+            "NEXUS": 2,
+            "WARPGATE": 1,
+            "IMMORTAL": 1,
+            "OBSERVER": 1,
+            "GATEWAY": 1
+          },
+          "objective": "stabilize",
+          "wave_phase": "hold",
+          "package": "legacy_fixed",
+          "threat_supply": 0,
+          "score": {
+            "lost_minerals": {
+              "none": 0.0,
+              "army": 550.0,
+              "economy": 250.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "lost_vespene": {
+              "none": 0.0,
+              "army": 100.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_minerals": {
+              "none": 0.0,
+              "army": 300.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_vespene": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            }
+          }
+        },
+        "360": {
+          "t": 355.4,
+          "player": {
+            "player_id": 1,
+            "minerals": 275,
+            "vespene": 111,
+            "food_cap": 70,
+            "food_used": 59,
+            "food_army": 23,
+            "food_workers": 36,
+            "idle_worker_count": 0,
+            "army_count": 10,
+            "warp_gate_count": 3
+          },
+          "own_composition": {
+            "ZEALOT": 3,
+            "PROBE": 34,
+            "PYLON": 5,
+            "SENTRY": 2,
+            "WARPGATE": 3,
+            "OBSERVER": 1,
+            "IMMORTAL": 2,
+            "ASSIMILATOR": 2,
+            "NEXUS": 2,
+            "STALKER": 2,
+            "CYBERNETICSCORE": 1,
+            "ROBOTICSFACILITY": 1
+          },
+          "objective": "pressure",
+          "wave_phase": "advance",
+          "package": "legacy_fixed",
+          "threat_supply": 0,
+          "score": {
+            "lost_minerals": {
+              "none": 0.0,
+              "army": 750.0,
+              "economy": 250.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "lost_vespene": {
+              "none": 0.0,
+              "army": 100.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_minerals": {
+              "none": 0.0,
+              "army": 300.0,
+              "economy": 50.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_vespene": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            }
+          }
+        },
+        "480": {
+          "t": 475.4,
+          "player": {
+            "player_id": 1,
+            "minerals": 190,
+            "vespene": 17,
+            "food_cap": 94,
+            "food_used": 80,
+            "food_army": 39,
+            "food_workers": 41,
+            "idle_worker_count": 0,
+            "army_count": 16,
+            "warp_gate_count": 3
+          },
+          "own_composition": {
+            "TWILIGHTCOUNCIL": 1,
+            "PROBE": 38,
+            "STALKER": 5,
+            "WARPGATE": 3,
+            "ZEALOT": 5,
+            "OBSERVER": 1,
+            "PYLON": 8,
+            "ASSIMILATOR": 3,
+            "NEXUS": 2,
+            "ROBOTICSFACILITY": 1,
+            "SENTRY": 2,
+            "COLOSSUS": 1,
+            "ROBOTICSBAY": 1,
+            "CYBERNETICSCORE": 1,
+            "WARPPRISM": 1
+          },
+          "objective": "pressure",
+          "wave_phase": "assemble",
+          "package": "legacy_fixed",
+          "threat_supply": 0,
+          "score": {
+            "lost_minerals": {
+              "none": 0.0,
+              "army": 1775.0,
+              "economy": 250.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "lost_vespene": {
+              "none": 0.0,
+              "army": 350.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_minerals": {
+              "none": 0.0,
+              "army": 500.0,
+              "economy": 100.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_vespene": {
+              "none": 0.0,
+              "army": 25.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            }
+          }
+        },
+        "600": {
+          "t": 595.4,
+          "player": {
+            "player_id": 1,
+            "minerals": 375,
+            "vespene": 503,
+            "food_cap": 125,
+            "food_used": 111,
+            "food_army": 55,
+            "food_workers": 56,
+            "idle_worker_count": 0,
+            "army_count": 23,
+            "warp_gate_count": 3
+          },
+          "own_composition": {
+            "PROBE": 51,
+            "ZEALOT": 13,
+            "WARPPRISMPHASING": 1,
+            "ROBOTICSBAY": 1,
+            "PYLON": 10,
+            "ASSIMILATOR": 5,
+            "IMMORTAL": 2,
+            "SENTRY": 2,
+            "NEXUS": 3,
+            "STALKER": 4,
+            "CYBERNETICSCORE": 1,
+            "TWILIGHTCOUNCIL": 1,
+            "ROBOTICSFACILITY": 1,
+            "WARPGATE": 3,
+            "OBSERVER": 1
+          },
+          "objective": "pressure",
+          "wave_phase": "advance",
+          "package": "legacy_fixed",
+          "threat_supply": 0,
+          "score": {
+            "lost_minerals": {
+              "none": 0.0,
+              "army": 2525.0,
+              "economy": 250.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "lost_vespene": {
+              "none": 0.0,
+              "army": 650.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_minerals": {
+              "none": 0.0,
+              "army": 750.0,
+              "economy": 750.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_vespene": {
+              "none": 0.0,
+              "army": 50.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            }
+          }
+        }
+      }
+    },
+    {
+      "label": "final_timing",
+      "matrix": "portfolio-final-main",
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-004.json",
+      "first_home_threat": {
+        "time": 247.5,
+        "supply": 2,
+        "incoming": null,
+        "visible_enemies": {
+          "MARINE": 2
+        }
+      },
+      "horizons": {
+        "180": {
+          "t": 180.0,
+          "player": {
+            "player_id": 1,
+            "minerals": 360,
+            "vespene": 38,
+            "food_cap": 31,
+            "food_used": 25,
+            "food_army": 6,
+            "food_workers": 19,
+            "idle_worker_count": 0,
+            "army_count": 2,
+            "warp_gate_count": 0
+          },
+          "own_composition": {
+            "PROBE": 18,
+            "ROBOTICSFACILITY": 1,
+            "PYLON": 2,
+            "CYBERNETICSCORE": 1,
+            "NEXUS": 1,
+            "STALKER": 1,
+            "ASSIMILATOR": 1,
+            "GATEWAY": 1,
+            "ZEALOT": 1
+          },
+          "objective": "develop",
+          "wave_phase": "hold",
+          "package": "baseline",
+          "threat_supply": 0,
+          "score": {
+            "lost_minerals": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "lost_vespene": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_minerals": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_vespene": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            }
+          }
+        },
+        "240": {
+          "t": 238.9,
+          "player": {
+            "player_id": 1,
+            "minerals": 340,
+            "vespene": 23,
+            "food_cap": 54,
+            "food_used": 40,
+            "food_army": 15,
+            "food_workers": 23,
+            "idle_worker_count": 0,
+            "army_count": 6,
+            "warp_gate_count": 1
+          },
+          "own_composition": {
+            "PROBE": 22,
+            "PYLON": 3,
+            "NEXUS": 2,
+            "STALKER": 2,
+            "CYBERNETICSCORE": 1,
+            "OBSERVER": 1,
+            "ASSIMILATOR": 1,
+            "WARPGATE": 1,
+            "ZEALOT": 3,
+            "ROBOTICSFACILITY": 1
+          },
+          "objective": "stabilize",
+          "wave_phase": "hold",
+          "package": "terran_counter_range",
+          "threat_supply": 0,
+          "score": {
+            "lost_minerals": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "lost_vespene": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_minerals": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_vespene": {
+              "none": 0.0,
+              "army": 0.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            }
+          }
+        },
+        "300": {
+          "t": 300.0,
+          "player": {
+            "player_id": 1,
+            "minerals": 200,
+            "vespene": 37,
+            "food_cap": 62,
+            "food_used": 42,
+            "food_army": 15,
+            "food_workers": 26,
+            "idle_worker_count": 0,
+            "army_count": 7,
+            "warp_gate_count": 2
+          },
+          "own_composition": {
+            "PROBE": 26,
+            "IMMORTAL": 1,
+            "NEXUS": 2,
+            "PYLON": 4,
+            "CYBERNETICSCORE": 1,
+            "WARPGATE": 2,
+            "ZEALOT": 2,
+            "ROBOTICSFACILITY": 1,
+            "OBSERVER": 1,
+            "ASSIMILATOR": 1,
+            "STALKER": 1
+          },
+          "objective": "stabilize",
+          "wave_phase": "hold",
+          "package": "terran_counter_range",
+          "threat_supply": 4.0,
+          "score": {
+            "lost_minerals": {
+              "none": 0.0,
+              "army": 675.0,
+              "economy": 250.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "lost_vespene": {
+              "none": 0.0,
+              "army": 150.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_minerals": {
+              "none": 0.0,
+              "army": 900.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_vespene": {
+              "none": 0.0,
+              "army": 50.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            }
+          }
+        },
+        "360": {
+          "t": 360.0,
+          "player": {
+            "player_id": 1,
+            "minerals": 65,
+            "vespene": 103,
+            "food_cap": 70,
+            "food_used": 65,
+            "food_army": 27,
+            "food_workers": 37,
+            "idle_worker_count": 0,
+            "army_count": 13,
+            "warp_gate_count": 3
+          },
+          "own_composition": {
+            "PROBE": 35,
+            "ZEALOT": 7,
+            "PYLON": 5,
+            "SENTRY": 1,
+            "OBSERVER": 1,
+            "NEXUS": 2,
+            "STALKER": 3,
+            "WARPGATE": 3,
+            "ASSIMILATOR": 2,
+            "IMMORTAL": 1,
+            "CYBERNETICSCORE": 1,
+            "ROBOTICSFACILITY": 1
+          },
+          "objective": "pressure",
+          "wave_phase": "advance",
+          "package": "baseline",
+          "threat_supply": 0,
+          "score": {
+            "lost_minerals": {
+              "none": 0.0,
+              "army": 675.0,
+              "economy": 250.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "lost_vespene": {
+              "none": 0.0,
+              "army": 150.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_minerals": {
+              "none": 0.0,
+              "army": 900.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_vespene": {
+              "none": 0.0,
+              "army": 50.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            }
+          }
+        },
+        "480": {
+          "t": 478.9,
+          "player": {
+            "player_id": 1,
+            "minerals": 190,
+            "vespene": 79,
+            "food_cap": 94,
+            "food_used": 88,
+            "food_army": 47,
+            "food_workers": 41,
+            "idle_worker_count": 0,
+            "army_count": 21,
+            "warp_gate_count": 3
+          },
+          "own_composition": {
+            "PROBE": 38,
+            "ZEALOT": 13,
+            "OBSERVER": 1,
+            "PYLON": 8,
+            "ASSIMILATOR": 3,
+            "STALKER": 4,
+            "WARPGATE": 3,
+            "WARPPRISM": 1,
+            "SENTRY": 2,
+            "NEXUS": 2,
+            "FORGE": 1,
+            "TWILIGHTCOUNCIL": 1,
+            "ROBOTICSFACILITY": 1,
+            "ROBOTICSBAY": 1,
+            "CYBERNETICSCORE": 1
+          },
+          "objective": "pressure",
+          "wave_phase": "advance",
+          "package": "terran_counter_range",
+          "threat_supply": 0,
+          "score": {
+            "lost_minerals": {
+              "none": 0.0,
+              "army": 1250.0,
+              "economy": 250.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "lost_vespene": {
+              "none": 0.0,
+              "army": 300.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_minerals": {
+              "none": 0.0,
+              "army": 950.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_vespene": {
+              "none": 0.0,
+              "army": 50.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            }
+          }
+        },
+        "600": {
+          "t": 600.0,
+          "player": {
+            "player_id": 1,
+            "minerals": 55,
+            "vespene": 539,
+            "food_cap": 110,
+            "food_used": 108,
+            "food_army": 63,
+            "food_workers": 43,
+            "idle_worker_count": 0,
+            "army_count": 27,
+            "warp_gate_count": 3
+          },
+          "own_composition": {
+            "PROBE": 43,
+            "WARPGATE": 3,
+            "SENTRY": 2,
+            "ZEALOT": 17,
+            "PYLON": 10,
+            "WARPPRISM": 1,
+            "ASSIMILATOR": 5,
+            "COLOSSUS": 1,
+            "NEXUS": 2,
+            "IMMORTAL": 1,
+            "CYBERNETICSCORE": 1,
+            "FORGE": 1,
+            "TWILIGHTCOUNCIL": 1,
+            "ROBOTICSBAY": 1,
+            "STALKER": 3,
+            "ROBOTICSFACILITY": 2,
+            "OBSERVER": 1
+          },
+          "objective": "pressure",
+          "wave_phase": "assemble",
+          "package": "terran_counter_range",
+          "threat_supply": 0,
+          "score": {
+            "lost_minerals": {
+              "none": 0.0,
+              "army": 2350.0,
+              "economy": 1400.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "lost_vespene": {
+              "none": 0.0,
+              "army": 500.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_minerals": {
+              "none": 0.0,
+              "army": 950.0,
+              "economy": 950.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            },
+            "killed_vespene": {
+              "none": 0.0,
+              "army": 50.0,
+              "economy": 0.0,
+              "technology": 0.0,
+              "upgrade": 0.0
+            }
+          }
+        }
+      }
+    }
+  ]
+}

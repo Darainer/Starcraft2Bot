@@ -1,0 +1,302 @@
+{
+  "scope": "Saved-data/real SDK reconstruction only; no game launched. Three fixed repeats per arm and build. Engagement measures180-600s; supply-block measure0-600s. Durations hold previous sampled state until next observation. Ready actor seconds count correlated zero-cooldown actors with a visible legal-domain target; geometric reach is not observed firing, pathing feasibility or avoidable idle time. Sampling5s versus1s differs. Legacy fixed has range rule always available; portfolio requires its selected package.",
+  "records": [
+    {
+      "arm": "fixed",
+      "matrix": "engagement-range-v1-20261031-terran-rush",
+      "build": "Rush",
+      "trial_id": 1,
+      "recording": "runtime-20261031-110615-191814-0053a73dc6cc4e93a4758789f605a9da-001.json",
+      "window_seconds": [
+        180,
+        600
+      ],
+      "totals": {
+        "supply_block_seconds": 15.0,
+        "engaged_seconds": 45.0,
+        "engaged_without_range_policy_seconds": 0.0,
+        "ready_actor_seconds": 125.0,
+        "ready_out_of_range_actor_seconds": 115.0
+      },
+      "off_policy_examples": []
+    },
+    {
+      "arm": "fixed",
+      "matrix": "engagement-range-v1-20261031-terran-rush",
+      "build": "Rush",
+      "trial_id": 2,
+      "recording": "runtime-20261031-110615-191814-0053a73dc6cc4e93a4758789f605a9da-002.json",
+      "window_seconds": [
+        180,
+        600
+      ],
+      "totals": {
+        "supply_block_seconds": 15.0,
+        "engaged_seconds": 45.0,
+        "engaged_without_range_policy_seconds": 0.0,
+        "ready_actor_seconds": 125.0,
+        "ready_out_of_range_actor_seconds": 115.0
+      },
+      "off_policy_examples": []
+    },
+    {
+      "arm": "fixed",
+      "matrix": "engagement-range-v1-20261031-terran-rush",
+      "build": "Rush",
+      "trial_id": 3,
+      "recording": "runtime-20261031-110615-191814-0053a73dc6cc4e93a4758789f605a9da-003.json",
+      "window_seconds": [
+        180,
+        600
+      ],
+      "totals": {
+        "supply_block_seconds": 15.0,
+        "engaged_seconds": 45.0,
+        "engaged_without_range_policy_seconds": 0.0,
+        "ready_actor_seconds": 125.0,
+        "ready_out_of_range_actor_seconds": 115.0
+      },
+      "off_policy_examples": []
+    },
+    {
+      "arm": "fixed",
+      "matrix": "engagement-range-v1-20261031-terran-timing",
+      "build": "Timing",
+      "trial_id": 1,
+      "recording": "runtime-20261031-110231-595566-d09647961649442bb13e64233a145126-001.json",
+      "window_seconds": [
+        180,
+        600
+      ],
+      "totals": {
+        "supply_block_seconds": 5.0,
+        "engaged_seconds": 20.0,
+        "engaged_without_range_policy_seconds": 0.0,
+        "ready_actor_seconds": 150.0,
+        "ready_out_of_range_actor_seconds": 130.0
+      },
+      "off_policy_examples": []
+    },
+    {
+      "arm": "fixed",
+      "matrix": "engagement-range-v1-20261031-terran-timing",
+      "build": "Timing",
+      "trial_id": 2,
+      "recording": "runtime-20261031-110231-595566-d09647961649442bb13e64233a145126-002.json",
+      "window_seconds": [
+        180,
+        600
+      ],
+      "totals": {
+        "supply_block_seconds": 5.0,
+        "engaged_seconds": 20.0,
+        "engaged_without_range_policy_seconds": 0.0,
+        "ready_actor_seconds": 150.0,
+        "ready_out_of_range_actor_seconds": 130.0
+      },
+      "off_policy_examples": []
+    },
+    {
+      "arm": "fixed",
+      "matrix": "engagement-range-v1-20261031-terran-timing",
+      "build": "Timing",
+      "trial_id": 3,
+      "recording": "runtime-20261031-110231-595566-d09647961649442bb13e64233a145126-003.json",
+      "window_seconds": [
+        180,
+        600
+      ],
+      "totals": {
+        "supply_block_seconds": 5.0,
+        "engaged_seconds": 20.0,
+        "engaged_without_range_policy_seconds": 0.0,
+        "ready_actor_seconds": 150.0,
+        "ready_out_of_range_actor_seconds": 130.0
+      },
+      "off_policy_examples": []
+    },
+    {
+      "arm": "portfolio",
+      "matrix": "portfolio-final-main",
+      "build": "Rush",
+      "trial_id": 1,
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-001.json",
+      "window_seconds": [
+        180,
+        600
+      ],
+      "totals": {
+        "supply_block_seconds": 6.429,
+        "engaged_seconds": 34.286,
+        "engaged_without_range_policy_seconds": 2.143,
+        "ready_actor_seconds": 181.071,
+        "ready_out_of_range_actor_seconds": 162.857,
+        "ready_out_of_range_without_range_policy_actor_seconds": 7.5
+      },
+      "off_policy_examples": [
+        {
+          "time_seconds": 371.786,
+          "package": "baseline",
+          "ready_out_of_range_types": {
+            "ZEALOT": 3
+          },
+          "visible_armed_enemies": {
+            "SCV": 1
+          }
+        },
+        {
+          "time_seconds": 372.857,
+          "package": "baseline",
+          "ready_out_of_range_types": {
+            "ZEALOT": 3,
+            "STALKER": 1
+          },
+          "visible_armed_enemies": {
+            "SCV": 1
+          }
+        }
+      ]
+    },
+    {
+      "arm": "portfolio",
+      "matrix": "portfolio-final-main",
+      "build": "Rush",
+      "trial_id": 2,
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-002.json",
+      "window_seconds": [
+        180,
+        600
+      ],
+      "totals": {
+        "supply_block_seconds": 6.429,
+        "engaged_seconds": 34.286,
+        "engaged_without_range_policy_seconds": 2.143,
+        "ready_actor_seconds": 181.071,
+        "ready_out_of_range_actor_seconds": 162.857,
+        "ready_out_of_range_without_range_policy_actor_seconds": 7.5
+      },
+      "off_policy_examples": [
+        {
+          "time_seconds": 371.786,
+          "package": "baseline",
+          "ready_out_of_range_types": {
+            "ZEALOT": 3
+          },
+          "visible_armed_enemies": {
+            "SCV": 1
+          }
+        },
+        {
+          "time_seconds": 372.857,
+          "package": "baseline",
+          "ready_out_of_range_types": {
+            "ZEALOT": 3,
+            "STALKER": 1
+          },
+          "visible_armed_enemies": {
+            "SCV": 1
+          }
+        }
+      ]
+    },
+    {
+      "arm": "portfolio",
+      "matrix": "portfolio-final-main",
+      "build": "Rush",
+      "trial_id": 3,
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-003.json",
+      "window_seconds": [
+        180,
+        600
+      ],
+      "totals": {
+        "supply_block_seconds": 6.429,
+        "engaged_seconds": 34.286,
+        "engaged_without_range_policy_seconds": 2.143,
+        "ready_actor_seconds": 181.071,
+        "ready_out_of_range_actor_seconds": 162.857,
+        "ready_out_of_range_without_range_policy_actor_seconds": 7.5
+      },
+      "off_policy_examples": [
+        {
+          "time_seconds": 371.786,
+          "package": "baseline",
+          "ready_out_of_range_types": {
+            "ZEALOT": 3
+          },
+          "visible_armed_enemies": {
+            "SCV": 1
+          }
+        },
+        {
+          "time_seconds": 372.857,
+          "package": "baseline",
+          "ready_out_of_range_types": {
+            "ZEALOT": 3,
+            "STALKER": 1
+          },
+          "visible_armed_enemies": {
+            "SCV": 1
+          }
+        }
+      ]
+    },
+    {
+      "arm": "portfolio",
+      "matrix": "portfolio-final-main",
+      "build": "Timing",
+      "trial_id": 4,
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-004.json",
+      "window_seconds": [
+        180,
+        600
+      ],
+      "totals": {
+        "supply_block_seconds": 8.571,
+        "engaged_seconds": 19.286,
+        "engaged_without_range_policy_seconds": 0.0,
+        "ready_actor_seconds": 154.286,
+        "ready_out_of_range_actor_seconds": 152.143
+      },
+      "off_policy_examples": []
+    },
+    {
+      "arm": "portfolio",
+      "matrix": "portfolio-final-main",
+      "build": "Timing",
+      "trial_id": 5,
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-005.json",
+      "window_seconds": [
+        180,
+        600
+      ],
+      "totals": {
+        "supply_block_seconds": 8.571,
+        "engaged_seconds": 19.286,
+        "engaged_without_range_policy_seconds": 0.0,
+        "ready_actor_seconds": 154.286,
+        "ready_out_of_range_actor_seconds": 152.143
+      },
+      "off_policy_examples": []
+    },
+    {
+      "arm": "portfolio",
+      "matrix": "portfolio-final-main",
+      "build": "Timing",
+      "trial_id": 6,
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-006.json",
+      "window_seconds": [
+        180,
+        600
+      ],
+      "totals": {
+        "supply_block_seconds": 8.571,
+        "engaged_seconds": 19.286,
+        "engaged_without_range_policy_seconds": 0.0,
+        "ready_actor_seconds": 154.286,
+        "ready_out_of_range_actor_seconds": 152.143
+      },
+      "off_policy_examples": []
+    }
+  ]
+}

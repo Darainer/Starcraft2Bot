@@ -7,6 +7,9 @@ pressure, contain, counterattack, finish or recover. A package controls bounded
 production priorities and formation behavior, rather than replacing every
 controller or issuing competing orders.
 
+For specialist fidelity and recurring loss mechanisms, see the
+[offline follow-up](specialist-loss-patterns.md).
+
 ## Available packages
 
 | Playbook ID | Automatic eligibility | Components and origin |
