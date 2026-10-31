@@ -134,6 +134,20 @@ amounts were treated as empty. It is not promoted. Software validation passed
 the distinction between unknown and depleted minerals and is evaluated on the
 earlier Robotics-only revision that actually suffered the depletion stall.
 
+That [depletion variant](evaluations/2026-10-31-depletion-recovery-v1-20261031-zerg-power.md)
+(`4af6e8d`) lost Power 3/3 at 1120.4/1120.4/1135.4 and is rejected. It moved the
+initial third-base investment earlier, weakening the representative midgame;
+fixing a reachable gate did not establish better play. The
+[parent subset](evaluations/2026-10-31-robotics-fund-v2-zerg-power-reference.md)
+also corrects the chronology: the parent built its initial third, then lost one
+base and exhausted its remaining lines. Pressure's three-base ceiling and
+56-worker cap separately prevent reaching the old fourth-base gate of 58.
+
+A minimal subsequent configuration experiment keeps the original gates and
+Robotics-v2 gameplay, raising pressure to four bases and seventy workers. This
+tests preemptive fourth-base income, not recovery from an already empty bank;
+it is a separate frozen candidate pending its Power triplet.
+
 The validated baseline is checked in on `feat/hardcoded-baseline-20261031`:
 runtime/trial fixes, R2 gameplay and passive belief/metric instrumentation.
 An isolated checkout of commit `67ed0f7` passed all locked checks and **492 tests,

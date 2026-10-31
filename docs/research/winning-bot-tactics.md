@@ -218,3 +218,33 @@ participant's private observations confined to clearly separated offline targets
 The next concrete work is a frozen siege-approach experiment and the independent
 depletion regression fix. Community interoperability can then be implemented
 without blocking those live improvement gates.
+
+## Long game economy follow up
+
+Subsequent trials rejected siege approach and broad earlier third-base funding;
+the [milestone record](../hardcoded-elite-milestone.md) preserves their outcomes.
+The Robotics-v2 Power parent did build a third base, then lost one and exhausted
+the remaining lines. At 1005 seconds it still has 56 workers and three bases but
+only 22 mineral ideal-harvester positions. Pressure's three-base ceiling prevents
+preemptive renewal; its worker cap of 56 also makes the fourth-base gate of 58
+unreachable if only the base ceiling is raised. A configuration test of four
+bases/seventy workers keeps the old gates; it is a hypothesis, not an established
+optimum. A fifth base adds no reachable gate while the unchanged requirement is
+78 workers.
+
+MicroMachine provides a useful independent mechanism: its expansion condition
+uses accessible mineral-patch capacity with an offset to start before workers
+arrive, and worker targeting allows for the next expansion. It also responds to
+positive observed early Roach Warren/Roach evidence for an armored-ground counter.
+These are precedents for preemptive capacity and evidence-driven investment;
+the historical Terran thresholds are not copied into this Protoss bot.
+[MicroMachine production manager](https://github.com/RaphaelRoyerRivard/MicroMachine/blob/eb893161371dab975a0a7e600f9e250ac03ec1ef/src/ProductionManager.cpp#L755)
+
+Our current observation omits mineral amounts outside vision. Treating a missing
+positive amount as depletion delayed a third base in a controlled trial. A later
+resource model should retain timestamped site inspections and confirmed depletion,
+request a safe scout for stale sites, and preserve the distinction between unknown
+and empty. A strict requirement for an Observer before funding Robotics would
+be circular: Robotics produces the Observer. Positive earlier worker/army evidence
+can motivate counters; missing tech observations cannot prove the opponent lacks
+that technology. No new evidence gate has been accepted yet.
