@@ -400,6 +400,17 @@ specifies a recurrent belief-state policy, four categorical action heads with
 34 logits, a deterministic guarded decoder, transition logging, training and
 evaluation phases. No RL learner or trained weights are implemented.
 
+## Subsequent targeted repairs
+
+The later [hardcoded milestone record](hardcoded-elite-milestone.md) tracks early
+Robotics, counter-tech, wave readiness and siege-approach experiments separately
+from accepted R2 gameplay. Counter-tech won Terran Rush 3/3 but lost Terran Timing
+and Zerg Macro; wave readiness and siege approach also failed their Timing gates.
+Their commits, source manifests and outcome reports remain on experiment branches.
+The separate [RL training plan](rl-training-plan.md) covers teacher collection,
+public opponents and conditional headless Linux deployment. Learner work remains
+after the hardcoded playing-strength gate.
+
 ## Research basis and limits
 
 Blizzard's [protocol defines the five AI build labels](https://github.com/Blizzard/s2client-proto/blob/master/s2clientprotocol/sc2api.proto).
