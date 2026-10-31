@@ -161,8 +161,12 @@ close on a local visible combat contact during an engaged wave; the old anchor
 slots can leave them unable to fire. Recorded-state inspection found this gap
 in 29 of 38 ready actor-samples across the representative Timing engagement
 samples, mostly Zealots; these are correlated snapshots, not independent fights.
-The candidate passed 521 tests (88.58% coverage) and required checks. Its Terran
-Timing triplet is pending; the snapshot finding is not a playing-strength claim.
+The candidate passed 521 tests (88.58% coverage) and required checks. Its
+[Terran Timing triplet](evaluations/2026-10-31-engagement-range-v1-20261031-terran-timing.md)
+won 3/3 at 1180.4 seconds, versus the parent's three defeats. Starts, source,
+binary/map identities and replays pass verification. Terran Rush, Zerg Macro
+and Zerg Timing are the next unchanged-source triplets; promotion waits for
+retention rather than the snapshot finding alone.
 
 The validated baseline is checked in on `feat/hardcoded-baseline-20261031`:
 runtime/trial fixes, R2 gameplay and passive belief/metric instrumentation.
