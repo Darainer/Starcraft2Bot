@@ -38,6 +38,7 @@ class ScoutController:
         self.revisit_started = False
         self.revisit_active = False
         self.revisit_until = 0
+        self.revisit_health = None
         self.costs = ScoutCosts()
 
     def _rush_warning(self, bot, combat, buildings, report):
@@ -448,10 +449,27 @@ class ScoutController:
         threatened = enemies.filter(
             lambda unit: (
                 unit.can_attack_ground
-                and unit.distance_to(scout) < (3 if self.revisit_active and unit.type_id in WORKERS else 8)
+                and unit.distance_to(scout) < 8
+                and (not self.revisit_active or unit.type_id not in WORKERS)
             )
         )
-        self.returning |= bool(threatened) or scout.health + scout.shield < 30
+        health = scout.health + scout.shield
+        worker_pressure = False
+        damaged = False
+        if self.revisit_active:
+            worker_pressure = (
+                len(
+                    enemies.filter(
+                        lambda unit: (
+                            unit.type_id in WORKERS and unit.can_attack_ground and unit.distance_to(scout) < 8
+                        )
+                    )
+                )
+                >= 2
+            )
+            damaged = self.revisit_health is not None and health < self.revisit_health - 0.001
+            self.revisit_health = health
+        self.returning |= bool(threatened) or worker_pressure or damaged or health < 30
         route = self._worker_route(bot)
         if self.revisit_active:
             route = route[:1]
@@ -459,7 +477,11 @@ class ScoutController:
         if not route and not self.returning:
             self.returning = True
             return "no_known_start"
-        if not self.returning and scout.distance_to(route[self.worker_route_index % len(route)]) < 6:
+        if (
+            not self.returning
+            and scout.distance_to(route[self.worker_route_index % len(route)]) < 6
+            and (not self.revisit_active or bot.is_visible(route[self.worker_route_index % len(route)]))
+        ):
             self.worker_route_index += 1
             self.returning = self.worker_route_index >= len(route)
         if self.returning:
@@ -502,7 +524,13 @@ class ScoutController:
             for site in report.get("expansion_sites", [])
         ):
             return False
-        workers = bot.workers.filter(lambda unit: bot.available(unit) and (unit.is_idle or unit.is_gathering))
+        workers = bot.workers.filter(
+            lambda unit: (
+                bot.available(unit)
+                and (unit.is_idle or unit.is_gathering)
+                and unit.health + unit.shield >= 0.85 * (unit.health_max + unit.shield_max)
+            )
+        )
         if not workers:
             return False
         worker = workers.closest_to(route[0])
@@ -512,5 +540,6 @@ class ScoutController:
         self.returning = False
         self.revisit_started = self.revisit_active = True
         self.revisit_until = bot.time + 60
+        self.revisit_health = worker.health + worker.shield
         self.costs.register(bot, worker, "worker")
         return True

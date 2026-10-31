@@ -239,3 +239,29 @@ margin. This hypothesis must earn actual enemy-side inspections and retain wins
 before broader evaluation. In parallel, the frozen reference collects all five
 Zerg builds on unused seed 2026103101, so data collection does not depend on
 promoting an unproven scouting change.
+
+V2 (`64001d5`) also completed all six targets with verified starts/source/map/
+binary/difficulty/replays. Macro finishes were 1122.1 / 1091.8 / 1091.8 seconds;
+Timing was 639.6 seconds in all three. The
+[v2 evaluation](evaluations/2026-10-31-scouting-evidence-v2-revisit-targets.md) and
+[verified outcomes](experiments/2026-10-31/scouting-targeted-v2-outcomes.json)
+remain separate. Passing within three units of the Drone still caused an
+undamaged Probe to turn back around 159.6 seconds, so early information did not
+improve sufficiently. This is not a successful enemy-natural inspection.
+
+After V2's complete batch, V3 changes only the additional revisit's risk rule:
+a single worker's proximity is insufficient to abort. Any observed health/shield
+loss causes immediate withdrawal, as do two nearby armed workers or an army
+threat within the existing eight-unit margin. Use a healthy Probe, retain the
+one-attempt/sixty-second outbound bound and all ownership/defense guards, and
+require actual target visibility to finish the inspection. The rule does not
+assume unavailable enemy orders mean the worker is harmless. Original opening
+scouting is unchanged. Tests cover first damage after shield regeneration,
+multiple workers, close passing workers, real site visibility and original-scout
+behavior. V3 must demonstrate useful facts and retain wins before promotion.
+
+The frozen reference's first unused-seed block (2026103101) completed **15/15
+wins**, with three repeats of all five builds. A second unused seed (2026103102)
+is collecting the same block. These are additional development groups, not
+untouched classifier test groups. Three seed groups on one map still do not
+establish reliable prediction across maps or opponent families.

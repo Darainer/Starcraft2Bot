@@ -50,6 +50,7 @@ def test_revisit_uses_one_worker_only_visits_natural_and_stops_at_deadline(bot, 
         "workers",
         "manual",
         "script",
+        "injured",
     ],
 )
 def test_revisit_guards_ownership_defense_economy_and_duplicate_inspection(bot, make_unit, populate, guard):
@@ -77,6 +78,9 @@ def test_revisit_guards_ownership_defense_economy_and_duplicate_inspection(bot, 
         bot.supply_workers = 15
     elif guard == "manual":
         bot.settings.strategy = "defend"
+    elif guard == "injured":
+        probe._proto.health = 5
+        probe._proto.shield = 0
     else:
         bot.settings.strategy_script = "custom.py"
     scout._worker_scout(bot, bot.enemy_units, report)
@@ -95,7 +99,7 @@ def test_revisit_returns_on_contact_and_hands_off_to_observer(bot, make_unit, po
     assert not bot.actions
 
 
-def test_revisit_passes_a_distant_worker_but_retreats_from_close_workers_and_army(bot, make_unit, populate):
+def test_revisit_passes_workers_but_withdraws_on_first_damage_or_army_contact(bot, make_unit, populate):
     scout, probe = prepare(bot, make_unit, populate)
     probe._proto.pos.x = 40
     worker = make_unit(U.PROBE, (47, 10), alliance=4)
@@ -104,10 +108,42 @@ def test_revisit_passes_a_distant_worker_but_retreats_from_close_workers_and_arm
     assert scout._worker_scout(bot, enemies, {}) == "revisiting_enemy_natural"
     bot._used.clear()
     worker._proto.pos.x = 42
+    assert scout._worker_scout(bot, enemies, {}) == "revisiting_enemy_natural"
+    bot._used.clear()
+    probe._proto.shield -= 1
     assert scout._worker_scout(bot, enemies, {}) == "returning"
     scout.returning = False
     army = Units([make_unit(U.MARINE, (47, 10), alliance=4)], bot)
     assert scout._worker_scout(bot, army, {}) == "returning"
+
+
+def test_revisit_avoids_worker_swarm_without_waiting_for_damage(bot, make_unit, populate):
+    scout, probe = prepare(bot, make_unit, populate)
+    probe._proto.pos.x = 40
+    workers = Units([make_unit(U.PROBE, (47, 10), alliance=4), make_unit(U.PROBE, (46, 10), alliance=4)], bot)
+    assert scout._worker_scout(bot, workers, {}) == "returning"
+
+
+def test_revisit_detects_first_hit_after_shield_regeneration(bot, make_unit, populate):
+    scout, probe = prepare(bot, make_unit, populate)
+    probe._proto.health = probe._proto.health_max = probe._proto.shield_max = 20
+    probe._proto.shield = 18
+    scout._worker_scout(bot, bot.enemy_units, {})
+    bot._used.clear()
+    probe._proto.shield = 20
+    assert scout._worker_scout(bot, bot.enemy_units, {}) == "revisiting_enemy_natural"
+    probe._proto.shield = 19
+    assert scout._worker_scout(bot, bot.enemy_units, {}) == "returning"
+
+
+def test_revisit_requires_actual_visibility_to_finish_the_inspection(bot, make_unit, populate):
+    scout, probe = prepare(bot, make_unit, populate)
+    probe._proto.pos.x, probe._proto.pos.y = 78, 80
+    bot.is_visible = lambda point: False
+    assert scout._worker_scout(bot, bot.enemy_units, {}) == "revisiting_enemy_natural"
+    bot._used.clear()
+    bot.is_visible = lambda point: True
+    assert scout._worker_scout(bot, bot.enemy_units, {}) == "returning"
 
 
 def test_original_opening_scout_keeps_its_worker_threat_margin(bot, make_unit, populate):
