@@ -264,6 +264,12 @@ class TacticalController:
             "plan": plan.to_dict(),
             "decision_history": list(self.director.history),
             "action_outcomes": list(self.missions.executor.outcomes),
+            "counter_composition": (
+                asdict(bot.counter_plan)
+                if bot.settings.composition_policy == "scouted"
+                and getattr(bot, "counter_plan", None) is not None
+                else None
+            ),
         }
         if decision["wave"] is None:
             decision["wave"] = {"phase": self.missions.records.get("main", {}).get("phase", "assemble")}

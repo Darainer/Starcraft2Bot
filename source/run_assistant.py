@@ -15,6 +15,7 @@ from sc2.data import AIBuild, Difficulty, Race
 from sc2.player import Bot, Computer
 
 from source.assistant_control import AssistantSettings
+from source.counter_composition import COMPOSITION_POLICIES
 from source.runtime import RuntimeAssistant, RuntimeReport, inspect_installation, resolve_map, run_session
 from source.strategy_portfolio import PLAYBOOK_CHOICES
 from source.strategy_profiles import COMPOSITION, PROFILES
@@ -49,6 +50,9 @@ def main(argv=None):
     parser.add_argument("--strategy", choices=["auto", "defend", "regroup", "push", "retreat"])
     parser.add_argument("--strategy-script", type=Path, help="Local Python JSON strategy script")
     parser.add_argument("--playbook", choices=PLAYBOOK_CHOICES, help="Scouted repertoire or fixed experiment")
+    parser.add_argument("--composition-policy", choices=COMPOSITION_POLICIES)
+    for name in ("oracle-harass", "oracle-beam", "defend-assets", "local-regroup"):
+        parser.add_argument("--" + name, action=argparse.BooleanOptionalAction, default=None)
     parser.add_argument("--attack", action=argparse.BooleanOptionalAction, default=None)
     parser.add_argument("--fast-test", action="store_true", help="Accelerated local autonomous evaluation")
     parser.add_argument(
@@ -105,6 +109,11 @@ def main(argv=None):
             settings.strategy = args.strategy
         if args.playbook:
             settings.playbook = args.playbook
+        if args.composition_policy:
+            settings.composition_policy = args.composition_policy
+        for name in ("oracle_harass", "oracle_beam", "defend_assets", "local_regroup"):
+            if getattr(args, name) is not None:
+                setattr(settings, name, getattr(args, name))
         if args.attack is not None:
             settings.attack = args.attack
         if args.strategy_script:
@@ -158,6 +167,7 @@ def main(argv=None):
         scout_revisit=args.scout_revisit,
         log_retention="all_rotations",
         playbook=settings.playbook,
+        composition_policy=settings.composition_policy,
     )
     if args.seed is not None:
         random.seed(args.seed)

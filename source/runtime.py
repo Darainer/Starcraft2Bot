@@ -38,6 +38,7 @@ from sc2.versions import VERSIONS
 
 from source.economy_assistant import AIR_UPGRADES, GROUND_UPGRADES, PRODUCERS, SPELLS, EconomyAssistant
 from source.local_control import consume_command
+from source.oracle_harass import OracleHarass
 from source.scouting import ScoutController
 from source.tactics import TacticalController
 from source.warp_reinforcement import WARP_UNITS, WarpReinforcement
@@ -570,6 +571,9 @@ class RuntimeAssistant(EconomyAssistant):
         self._last_tactical_snapshot = float("-inf")
         self.tactics = TacticalController()
         self._last_micro = float("-inf")
+        self._last_oracle = float("-inf")
+        self.oracle_harass = OracleHarass()
+        self._oracle_report = {"enabled": False, "orders": [], "raids": {}}
         self._last_tactics = float("-inf")
         self._last_decision = None
         self._last_scouting = {}
@@ -625,6 +629,9 @@ class RuntimeAssistant(EconomyAssistant):
         started = time.perf_counter()
         changed = getattr(self, "_tactical_settings", None) != asdict(self.settings)
         self._tactical_settings = asdict(self.settings)
+        if self.time - self._last_oracle >= 0.25 or changed:
+            self._last_oracle = self.time
+            self._oracle_report = await self.oracle_harass.tick(self)
         if self.time - self._last_tactics >= 1 or changed:
             self._last_tactics = self.time
             self._last_scouting = self.scouting.tick(self)
@@ -678,6 +685,7 @@ class RuntimeAssistant(EconomyAssistant):
                     abilities = await query(getattr(self, "all_own_units", ()))
                 decision = dict(self._last_decision)
                 decision["controller_ms"] = self._tactical_ms
+                decision["oracle_harass"] = self._oracle_report
                 decision["micro_since_last_sample"] = self._micro_decisions
                 self._micro_decisions = []
                 snapshot = {

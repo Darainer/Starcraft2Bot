@@ -123,6 +123,40 @@ The declared set is complete: **24W/12D/0T across 36 games**. See the
 no further tuning or games follow this set. The protocol below records the
 frozen evaluation boundary.
 
+The user subsequently reopened implementation work on counter composition,
+Oracle harassment and economic defense. This is a separate experimental branch;
+the 36-game campaign and its results remain frozen. No new live result is claimed.
+
+### Opt-in counter composition candidate
+
+`--composition-policy scouted` replaces generic production overlays with
+race-specific recipes for observed bio/swarm, armored ground, siege/Lurker and
+air forces. Individual contacts expire, uncertain plans have a bounded hold,
+and changed evidence can reframe replacement targets. These are experimental
+counter priors, not a combat simulator or a learned policy. Protoss still uses
+the existing overlay until its own recipes are evaluated.
+
+Targets share the 200-supply envelope with the configured worker cap,
+Observers, Sentries, Prisms and Oracles. Massed ground requires at least two
+Colossi, with later reinforcement favoring premium counters and splash.
+Air mass records an unmet splash constraint unless Storm is explicitly enabled;
+Colossi cannot supply anti-air splash. Living units are retained. Critical
+counter floors are replenished after losses, and later armies reserve periodic
+spending opportunities for upgrades. Upgrade focus follows our counter units:
+Stalkers fighting air still need ground weapon upgrades. Scout freshness,
+desired supply, tech goals, splash constraints and uncertainty are logged in
+`decision.counter_composition`; desired units are not evidence they were built.
+
+`--oracle-harass --oracle-beam` separately permits bounded worker raids and the
+beam toggle. Both default off. Automatic counter plans request at most two
+Oracles only with permission and a fresh economic opportunity or explicit unit
+request. Their dedicated controller excludes them from the main army, uses
+current legal abilities and our own beam buff, and exits on visible anti-air,
+Lock On, depleted shields/energy, empty worker lines, home emergency or an
+exposure limit. Unknown air defenses remain unknown. Ownership, pausing and
+one-order-per-actor rules apply. Toggle/attack orders occur in separate
+observations; queued orders do not prove damage or successful harassment.
+
 After software checks, freeze one integration revision. Run pressure versus
 VeryHard Terran and Zerg on BelShirVestigeLE, explicit Rush/Timing/Power/Macro/Air,
 three repeats each on seed 20261025: 30 games. Add the six known failing Zerg

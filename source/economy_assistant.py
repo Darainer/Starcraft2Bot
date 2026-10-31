@@ -13,7 +13,13 @@ from sc2.unit_command import UnitCommand
 
 from source.assistant_control import Control, within_budget
 from source.combat_assessment import visible_threats
-from source.composition import composition_targets, production_target
+from source.composition import (
+    UNIT_NAMES,
+    composition_targets,
+    oracle_permitted,
+    production_target,
+    scouted_counter_plan,
+)
 from source.layout import find_spaced_placement, layout_clear
 from source.strategy_portfolio import active_playbook
 from source.strategy_profiles import PROFILES
@@ -30,15 +36,22 @@ ARMY_TARGETS = {
 PRODUCERS = {
     U.GATEWAY: (U.STALKER, U.ZEALOT, U.SENTRY, U.HIGHTEMPLAR),
     U.ROBOTICSFACILITY: (U.OBSERVER, U.WARPPRISM, U.IMMORTAL, U.COLOSSUS),
-    U.STARGATE: (U.VOIDRAY,),
+    U.STARGATE: (U.VOIDRAY, U.ORACLE),
 }
-PRODUCTION_TARGETS = {**ARMY_TARGETS, U.WARPPRISM: "warp_prisms", U.OBSERVER: "observers"}
+PRODUCTION_TARGETS = {
+    **ARMY_TARGETS,
+    U.WARPPRISM: "warp_prisms",
+    U.OBSERVER: "observers",
+    U.ORACLE: "oracles",
+}
 SPELLS = {
     A.EFFECT_BLINK_STALKER,
     A.PSISTORM_PSISTORM,
     A.FEEDBACK_FEEDBACK,
     A.GUARDIANSHIELD_GUARDIANSHIELD,
     A.EFFECT_VOIDRAYPRISMATICALIGNMENT,
+    A.BEHAVIOR_PULSARBEAMON,
+    A.BEHAVIOR_PULSARBEAMOFF,
 }
 GROUND_UPGRADES = tuple(
     getattr(G, f"{family}{level}")
@@ -507,6 +520,14 @@ class EconomyAssistant(BotAI):
             return
         if playbook.fund_bay and await self.fund_first_robotics(home, completed_supply, U.ROBOTICSBAY):
             return
+        counter = scouted_counter_plan(self)
+        if counter is not None:
+            for goal in counter.tech_goals:
+                kind = getattr(U, goal)
+                if kind in {U.ROBOTICSFACILITY, U.ROBOTICSBAY, U.STARGATE} and await self.fund_first_robotics(
+                    home, completed_supply, kind
+                ):
+                    return
         if self.economic_emergency and not first_defender:
             if s.production and self.produce(0):
                 return
@@ -585,6 +606,17 @@ class EconomyAssistant(BotAI):
                     return
         # Keep idle production working. Reserve periodic opportunities for tech
         # and infrastructure, rather than starving either behind the other.
+        counter = scouted_counter_plan(self)
+        if (
+            counter is not None
+            and counter.late_game
+            and completed_supply >= 48
+            and s.upgrades
+            and not self.economic_emergency
+            and self.time - self._last_upgrade >= 30
+            and await self.upgrade(expansion_reserve)
+        ):
+            return
         if s.production and self.time - self._last_production >= 1 and self.produce(expansion_reserve):
             self._last_production = self.time
             return
@@ -683,19 +715,25 @@ class EconomyAssistant(BotAI):
         reachable builder. Emergency defense and the opening force stay ahead.
         """
         prior = getattr(self, "_first_tech_reservation", None)
-        if prior is not None and prior[0] in {U.ROBOTICSFACILITY, U.ROBOTICSBAY}:
+        if prior is not None and prior[0] in {U.ROBOTICSFACILITY, U.ROBOTICSBAY, U.STARGATE}:
             self._first_tech_reservation = None
-        if kind not in {U.ROBOTICSFACILITY, U.ROBOTICSBAY}:
+        if kind not in {U.ROBOTICSFACILITY, U.ROBOTICSBAY, U.STARGATE}:
             raise ValueError("Unsupported Robotics investment")
         s = self.settings
         bay = kind == U.ROBOTICSBAY
-        if bay and not active_playbook(self).fund_bay:
+        air = kind == U.STARGATE
+        counter = scouted_counter_plan(self)
+        if bay and not (
+            active_playbook(self).fund_bay or counter is not None and kind.name in counter.tech_goals
+        ):
+            return False
+        if air and not (counter is not None and kind.name in counter.tech_goals):
             return False
         if (
             not (s.enabled and s.attack and s.production and s.construction)
             or (self.economic_emergency and (not bay or completed_supply < 24))
-            or completed_supply < (12 if bay else 6)
-            or self.supply_workers < 16
+            or completed_supply < (12 if bay or air else 6)
+            or self.supply_workers < (20 if air else 16)
             or not self.structures(U.ROBOTICSFACILITY if bay else U.CYBERNETICSCORE).ready
             or self.structures(kind)
             or self.already_pending(kind)
@@ -704,11 +742,17 @@ class EconomyAssistant(BotAI):
         targets = composition_targets(self)
         if bay and production_target(self, "colossi") <= 0:
             return False
-        if not bay and not (
-            targets["immortals"]
-            or targets["colossi"]
-            or (s.scouting and production_target(self, "observers") > 0)
-            or (s.warp_reinforcement and production_target(self, "warp_prisms") > 0)
+        if air and not (targets["voidrays"] or targets.get("oracles", 0)):
+            return False
+        if (
+            not bay
+            and not air
+            and not (
+                targets["immortals"]
+                or targets["colossi"]
+                or (s.scouting and production_target(self, "observers") > 0)
+                or (s.warp_reinforcement and production_target(self, "warp_prisms") > 0)
+            )
         ):
             return False
         cost = self.calculate_cost(kind)
@@ -787,7 +831,18 @@ class EconomyAssistant(BotAI):
                 + int(targets["immortals"] + targets["colossi"] >= 8 and bases >= 3),
                 U.CYBERNETICSCORE,
             ),
-            (U.STARGATE, min(3, (targets["voidrays"] + 5) // 6, bases), U.CYBERNETICSCORE),
+            (
+                U.STARGATE,
+                min(
+                    3,
+                    max(
+                        (targets["voidrays"] + 5) // 6,
+                        int(oracle_permitted(self) and targets.get("oracles", s.oracles) > 0),
+                    ),
+                    bases,
+                ),
+                U.CYBERNETICSCORE,
+            ),
             (U.GATEWAY, gateway_target, U.CYBERNETICSCORE),
             (U.ROBOTICSBAY, int(targets["colossi"] > 0), U.ROBOTICSFACILITY),
             (
@@ -816,7 +871,14 @@ class EconomyAssistant(BotAI):
             if (
                 army_only
                 and kind not in {U.GATEWAY, U.ROBOTICSFACILITY, U.STARGATE}
-                and not (kind == U.ROBOTICSBAY and active_playbook(self).fund_bay)
+                and not (
+                    kind == U.ROBOTICSBAY
+                    and (
+                        active_playbook(self).fund_bay
+                        or scouted_counter_plan(self) is not None
+                        and targets["colossi"] > 0
+                    )
+                )
             ):
                 continue
             count = self.structures(kind).amount
@@ -867,18 +929,25 @@ class EconomyAssistant(BotAI):
             < 6
         ):
             return None
-        choices = [(U.GATEWAY, U.STALKER)]
+        choices = [(U.GATEWAY, U.STALKER, 0)]
         if self.settings.scouting and production_target(self, "observers") > 0 and U.OBSERVER not in seen:
-            choices.append((U.ROBOTICSFACILITY, U.OBSERVER))
-        choices.append((U.ROBOTICSFACILITY, U.IMMORTAL))
-        if active_playbook(self).complete_colossus:
-            choices.append((U.ROBOTICSFACILITY, U.COLOSSUS))
-        for producer, kind in choices:
+            choices.append((U.ROBOTICSFACILITY, U.OBSERVER, 0))
+        choices.append((U.ROBOTICSFACILITY, U.IMMORTAL, 0))
+        counter = scouted_counter_plan(self)
+        if active_playbook(self).complete_colossus and counter is None:
+            choices.append((U.ROBOTICSFACILITY, U.COLOSSUS, 0))
+        if counter is not None:
+            minimums = dict(counter.minimums)
+            for name in counter.priority:
+                kind = UNIT_NAMES[name]
+                if minimums.get(name, 0):
+                    producer = U.GATEWAY if kind == U.STALKER else U.ROBOTICSFACILITY
+                    choices.append((producer, kind, minimums[name]))
+        for producer, kind, minimum in choices:
+            needed = minimum > self.units(kind).ready.amount + self.already_pending(kind)
             if (
-                kind in seen
-                or self.already_pending(kind)
-                or production_target(self, PRODUCTION_TARGETS[kind]) <= 0
-            ):
+                not needed and (minimum > 0 or kind in seen or self.already_pending(kind))
+            ) or production_target(self, PRODUCTION_TARGETS[kind]) <= 0:
                 continue
             prerequisite = (
                 U.CYBERNETICSCORE
@@ -933,6 +1002,7 @@ class EconomyAssistant(BotAI):
                 for kind in kinds
                 if (kind != U.WARPPRISM or (self.settings.attack and self.settings.warp_reinforcement))
                 and (kind != U.OBSERVER or self.settings.scouting)
+                and (kind != U.ORACLE or oracle_permitted(self) and not self.economic_emergency)
                 and not (self.economic_emergency and kind == U.WARPPRISM and self.supply_army < 20)
                 and production_target(self, PRODUCTION_TARGETS[kind]) > 0
                 and self.units(kind).amount
@@ -978,9 +1048,14 @@ class EconomyAssistant(BotAI):
             and self.units(U.ZEALOT).amount >= 4
         ):
             plan.append((G.CHARGE, U.TWILIGHTCOUNCIL))
-        if production_target(self, "voidrays"):
-            plan += [(upgrade, U.CYBERNETICSCORE) for upgrade in AIR_UPGRADES]
-        plan += [(upgrade, U.FORGE) for upgrade in GROUND_UPGRADES]
+        air = (
+            [(upgrade, U.CYBERNETICSCORE) for upgrade in AIR_UPGRADES]
+            if production_target(self, "voidrays")
+            else []
+        )
+        ground = [(upgrade, U.FORGE) for upgrade in GROUND_UPGRADES]
+        counter = scouted_counter_plan(self)
+        plan += ground + air if counter is not None and counter.upgrade_focus == "ground" else air + ground
         for upgrade, kind in plan:
             if self.already_pending_upgrade(upgrade) or not self.affordable(upgrade, reserve):
                 continue
