@@ -1,5 +1,11 @@
 # Two layer architecture for strategic game control
 
+Current policy ownership: the user requested independent hardcoded and learned
+tracks, with an Easy curriculum for RL. The
+[policy-boundary review](rl-policy-boundary.md) audits the current hybrid's reuse
+and describes the proposed separation. The two-layer neural boundary below stays
+inside the learned track; shared execution skills are explicitly fixed behavior.
+
 Approved design direction, 2026-10-31. The application has **two logical layers**:
 a game-agnostic strategy core, with military doctrine as its background decision
 framework, and a game-specific layer whose first implementation targets
@@ -155,9 +161,10 @@ Keep SDK-private calls in `source/runtime.py` and preserve the pinned packages.
 
 ## Training and transfer
 
-After the rule bot earns acceptance, train the SC2 encoder, shared core and SC2
-heads together through the documented teacher/BC/PPO stages. Teacher labels still
-need representability checks against the SC2 decoder. Log both the shared semantic
+Train the SC2 encoder, shared core and SC2 heads together on the learned track's
+own curriculum. The hardcoded track does not gate that training. Optional teacher
+labels need honest quality tags and representability checks against the SC2 decoder.
+Log both the shared semantic
 input and the SC2 decoded action, guards and observed effects. Doctrine metrics
 begin as diagnostics; confidence changes and completed tasks do not automatically
 earn reward.
