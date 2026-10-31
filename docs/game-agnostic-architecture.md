@@ -10,9 +10,11 @@ weights will transfer successfully between games.
 The [doctrine review](doctrine-inspired-control.md) supplies the shared decision
 process. The [RL architecture](rl-architecture.md) specifies the first StarCraft
 policy, and the [training plan](rl-training-plan.md) defines its environment and
-evaluation. Finish the [hardcoded milestone](hardcoded-elite-milestone.md) before
-implementing or training the learner. This document introduces no runtime or
-gameplay changes.
+evaluation. The [hardcoded milestone](hardcoded-elite-milestone.md) remains the
+gate for an accepted expert teacher. Subsequent user authorization started a
+from-scratch research prototype alongside rule-bot work; see the
+[local pilot](rl-training-pilot.md) and its scoped evaluation. Useful transfer
+between games remains untested.
 
 ## Responsibilities
 
@@ -180,11 +182,14 @@ SC2 win/draw reward interpretation or Windows/Linux compatibility assumptions.
 
 1. Record this approved boundary now while hardcoded SC2 repairs continue on
    their own frozen experiment branches.
-2. After the hardcoded milestone, implement the semantic contracts/converters
-   and import/dependency checks. Synthetic adapter doubles should expose leaked
-   unit IDs, unsupported features, stale evidence and mismatched units.
-3. Build the first SC2 composed network and transition collector. Check masks,
-   teacher round trips, reset/cleanup and actual effects before training.
-4. Earn SC2 strength through targeted trials, retention and holdouts.
+2. Semantic contracts/converters and import/dependency checks are implemented.
+   Synthetic adapter doubles expose leaked unit IDs, unsupported features, stale
+   evidence and mismatched units.
+3. The first SC2 composed network, transition collector and local PPO pilot are
+   implemented. Teacher round trips and expert-teacher acceptance remain pending;
+   the pilot used no imitation. Reset/cleanup and final-observation handling have
+   scoped synthetic and live evidence.
+4. Earn SC2 strength through targeted trials, retention and holdouts. The first
+   trained checkpoint failed its target and is not promoted.
 5. Add a chosen second game through its adapter and measure transfer and SC2
    retention before describing the learned core as effective across games.

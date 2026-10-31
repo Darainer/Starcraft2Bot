@@ -107,6 +107,11 @@ Synthetic validation: 640 tests passed with 88.33% combined statement/branch
 coverage before the first live pilot. Real rollout results are recorded separately
 after completion. Human shared-control validation remains pending.
 
+The completed [first pilot record](evaluations/2026-10-31-rl-pilot-v1.md) contains
+all outcomes, exact identities, CPU measurements and the separate lifecycle group.
+After the corrective changes, all 642 synthetic tests passed with 88.32% combined
+coverage; required lint, formatting, typing and build checks passed.
+
 ## First frozen pilot and follow-up corrections
 
 The nine-game pilot at `f80b727` completed against VeryHard Terran Rush with the

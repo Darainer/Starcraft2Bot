@@ -1,9 +1,10 @@
 # RL training and environment plan
 
-Implementation update, 2026-10-31: the user authorized beginning the offline
-belief/action/data contracts on a separate branch. See the
-[implementation record](rl-implementation.md). The rule-bot acceptance and frozen
-expert-teacher gates below remain unfulfilled; no policy has been trained.
+Implementation update, 2026-10-31: the user authorized the offline contracts and
+then the full local research prototype. The [first recurrent PPO pilot](rl-training-pilot.md)
+collected real episodes, trained/reloaded a checkpoint and failed its targeted
+win-rate gate. The rule-bot acceptance and frozen expert-teacher gates below remain
+unfulfilled. The pilot used no imitation and makes no deployment/strength claim.
 
 Version 0.2, 2026-10-31. **Training design; implementation follows the hardcoded
 bot milestone.** Use headless Linux containers as the eventual rollout target,

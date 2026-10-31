@@ -1,16 +1,17 @@
 # Belief-state reinforcement learning architecture
 
-Version 0.2 — 2026-10-31. **Two-layer design approved; no RL policy has been trained.**
+Version 0.3 — 2026-10-31. **Two-layer prototype implemented; first trained checkpoint rejected for promotion.**
 
-Implementation update: the user authorized starting the offline foundation on a
-separate branch while rule-bot work continues. See [implementation status](rl-implementation.md)
-for the delivered contracts and pending collection/training gates. This does not
-accept the current bot as an expert teacher or certify a learned policy.
+Implementation update: the user authorized the offline foundation and then the
+full local research prototype while rule-bot work continues. See
+[the training pilot](rl-training-pilot.md) and its
+[completed evaluation](evaluations/2026-10-31-rl-pilot-v1.md). A small recurrent
+policy has now been trained and tested, without demonstrating a win-rate gain.
 
-Priority update: finish the [hardcoded bot milestone](hardcoded-elite-milestone.md)
-before implementing/training this learner. An accepted frozen rule bot will then
-provide a teacher and training opponent; current R2 failures must not be labeled
-expert behavior.
+The [hardcoded bot milestone](hardcoded-elite-milestone.md) remains the gate for
+accepting a frozen expert teacher. The research pilot trains from scratch;
+current rule-bot failures must not be labeled expert behavior. Strength, teacher
+acceptance and shared human-control deployment remain unfulfilled gates.
 
 The separate [training and environment plan](rl-training-plan.md) defines teacher
 collection, isolated public opponents, Linux container and retail compatibility
@@ -106,8 +107,9 @@ without adding a third policy layer. Another game supplies its own encoder,
 heads, decoder and environment; transferable weights require separate evidence.
 
 Some belief/ontology code is currently an initial implementation under validation.
-The RL encoder, environment, learner, rollout buffer, trained weights and league
-are proposed additions. They must not be described as delivered capabilities.
+The local prototype now implements the semantic encoder, recurrent core,
+policy/value heads, complete episode collection, sequence updates and checkpoints.
+The league, headless Linux environment and learned dynamics remain proposed.
 No competing package that installs `sc2` or `s2clientprotocol` is introduced into
 the current environment to obtain an RL wrapper.
 

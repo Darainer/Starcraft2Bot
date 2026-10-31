@@ -61,6 +61,7 @@ def test_shared_core_imports_without_sdk_or_any_game_modules():
     code = """
 import sys
 import importlib.abc
+import importlib.util
 class NoGames(importlib.abc.MetaPathFinder):
     def find_spec(self, fullname, path=None, target=None):
         if fullname == 'sc2' or fullname.startswith(('sc2.', 'source.games', 'source.runtime',
@@ -69,8 +70,10 @@ class NoGames(importlib.abc.MetaPathFinder):
 sys.meta_path.insert(0, NoGames())
 from source.strategy_core.contracts import StrategicStateV1, Feature
 assert Feature('test', None, 'ratio').value is None
+if importlib.util.find_spec('torch') is not None:
+    from source.strategy_core.network import RecurrentCore
 """
-    result = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, timeout=10)
+    result = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, timeout=30)
     assert result.returncode == 0, result.stderr
 
 

@@ -148,7 +148,11 @@ The [belief and scouting design](docs/opponent-beliefs-and-scouting.md) and
 [source-linked game ontology](source/data/game_ontology.v1.json) provide the
 foundation for the [first RL architecture](docs/rl-architecture.md): uncertain
 world beliefs feed a recurrent strategic policy and a guarded action-vector
-decoder. The RL controller remains a design; no trained policy is included.
+decoder. An optional [CPU recurrent PPO prototype](docs/rl-training-pilot.md) now
+collects complete local episodes and trains/reloads checkpoints. Its
+[first pilot](docs/evaluations/2026-10-31-rl-pilot-v1.md) failed its playing-strength
+gate; the normal assistant remains rule controlled. Weights and rollout artifacts
+stay in ignored local storage.
 The separate [RL training plan](docs/rl-training-plan.md) covers teacher data,
 public opponents, headless Linux containers, patch compatibility and rollout
 throughput. [Winning-bot research](docs/research/winning-bot-tactics.md) supplies
@@ -161,7 +165,8 @@ decision-linked scouting, intent, readiness and sustainable income. Additional
 games can supply their own adapters; cross-game weight transfer remains untested.
 The first belief/scouting live candidate was rejected; belief telemetry remains,
 while its control rules are disabled by default. The
-[hardcoded bot milestone](docs/hardcoded-elite-milestone.md) takes priority over RL training.
+[hardcoded bot milestone](docs/hardcoded-elite-milestone.md) remains the expert-teacher
+acceptance gate. The research prototype trains from scratch without expert labels.
 
 ## Validation
 
@@ -173,7 +178,8 @@ community-bot strength remain unverified. See the
 separate baseline history and remaining acceptance gaps.
 The [opponent-inference collection plan](docs/opponent-inference-training.md)
 separates scouting gaps from recognition errors and archives causal facts for
-later supervised estimation. Gameplay RL remains a later milestone.
+later supervised estimation. The separate RL prototype consumes legal observations;
+the fact corpus alone is not on-policy PPO experience.
 
 ```bash
 uv sync --locked
