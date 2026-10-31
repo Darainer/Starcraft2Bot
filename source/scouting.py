@@ -256,6 +256,15 @@ class ScoutController:
                         lambda unit, base=base: unit.type_id in WORKERS and unit.distance_to(base) < 14
                     )
                 ),
+                "worker_line_position": list(
+                    enemies.filter(
+                        lambda unit, base=base: unit.type_id in WORKERS and unit.distance_to(base) < 14
+                    ).center
+                )
+                if enemies.filter(
+                    lambda unit, base=base: unit.type_id in WORKERS and unit.distance_to(base) < 14
+                )
+                else list(base.position),
                 "exposure_score": round(
                     100 / (1 + len(combat.closer_than(18, base)) + 2 * len(defenses.closer_than(22, base))),
                     1,

@@ -90,3 +90,72 @@ def test_no_legal_beam_toggle_does_not_issue_one_or_attack_worker(bot, make_unit
     bot.get_available_abilities.return_value = []
     asyncio.run(OracleHarass().tick(bot))
     assert all(a.ability == A.MOVE_MOVE for a in bot.actions)
+
+
+def test_scouted_worker_line_allows_beam_off_transit_then_current_vision_attack(bot, make_unit, populate):
+    oracle, worker = setup(bot, make_unit, populate)
+    worker._proto.pos.x = 85
+    populate(bot.townhalls.first, oracle)
+    bot.is_visible = lambda point: False
+    bot.scout_report = {
+        "known_enemy_bases": [
+            {
+                "tag": "line",
+                "position": [80, 40],
+                "worker_line_position": [85, 40],
+                "seen_seconds": bot.time,
+                "workers_nearby": 8,
+            }
+        ]
+    }
+    controller = OracleHarass()
+    result = asyncio.run(controller.tick(bot))
+    assert result["raids"][str(oracle.tag)]["phase"] == "transit"
+    assert [action.ability for action in bot.actions] == [A.MOVE_MOVE]
+    bot.actions.clear()
+    bot._used.clear()
+    bot.state.game_loop += 672  # Travel must not consume the raid exposure timer.
+    oracle._proto.pos.x = 80
+    observed = type(oracle)(oracle._proto, bot, base_build=90000)
+    populate(bot.townhalls.first, observed, worker)
+    result = asyncio.run(controller.tick(bot))
+    assert result["raids"][str(oracle.tag)]["phase"] == "raid"
+    assert result["raids"][str(oracle.tag)]["started"] == bot.time
+    assert bot.actions[0].ability == A.BEHAVIOR_PULSARBEAMON
+    assert any(event["action"] == "inspection_admitted" for event in result["history"])
+
+
+@pytest.mark.parametrize(
+    "blocked", ["stale", "future", "no_workers", "anti_air", "empty_arrival", "deadline"]
+)
+def test_inspection_evidence_and_travel_have_bounds(bot, make_unit, populate, blocked):
+    oracle, worker = setup(bot, make_unit, populate)
+    populate(bot.townhalls.first, oracle)
+    bot.is_visible = lambda point: False
+    bot.scout_report = {
+        "known_enemy_bases": [
+            {"tag": "line", "position": [85, 40], "seen_seconds": bot.time, "workers_nearby": 8}
+        ]
+    }
+    base = bot.scout_report["known_enemy_bases"][0]
+    if blocked == "stale":
+        base["seen_seconds"] -= 121
+    elif blocked == "future":
+        base["seen_seconds"] += 1
+    elif blocked == "no_workers":
+        base["workers_nearby"] = 0
+    elif blocked == "anti_air":
+        populate(bot.townhalls.first, oracle, make_unit(U.MARINE, (85, 40), alliance=4))
+    controller = OracleHarass()
+    result = asyncio.run(controller.tick(bot))
+    if blocked in {"empty_arrival", "deadline"}:
+        assert result["raids"][str(oracle.tag)]["phase"] == "transit"
+        bot._used.clear()
+        bot.actions.clear()
+        bot.state.game_loop += 1008 if blocked == "deadline" else 8
+        if blocked == "empty_arrival":
+            bot.is_visible = lambda point: True
+        result = asyncio.run(controller.tick(bot))
+        assert "line" in controller.blocked
+    assert result["raids"][str(oracle.tag)]["phase"] == "recover"
+    assert not any(action.ability == A.BEHAVIOR_PULSARBEAMON for action in bot.actions)

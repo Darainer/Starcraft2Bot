@@ -84,7 +84,7 @@ def test_pair_admission_requires_permission_ownership_legality_and_safe_position
     elif blocked == "legal":
         bot.get_available_abilities.return_value = [[A.MORPH_ARCHON], []]
     elif blocked == "separated":
-        templars[1]._proto.pos.x = 20
+        templars[1]._proto.pos.x = 40
     else:
         bot.settings.archons = 0
     asyncio.run(bot.archon_controller.tick(bot))
@@ -199,6 +199,56 @@ def test_archon_force_prioritizes_shields_before_ground_armor(bot, make_unit, po
     bot.get_available_abilities.return_value = [shields, armor]
     assert asyncio.run(bot.upgrade(0))
     assert bot.actions[0].ability == shields
+
+
+def test_reserved_inputs_rendezvous_then_merge_without_army_reassignment(bot, make_unit, populate):
+    templars = setup(bot, make_unit, populate)
+    templars[1]._proto.pos.x = 20
+    result = asyncio.run(bot.archon_controller.tick(bot))
+    assert len(result["rendezvous"]) == 1 and not result["pending_pairs"]
+    assert all(action.ability == A.MOVE_MOVE for action in bot.actions)
+    assert {unit.tag for unit in templars} == bot._archon_reserved_tags
+    assert archon_committed(bot) == 1
+    bot._used.clear()
+    bot.actions.clear()
+    bot.state.game_loop += 224
+    for unit in templars:
+        unit._proto.pos.x = 6
+    templars = [type(unit)(unit._proto, bot, base_build=90000) for unit in templars]
+    populate(bot.townhalls.first, *templars)
+    result = asyncio.run(bot.archon_controller.tick(bot))
+    assert not result["rendezvous"] and len(result["pending_pairs"]) == 1
+    assert result["pending_pairs"][0]["until"] == bot.time + 15
+    assert list(combine_actions(bot.actions))[0].unit_command.ability_id == A.MORPH_ARCHON.value
+    assert any(event["result"] == "rendezvous_reserved" for event in result["history"])
+
+
+@pytest.mark.parametrize("cancel", ["threat", "release", "deadline", "goal"])
+def test_rendezvous_revokes_unsafe_or_withdrawn_orders(bot, make_unit, populate, cancel):
+    templars = setup(bot, make_unit, populate)
+    templars[1]._proto.pos.x = 20
+    asyncio.run(bot.archon_controller.tick(bot))
+    bot._used.clear()
+    bot.actions.clear()
+    bot.state.game_loop += 448 if cancel == "deadline" else 8
+    if cancel == "threat":
+        populate(*bot.all_own_units, make_unit(U.MARINE, (6, 0), alliance=4))
+    elif cancel == "release":
+        bot.control.released.add(templars[0].tag)
+    elif cancel == "goal":
+        bot.settings.archons = 0
+    result = asyncio.run(bot.archon_controller.tick(bot))
+    assert not result["rendezvous"] and not bot._archon_reserved_tags and not bot.actions
+
+
+def test_rendezvous_rejects_unreachable_ground_routes(bot, make_unit, populate):
+    from unittest.mock import AsyncMock
+
+    templars = setup(bot, make_unit, populate)
+    templars[1]._proto.pos.x = 20
+    bot.client.query_pathing = AsyncMock(return_value=0)
+    result = asyncio.run(bot.archon_controller.tick(bot))
+    assert not result["rendezvous"] and not bot.actions and not bot._archon_reserved_tags
 
 
 def test_scouted_archon_goal_trains_paid_templar_inputs_and_honors_reserves(bot, make_unit, populate):

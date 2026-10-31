@@ -5,23 +5,29 @@ missing anti-air is not evidence of safety. Beam state comes from our own buff,
 never Oracle.can_attack (which the SDK special-cases even with the beam off).
 """
 
+from collections import deque
+
 from sc2.ids.ability_id import AbilityId as A
 from sc2.ids.buff_id import BuffId as B
 from sc2.ids.unit_typeid import UnitTypeId as U
+from sc2.position import Point2
 
 from source.combat_assessment import WORKERS, visible_threats
 from source.composition import oracle_permitted
+from source.harass_targets import oracle_inspection
 from source.missions import retreat_geometry, retreat_waypoint
 
 
 class OracleHarass:
     def __init__(self):
         self.raids = {}
+        self.blocked = {}
+        self.history = deque(maxlen=128)
 
     async def tick(self, bot):
         if not oracle_permitted(bot):
             self.raids.clear()
-            return {"enabled": False, "orders": [], "raids": {}}
+            return {"enabled": False, "orders": [], "raids": {}, "history": list(self.history)}
         contacts = visible_threats(bot)
         anti_air = contacts.filter(lambda unit: unit.can_attack_air or unit.type_id == U.BUNKER)
         workers = bot.enemy_units.filter(
@@ -65,14 +71,66 @@ class OracleHarass:
                 )
             )
             target = safe_workers.closest_to(oracle) if safe_workers else None
+            if (
+                record["phase"] == "recover"
+                and target is None
+                and bot.time >= record["until"]
+                and shield >= 0.75
+                and health >= 0.8
+                and oracle.energy >= 50
+                and not threatened
+                and not bot.economic_emergency
+            ):
+                mission = oracle_inspection(bot, oracle, anti_air, self.blocked)
+                if mission is not None:
+                    record.update(
+                        phase="transit",
+                        mission=mission,
+                        transit_until=bot.time + 45,
+                        reason="Inspect a positively scouted economic target",
+                    )
+                    self.history.append(
+                        {
+                            "time": bot.time,
+                            "unit_tag": oracle.tag,
+                            "action": "inspection_admitted",
+                            "mission": mission,
+                        }
+                    )
+            mission = record.get("mission")
+            if target is not None and record["phase"] in {"transit", "inspect"}:
+                record.update(phase="raid", started=bot.time, reason="Workers reacquired in current vision")
+            if (
+                mission
+                and record["phase"] == "transit"
+                and oracle.distance_to(Point2(mission["position"])) <= 9
+            ):
+                record.update(phase="inspect", inspect_until=bot.time + 6)
             reason = ""
             if oracle.has_buff(B.LOCKON) or threatened:
                 reason = "visible_anti_air_or_lock_on"
+            elif mission and any(
+                enemy.distance_to(Point2(mission["position"])) <= max(6, enemy.air_range) + enemy.radius + 6
+                for enemy in anti_air
+            ):
+                reason = "inspection_destination_defended"
             elif shield < 0.35 or health < 0.65 or oracle.energy < 18:
                 reason = "shield_health_or_energy_limit"
             elif bot.economic_emergency:
                 reason = "home_emergency"
-            elif target is None:
+            elif record["phase"] == "transit" and bot.time >= record["transit_until"]:
+                reason = "inspection_transit_expired"
+            elif record["phase"] == "inspect" and bot.time >= record["inspect_until"]:
+                reason = "inspection_expired"
+            elif (
+                target is None
+                and mission
+                and record["phase"] in {"transit", "inspect"}
+                and bot.is_visible(Point2(mission["position"]))
+                and not workers.closer_than(10, Point2(mission["position"]))
+            ):
+                reason = "inspected_point_has_no_visible_workers"
+            elif target is None and record["phase"] not in {"transit", "inspect"}:
                 reason = "no_visible_worker_opportunity"
             elif not active and oracle.energy < 50 and record["phase"] == "raid":
                 reason = "beam_activation_reserve"
@@ -81,6 +139,17 @@ class OracleHarass:
             if reason:
                 if record["phase"] != "recover":
                     record["until"] = bot.time + 12
+                    self.history.append(
+                        {
+                            "time": bot.time,
+                            "unit_tag": oracle.tag,
+                            "action": "mission_ended",
+                            "reason": reason,
+                        }
+                    )
+                    if mission:
+                        self.blocked[mission["id"]] = bot.time + 30
+                record.pop("mission", None)
                 record.update(phase="recover", reason=reason)
             elif (
                 record["phase"] == "recover"
@@ -88,6 +157,7 @@ class OracleHarass:
                 and shield >= 0.75
                 and health >= 0.8
                 and oracle.energy >= 50
+                and target is not None
             ):
                 record.update(phase="raid", started=bot.time, reason="visible_workers; anti_air_uncertain")
             abilities = await bot.get_available_abilities(oracle)
@@ -116,6 +186,14 @@ class OracleHarass:
                     goal = oracle.position.towards(target.position, min(6, oracle.distance_to(target)))
                     command = oracle.move(retreat_waypoint(bot, oracle, goal, contacts, geometry))
                     action = "approach_visible_workers"
+            elif record["phase"] in {"transit", "inspect"}:
+                point = Point2(record["mission"]["position"])
+                destination = point.towards(
+                    home, min(4 if record["phase"] == "inspect" else 8, point.distance_to(home))
+                )
+                goal = oracle.position.towards(destination, min(6, oracle.distance_to(destination)))
+                command = oracle.move(retreat_waypoint(bot, oracle, goal, contacts, geometry))
+                action = "inspect_scouted_worker_line"
             elif oracle.distance_to(home) > 5 or threatened:
                 goal = oracle.position.towards(home, min(8, oracle.distance_to(home)))
                 command = oracle.move(retreat_waypoint(bot, oracle, goal, contacts, geometry))
@@ -124,8 +202,12 @@ class OracleHarass:
                 if action in {"beam_on", "beam_off"}:
                     record["toggle"] = bot.time
                 orders.append({"unit_tag": oracle.tag, "action": action})
+                self.history.append(
+                    {"time": bot.time, "unit_tag": oracle.tag, "action": action, "phase": record["phase"]}
+                )
         return {
             "enabled": True,
             "orders": orders,
             "raids": {str(tag): dict(record) for tag, record in self.raids.items()},
+            "history": list(self.history),
         }
