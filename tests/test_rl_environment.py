@@ -135,6 +135,12 @@ def test_observation_entities_preserve_selected_and_released_ownership(bot, make
     assert features["own.income_primary"].value == 0.8
     assert features["execution.issued_count"].value == 0.01
     assert features["execution.observed_effect_count"].value == 0
+    assert bot.settings.scouting  # Automatic baseline scouts retain their setting.
+    assert not state.permissions.scouting
+    assert dict(state.shared.capabilities)["reconnaissance"] is False
+    from source.games.starcraft2.action_codec import masks_for
+
+    assert masks_for(state, 0).active[3] is False
 
 
 def test_effects_require_observed_changes_and_do_not_treat_queue_as_effect(bot, make_unit, populate):
@@ -145,6 +151,43 @@ def test_effects_require_observed_changes_and_do_not_treat_queue_as_effect(bot, 
     result = tracker.observe(bot)
     assert result[0]["event"] == "observed_movement"
     assert "intent" not in result[0]
+
+
+def test_returning_ready_contacts_are_not_reported_as_new_production(bot, make_unit, populate):
+    tracker = Effects()
+    base, worker = make_unit(U.NEXUS, tag=1), make_unit(U.PROBE, tag=2)
+    populate(base, worker)
+    assert tracker.observe(bot) == []
+    populate(base)  # For example, a worker is temporarily inside a gas building.
+    assert tracker.observe(bot) == []
+    populate(base, worker)
+    assert tracker.observe(bot)[0]["event"] == "observed_ready_contact_appeared"
+
+
+def test_close_cancels_an_owned_runtime_while_no_director_callback_is_running(tmp_path):
+    cleaned = []
+
+    async def waiting_runtime(installation, map_path, players, replay, report, **options):
+        env = players[0].ai.environment
+        try:
+            env.events.put({"belief": belief(), "outcome": Outcome("running"), "manifest": manifest()})
+            await asyncio.Event().wait()
+        finally:
+            cleaned.append(env.episode_id)
+
+    game_map = tmp_path / "map.SC2Map"
+    game_map.write_bytes(b"synthetic")
+    env = LocalEnvironment(
+        SimpleNamespace(root=tmp_path, report=lambda: {}),
+        game_map,
+        tmp_path / "episodes",
+        runtime=waiting_runtime,
+        lease=FakeLease(),
+    )
+    env.reset(31, manifest())
+    env.close()
+    assert cleaned == [env.episode_id] and not env.worker.is_alive()
+    assert env.report.data["training_termination"] == "aborted"
 
 
 def test_environment_director_decodes_action_at_existing_policy_seam():

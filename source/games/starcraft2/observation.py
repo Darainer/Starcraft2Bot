@@ -62,9 +62,10 @@ def vector_features(values, evidence=(), age=0.0):
 
 
 class ObservationAdapter:
-    def __init__(self, fact_model):
+    def __init__(self, fact_model, *, scouting_requests_supported=False):
         self.facts = fact_model
         self.last_facts = None
+        self.scouting_requests_supported = scouting_requests_supported
 
     def observe(self, bot, assessment, *, elapsed_seconds=0, episode_start=False, issued=(), effects=()):
         if self.last_facts is None or assessment.time > self.last_facts["time_seconds"]:
@@ -84,6 +85,21 @@ class ObservationAdapter:
             facts=self.last_facts,
             elapsed_seconds=elapsed_seconds,
             episode_start=episode_start,
+        )
+        # The retained baseline scouts automatically but does not execute policy
+        # questions. Keep that policy head inactive until a validated executor
+        # explicitly advertises request support; do not enable the rejected scout.
+        scouting = belief.permissions.scouting and self.scouting_requests_supported
+        belief = replace(
+            belief,
+            permissions=replace(belief.permissions, scouting=scouting),
+            shared=replace(
+                belief.shared,
+                capabilities=tuple(
+                    (name, scouting if name == "reconnaissance" else enabled)
+                    for name, enabled in belief.shared.capabilities
+                ),
+            ),
         )
         own_start = bot.start_location
         entities = []

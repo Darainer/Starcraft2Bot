@@ -106,3 +106,32 @@ They do not establish a minimum PC specification or a parallel-game speedup.
 Synthetic validation: 640 tests passed with 88.33% combined statement/branch
 coverage before the first live pilot. Real rollout results are recorded separately
 after completion. Human shared-control validation remains pending.
+
+## First frozen pilot and follow-up corrections
+
+The nine-game pilot at `f80b727` completed against VeryHard Terran Rush with the
+declared 3600-second bound and identical loop-zero fingerprints. Initial policy:
+three defeats at 1268.6 seconds; trained policy: three defeats at 384.3 seconds;
+rule reference: three defeats at 394.3 seconds. All six neural episodes were
+complete, supplying 1647 training and 429 development transitions. PPO performed
+four optimizer steps before the approximate-KL guard stopped further updates
+(last observed KL 0.05586). The checkpoint is rejected for promotion: no resolved
+win-rate improvement was demonstrated. Longer survival alone is not stronger play.
+
+The original v1 records preserve two limitations, corrected after the frozen
+batch. Ready-unit appearance events included previously seen workers returning
+from gas; these are now accurately named `observed_ready_contact_appeared`.
+They remain observed changes, without a production or causal-effect claim, and
+were never reward targets. The event-name correction does not change their
+numeric input count. Also, the retained baseline scout controller does not act
+on `scouting_requests`; v1's fourth head therefore produced advisory requests.
+The live adapter now advertises that policy capability as unsupported and masks
+the head inactive, with zero likelihood/entropy contribution. Automatic baseline
+scouting still runs. All 34 network logits remain defined; training question
+selection awaits a validated executor and its own acceptance.
+
+Closure now cancels the owned runtime task even during startup or while no
+director callback is running, and releases startup leases on reset failure.
+The original pilot artifacts remain unchanged and identify their exact source;
+they do not certify playing strength of subsequent corrections. Separate short
+timeout/reset checks validate lifecycle behavior, never gameplay acceptance.

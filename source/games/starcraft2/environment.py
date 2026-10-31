@@ -101,7 +101,7 @@ class Effects:
             if ready and previous is not None and (not previous[1] or previous[0] != kind):
                 event = "observed_completion_or_morph"
             elif ready and previous is None and self.previous:
-                event = "observed_new_completed_unit"
+                event = "observed_ready_contact_appeared"
             elif (
                 previous is not None
                 and sum((a - b) ** 2 for a, b in zip(position, previous[2], strict=True)) >= 1
@@ -164,7 +164,7 @@ class EnvironmentDirector:
         environment.lease.release()
         sample = environment.actions.get(timeout=environment.inference_timeout)
         if environment.closed.is_set():
-            raise RuntimeError("Training environment intentionally closed")
+            raise asyncio.CancelledError("Training environment intentionally closed")
         self.sequence += 1
         if environment.controller == "rule":
             plan = self.rule.decide(assessment)
@@ -315,8 +315,20 @@ class LocalEnvironment:
         self.events, self.actions = queue.Queue(maxsize=2), queue.Queue(maxsize=1)
         self.last_event = None
         self.done = False
+        self.loop = None
+        self.task = None
 
     def reset(self, seed, scenario_manifest):
+        try:
+            return self._reset(seed, scenario_manifest)
+        except BaseException:
+            if self.worker is not None and self.worker.ident is not None:
+                self.close()
+            else:
+                self.lease.release()
+            raise
+
+    def _reset(self, seed, scenario_manifest):
         if self.worker is not None:
             self.close()
             self.worker = None
@@ -357,8 +369,11 @@ class LocalEnvironment:
                     ai_build=AIBuild[opponent["build"]],
                 ),
             ]
-            asyncio.run(
-                self.runtime(
+
+            async def play():
+                self.loop = asyncio.get_running_loop()
+                self.task = asyncio.current_task()
+                await self.runtime(
                     self.installation,
                     self.map_path,
                     players,
@@ -368,14 +383,18 @@ class LocalEnvironment:
                     random_seed=self.metadata["game_seed"],
                     game_time_limit=self.metadata["time_limit"],
                 )
-            )
+
+            asyncio.run(play())
             if self.report.data.get("bot_error"):
                 raise RuntimeError(self.report.data["bot_error"])
         except BaseException as exc:
             if not self.closed.is_set():
                 self.events.put({"error": f"{type(exc).__name__}: {exc}"})
         finally:
+            self.loop = self.task = None
             self.lease.release()
+            if self.closed.is_set() and not self.done:
+                self.report.update(training_termination="aborted")
 
     def _receive(self):
         deadline = time.monotonic() + 180
@@ -402,12 +421,15 @@ class LocalEnvironment:
         return event["belief"], outcome.reward, outcome.terminated, outcome.truncated, event
 
     def close(self):
-        if self.closed.is_set():
-            return
-        self.closed.set()
-        with suppress(queue.Full):
-            self.actions.put_nowait(None)
-        if self.worker is not None:
+        if not self.closed.is_set():
+            self.closed.set()
+            with suppress(queue.Full):
+                self.actions.put_nowait(None)
+            loop, task = self.loop, self.task
+            if not self.done and loop is not None and task is not None and not loop.is_closed():
+                with suppress(RuntimeError):
+                    loop.call_soon_threadsafe(task.cancel)
+        if self.worker is not None and self.worker.ident is not None:
             self.worker.join(timeout=15)
             if self.worker.is_alive():
                 raise TimeoutError("Owned runtime has not completed cleanup; no unrelated process was killed")
