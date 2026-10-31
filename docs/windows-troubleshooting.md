@@ -14,6 +14,7 @@ without creating a match. Neither proves human controls work.
 | Problem | Action |
 | --- | --- |
 | uv missing after Tools | Close and reopen PowerShell. If the installer requested a reboot, reboot first. |
+| Generated `sc2-assistant.exe` blocked by Windows application control (4551) | Setup and Start invoke `python -m source.run_assistant` through the locked environment. Update those scripts and rerun setup; no application-control settings need changing. |
 | WinGet unavailable or agreements required | Install [uv manually](https://docs.astral.sh/uv/getting-started/installation/), complete installer prompts, then reopen PowerShell. |
 | Execution policy blocks scripts | For this terminal only: `Set-ExecutionPolicy -Scope Process Bypass`. Organizational policy may still prevent execution. |
 | Wrong game path | Rerun `./Setup.ps1 -Sc2Path 'D:\Games\StarCraft II'`. |

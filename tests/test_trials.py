@@ -1,10 +1,48 @@
 import json
 import threading
+from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime
 from types import SimpleNamespace
 
 import pytest
 
 from source import trials
+
+
+def test_simultaneous_runners_with_same_clock_have_disjoint_artifact_paths(monkeypatch, tmp_path):
+    monkeypatch.setattr(trials, "ROOT", tmp_path)
+    (tmp_path / ".local").mkdir()
+    (tmp_path / ".local/windows.json").write_text('{"sc2_path":"game","map_file":"map"}')
+
+    monkeypatch.setattr(trials, "datetime", SimpleNamespace(now=lambda: datetime(2026, 10, 31)))
+    barrier, lock = threading.Barrier(2), threading.Lock()
+    commands = []
+
+    def run(command, **kwargs):
+        with lock:
+            commands.append(command)
+        barrier.wait(timeout=5)
+        return SimpleNamespace(returncode=0)
+
+    monkeypatch.setattr(trials.subprocess, "run", run)
+    monkeypatch.setattr(
+        trials,
+        "summarize",
+        lambda path: {"result": "Result.Victory", "error": None},
+    )
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        futures = [
+            pool.submit(trials.main, ["--profiles", "pressure", "--output", f"logs/{name}.json"])
+            for name in ("rush", "power")
+        ]
+        for future in futures:
+            future.result()
+    for flag in ("--runtime-report", "--log-file", "--replay"):
+        assert len({command[command.index(flag) + 1] for command in commands}) == 2
+    assert len(list((tmp_path / "logs").glob("*.console.log"))) == 2
+    assert all(
+        len(json.loads((tmp_path / f"logs/{name}.json").read_text())) == 1 for name in ("rush", "power")
+    )
 
 
 def test_trials_run_sequential_bounded_games_and_write_summary(monkeypatch, tmp_path):
@@ -43,6 +81,7 @@ def test_trials_run_sequential_bounded_games_and_write_summary(monkeypatch, tmp_
     assert all(r["random_seed"] == 42 and r["opponent_build"] == "Macro" for r in results)
     trials.main(["--profiles", "balanced", "--realtime"])
     assert "--fast-test" not in commands[-1]
+    assert commands[-1][commands[-1].index("--game-time-limit") + 1] == "3600"
 
 
 def test_trials_report_runtime_failure(monkeypatch, tmp_path):

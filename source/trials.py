@@ -10,6 +10,7 @@ from datetime import datetime
 from itertools import product
 from pathlib import Path
 from time import perf_counter
+from uuid import uuid4
 
 from sc2.data import AIBuild
 
@@ -99,7 +100,9 @@ def main(argv=None):
         default=1,
         help="Concurrent games (1-8); may overlap scenarios when greater than repeat count",
     )
-    parser.add_argument("--duration", type=int, default=1500)
+    parser.add_argument(
+        "--duration", type=int, default=3600, help="Game-second limit (30-3600; default 3600)"
+    )
     parser.add_argument("--fast-step-size", type=int, default=32)
     parser.add_argument(
         "--difficulty",
@@ -129,7 +132,9 @@ def main(argv=None):
     results = []
     destination = ROOT / args.output
     destination.parent.mkdir(parents=True, exist_ok=True)
-    stamp = datetime.now().strftime("%Y%m%d-%H%M%S-%f")
+    # Separate runner processes can observe the same Windows clock tick. Their
+    # report/log/replay paths must remain disjoint even when the timestamps match.
+    stamp = f"{datetime.now():%Y%m%d-%H%M%S-%f}-{uuid4().hex}"
     trial_id = 0
     scenarios = list(product(args.profiles, args.opponents, args.builds))
     batches = [scenarios] if args.parallel > args.repeat else [[scenario] for scenario in scenarios]

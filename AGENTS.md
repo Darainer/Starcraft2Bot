@@ -1,5 +1,10 @@
 # Agent execution instructions
 
+- Check work in regularly as focused, reviewable commits on sensible branches.
+  Keep unaccepted gameplay experiments separate from the validated baseline;
+  preserve source identities and evaluation results for each frozen candidate.
+  Do not include local environments, downloaded maps, logs, replays or personal paths.
+
 For installation, launch or live validation, follow
 [docs/windows-install-and-play.md](docs/windows-install-and-play.md) in order.
 It calls Setup.ps1 and Start.ps1, with explicit manual handoffs between stages.
@@ -33,6 +38,12 @@ retail binary first. Preserve local changes when updating the checkout.
   poor candidates with short targeted trials and early rejection. Freeze gameplay
   within each trial batch; run broader regression tests only after a candidate
   improves its targeted failure. Do not spend thirty games confirming a poor change.
+  On 2026-10-31 the user requested a longer limit to resolve long games. Subsequent
+  trials default to 3600 game seconds. Finish already-running 1500-second batches;
+  evaluate their timeout scenarios and the frozen reference at the same longer
+  bound in a separate comparison group. Preserve the original censored results;
+  a victory after the old bound is a resolved outcome, not proof of stronger play
+  by itself.
   Concurrency may cross scenario boundaries. Individual games slow under load;
   do not claim a net speedup without a matched throughput comparison. Finish the
   targeted batch before tuning; intentionally aborted trials must remain labeled.
