@@ -17,9 +17,21 @@ dependencies = [
 
 [project.scripts]
 sc2-assistant = "source.run_assistant:main"
+sc2-train = "source.training.launcher:main"
+
+[project.optional-dependencies]
+training = ["torch==2.15.0; python_version >= '3.11'"]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cpu", marker = "sys_platform == 'win32' or (sys_platform == 'linux' and platform_machine == 'x86_64')" }]
 
 [dependency-groups]
-dev = ["pytest>=8,<10", "pytest-cov>=6,<8", "ruff>=0.11,<1", "pre-commit>=4,<5", "mypy>=1.15,<2"]
+dev = ["pytest>=8,<10", "pytest-cov>=6,<8", "ruff>=0.11,<1", "pre-commit>=4,<5", "mypy>=1.15,<2", "torch==2.15.0; python_version >= '3.11'"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["source"]
@@ -55,4 +67,4 @@ known-first-party = ["source"]
 [tool.mypy]
 python_version = "3.10"
 strict = true
-files = ["source/assistant_control.py"]
+files = ["source/assistant_control.py", "source/strategy_core/contracts.py"]

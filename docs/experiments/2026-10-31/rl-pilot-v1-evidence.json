@@ -1,0 +1,519 @@
+{
+  "schema_version": "rl-pilot-evidence-v1",
+  "date": "2026-10-31",
+  "source_revision": "f80b727a9639bbaae63254c6ceddfbd0b4b7ce1c",
+  "config": {
+    "profile": "pressure",
+    "opponent": {
+      "race": "Terran",
+      "difficulty": "VeryHard",
+      "build": "Rush"
+    },
+    "repeats": 3,
+    "seed": 31,
+    "policy_seed": 101,
+    "model_seed": 17,
+    "optimizer_seed": 23,
+    "step_size": 32,
+    "time_limit": 3600,
+    "capacity_wait_seconds": 3600,
+    "ppo": {
+      "epochs": 2,
+      "sequence_length": 32,
+      "burn_in": 8,
+      "learning_rate": 0.0003,
+      "gamma_seconds": 1800,
+      "gae_seconds": 600
+    }
+  },
+  "initial_checkpoint": {
+    "schema_version": "sc2-checkpoint-v1",
+    "model_version": "sc2-gru256-v1",
+    "feature_version": "sc2-semantic-features-v2",
+    "action_version": "director-action-v0",
+    "mask_version": "sc2-director-masks-v1",
+    "decoder_version": "sc2-director-decoder-v1",
+    "core_sha256": "2442335cc3fd42524609d9b319daa3fb725162b948289642a9fe1ecf207c2bbe",
+    "adapter_sha256": "70b69980d4dcda1549a9f07dc4892e3761980a28964ab477f3540c084375f406",
+    "seed": 17,
+    "optimizer_steps": 0,
+    "training": null,
+    "torch_version": "2.15.0+cpu",
+    "parameters": 645972,
+    "normalization_version": "sc2-fixed-scales-v1",
+    "shared_ontology": "strategic-semantics-v1",
+    "domain_ontology": "sc2-public-beliefs-v1",
+    "provenance": {
+      "source_revision": "f80b727a9639bbaae63254c6ceddfbd0b4b7ce1c",
+      "lock_sha256": "d63e8209bb114359967f6d741f2036bf786a572b2f73a5667eb6802b047ff6ce"
+    },
+    "policy_id": "556d6552e91f0a8138d99332118cdc6637a3e26350cc654092599abcb512d1c2"
+  },
+  "trained_checkpoint": {
+    "schema_version": "sc2-checkpoint-v1",
+    "model_version": "sc2-gru256-v1",
+    "feature_version": "sc2-semantic-features-v2",
+    "action_version": "director-action-v0",
+    "mask_version": "sc2-director-masks-v1",
+    "decoder_version": "sc2-director-decoder-v1",
+    "core_sha256": "f7357f43c8ff43feac064e16d96be993dc6679de289927d05dcf5393e1a1c1dc",
+    "adapter_sha256": "7a4c2ecd47ee757b0c9f8357fb4f299409f76078d96853f4989851edf9f94cca",
+    "seed": 17,
+    "optimizer_steps": 4,
+    "training": {
+      "algorithm": "recurrent-ppo-v1",
+      "config": {
+        "learning_rate": 0.0003,
+        "clip_ratio": 0.2,
+        "value_coefficient": 0.5,
+        "entropy_coefficient": 0.01,
+        "gamma_seconds": 1800,
+        "gae_seconds": 600,
+        "epochs": 2,
+        "sequence_length": 32,
+        "burn_in": 8,
+        "maximum_gradient": 0.5,
+        "target_kl": 0.03
+      },
+      "seed": 23,
+      "episodes": 3,
+      "transitions": 1647,
+      "optimizer_steps": 4,
+      "kl_early_stop": true,
+      "updates": [
+        {
+          "loss": -0.5916951894760132,
+          "approximate_kl": 0.0,
+          "entropy": 4.960413455963135,
+          "gradient_norm": 1.2813252210617065
+        },
+        {
+          "loss": -0.493743896484375,
+          "approximate_kl": 0.00624874047935009,
+          "entropy": 3.317054271697998,
+          "gradient_norm": 1.0083482265472412
+        },
+        {
+          "loss": -0.5027133822441101,
+          "approximate_kl": 0.011942356824874878,
+          "entropy": 3.31166934967041,
+          "gradient_norm": 0.4653906226158142
+        },
+        {
+          "loss": -0.919137716293335,
+          "approximate_kl": 0.055856384336948395,
+          "entropy": 4.508556365966797,
+          "gradient_norm": 1.59553861618042
+        }
+      ],
+      "episode_ids": [
+        "9b51093b1be24f34",
+        "a65c25965c2e42f6",
+        "fb1f683833334a48"
+      ]
+    },
+    "torch_version": "2.15.0+cpu",
+    "parameters": 645972,
+    "normalization_version": "sc2-fixed-scales-v1",
+    "shared_ontology": "strategic-semantics-v1",
+    "domain_ontology": "sc2-public-beliefs-v1",
+    "provenance": {
+      "source_revision": "f80b727a9639bbaae63254c6ceddfbd0b4b7ce1c",
+      "lock_sha256": "d63e8209bb114359967f6d741f2036bf786a572b2f73a5667eb6802b047ff6ce"
+    },
+    "optimizer_sha256": "2f7cfc5059498eb209a1c4849d6be2227bdb821c59b6593dc76259c20bbe7e8b",
+    "policy_id": "f628d9d3d4e06ea80047c083b2cbdd6ef9fc556644d005fe36ff477e957b26db"
+  },
+  "groups": {
+    "train": [
+      {
+        "episode_id": "9b51093b1be24f34",
+        "outcome": "defeat",
+        "initial_state_sha256": "6d2ddb4d4f759075d228f975a3fec1f52c81c3d7c6c839f1ae7aee6bd2318225",
+        "game_seconds": 1268.5714285714287,
+        "wall_seconds": 268.82218740001554,
+        "decisions": 549,
+        "mean_inference_ms": 4.321976822510321,
+        "p95_inference_ms": 9.459100023377687,
+        "human_control": "not_verified",
+        "replay_sha256": "6549167023db05f28a94467c3df3da9b81c699a2f35bac071e24bcaa27a08b18",
+        "actual_difficulty": "VeryHard",
+        "requested_race": "Terran",
+        "requested_build": "Rush",
+        "startup_command_checks": 59,
+        "runtime_report_sha256": "e163c0610617cd3fb294bd48ba0886b3efc72de8eb14420355206b62f1036490",
+        "transition_count": 549,
+        "transitions_sha256": "348659cee6261602885d0c49797a15bdb6d7cbe06f5a98e6533e179def987d52",
+        "override_reason_counts": {
+          "existing_mission_rules_projected_primary_intent": 22
+        }
+      },
+      {
+        "episode_id": "a65c25965c2e42f6",
+        "outcome": "defeat",
+        "initial_state_sha256": "6d2ddb4d4f759075d228f975a3fec1f52c81c3d7c6c839f1ae7aee6bd2318225",
+        "game_seconds": 1268.5714285714287,
+        "wall_seconds": 251.93474009999773,
+        "decisions": 549,
+        "mean_inference_ms": 3.7391109503151334,
+        "p95_inference_ms": 8.12349998159334,
+        "human_control": "not_verified",
+        "replay_sha256": "48627f880f45679257861115e20ff2a1b1c86bce353b285acefd6eadf4401e68",
+        "actual_difficulty": "VeryHard",
+        "requested_race": "Terran",
+        "requested_build": "Rush",
+        "startup_command_checks": 59,
+        "runtime_report_sha256": "da2aa369fb5f707f6517d0247e93d1b3b38d5548fdc95bdab8e010dbe7c5c2a4",
+        "transition_count": 549,
+        "transitions_sha256": "090a3a7ccdf82dc7c745ac530e01d4a8bc044edc936b931eae1c4e2283e4c6e4",
+        "override_reason_counts": {
+          "existing_mission_rules_projected_primary_intent": 22
+        }
+      },
+      {
+        "episode_id": "fb1f683833334a48",
+        "outcome": "defeat",
+        "initial_state_sha256": "6d2ddb4d4f759075d228f975a3fec1f52c81c3d7c6c839f1ae7aee6bd2318225",
+        "game_seconds": 1268.5714285714287,
+        "wall_seconds": 144.95624349999707,
+        "decisions": 549,
+        "mean_inference_ms": 2.3655627734566544,
+        "p95_inference_ms": 3.3705999958328903,
+        "human_control": "not_verified",
+        "replay_sha256": "5b45d9b7a74d30fa166682a46bcd602943379258160ee7d0370a7c8b7d2540bc",
+        "actual_difficulty": "VeryHard",
+        "requested_race": "Terran",
+        "requested_build": "Rush",
+        "startup_command_checks": 59,
+        "runtime_report_sha256": "dc72e032d351dc521a9715e394fe88557c0b6038d1ae7a753b1e70da76b05c85",
+        "transition_count": 549,
+        "transitions_sha256": "e2108e87048f9e93210883e2f66be88089b27878dbe5781bf3c7367fb6fde815",
+        "override_reason_counts": {
+          "existing_mission_rules_projected_primary_intent": 22
+        }
+      }
+    ],
+    "evaluation": [
+      {
+        "episode_id": "3247322dc0904319",
+        "outcome": "defeat",
+        "initial_state_sha256": "6d2ddb4d4f759075d228f975a3fec1f52c81c3d7c6c839f1ae7aee6bd2318225",
+        "game_seconds": 384.28571428571433,
+        "wall_seconds": 65.31917069997871,
+        "decisions": 143,
+        "mean_inference_ms": 3.014439432865376,
+        "p95_inference_ms": 4.085000022314489,
+        "human_control": "not_verified",
+        "replay_sha256": "e3d7b29e22e4a89d5882a54f82d7dcefdeaf00f54ce8916df9f0b9a047ebad3c",
+        "actual_difficulty": "VeryHard",
+        "requested_race": "Terran",
+        "requested_build": "Rush",
+        "startup_command_checks": 59,
+        "runtime_report_sha256": "21065387bcc025e24ca1b142efe7558920a3d01176333ac4aea507a59e4ba69d",
+        "transition_count": 143,
+        "transitions_sha256": "c9c051d7a0606f2ce8e195e3c1406c929587a8585b083e0de80730463f5b173a",
+        "override_reason_counts": {
+          "existing_mission_rules_projected_primary_intent": 33
+        }
+      },
+      {
+        "episode_id": "78cf37a428214c9a",
+        "outcome": "defeat",
+        "initial_state_sha256": "6d2ddb4d4f759075d228f975a3fec1f52c81c3d7c6c839f1ae7aee6bd2318225",
+        "game_seconds": 384.28571428571433,
+        "wall_seconds": 73.34595210000407,
+        "decisions": 143,
+        "mean_inference_ms": 3.671306336682264,
+        "p95_inference_ms": 4.860699991695583,
+        "human_control": "not_verified",
+        "replay_sha256": "14100dacb156a07f8c19004b39c975a3b2d45e8f8da0526a2c240cdbbcc9b098",
+        "actual_difficulty": "VeryHard",
+        "requested_race": "Terran",
+        "requested_build": "Rush",
+        "startup_command_checks": 59,
+        "runtime_report_sha256": "0fb80fb6958cbcf0adf70865aa6374c93ecad7a0a2ed81b54b2c6a6ae098b4f6",
+        "transition_count": 143,
+        "transitions_sha256": "8095e7ef18400d3ff72f8143651d67d92c83bdaec8a7a20d11b5895fd0315ca4",
+        "override_reason_counts": {
+          "existing_mission_rules_projected_primary_intent": 33
+        }
+      },
+      {
+        "episode_id": "dda69184d3864459",
+        "outcome": "defeat",
+        "initial_state_sha256": "6d2ddb4d4f759075d228f975a3fec1f52c81c3d7c6c839f1ae7aee6bd2318225",
+        "game_seconds": 384.28571428571433,
+        "wall_seconds": 65.26686480001081,
+        "decisions": 143,
+        "mean_inference_ms": 2.750439434902559,
+        "p95_inference_ms": 4.3110999977216125,
+        "human_control": "not_verified",
+        "replay_sha256": "d526c1c0314cc2ec8e0fe0ec06645613d1c16bdc8f466249133c40c92f01c893",
+        "actual_difficulty": "VeryHard",
+        "requested_race": "Terran",
+        "requested_build": "Rush",
+        "startup_command_checks": 59,
+        "runtime_report_sha256": "cdd1b942dd7017a4032b6c938724691e0ff4f61b8a555ead007befff6650728b",
+        "transition_count": 143,
+        "transitions_sha256": "35fc372521c6e684eec137ca33320a5b8daf6fbf1073793479cf959c37b5f993",
+        "override_reason_counts": {
+          "existing_mission_rules_projected_primary_intent": 33
+        }
+      }
+    ],
+    "reference": [
+      {
+        "episode_id": "408ce522172c47ad",
+        "outcome": "defeat",
+        "initial_state_sha256": "6d2ddb4d4f759075d228f975a3fec1f52c81c3d7c6c839f1ae7aee6bd2318225",
+        "game_seconds": 394.28571428571433,
+        "wall_seconds": 100.23895769997034,
+        "decisions": 150,
+        "mean_inference_ms": null,
+        "p95_inference_ms": null,
+        "human_control": "not_verified",
+        "replay_sha256": "f5fc43c27de055d791b2b884645ad7d8d2afef5cbec73b912c4a498ac97084f6",
+        "actual_difficulty": "VeryHard",
+        "requested_race": "Terran",
+        "requested_build": "Rush",
+        "startup_command_checks": 59,
+        "runtime_report_sha256": "0e1eec2e7906b94c0ffcad74b61530d15e72c68dc34cc08b17c689b108b6cf43"
+      },
+      {
+        "episode_id": "562cf365b6364df9",
+        "outcome": "defeat",
+        "initial_state_sha256": "6d2ddb4d4f759075d228f975a3fec1f52c81c3d7c6c839f1ae7aee6bd2318225",
+        "game_seconds": 394.28571428571433,
+        "wall_seconds": 71.58184769999934,
+        "decisions": 150,
+        "mean_inference_ms": null,
+        "p95_inference_ms": null,
+        "human_control": "not_verified",
+        "replay_sha256": "a54c49e95cbf4587226fbb48f5b866905bd948ece2f5df0e5eb4cc753fdeda5a",
+        "actual_difficulty": "VeryHard",
+        "requested_race": "Terran",
+        "requested_build": "Rush",
+        "startup_command_checks": 59,
+        "runtime_report_sha256": "96c573e0feb6a38285dc15b8454c973b476ca115a6845c610f2ca4bf1818e1c5"
+      },
+      {
+        "episode_id": "f44fadd967904b11",
+        "outcome": "defeat",
+        "initial_state_sha256": "6d2ddb4d4f759075d228f975a3fec1f52c81c3d7c6c839f1ae7aee6bd2318225",
+        "game_seconds": 394.28571428571433,
+        "wall_seconds": 58.809534600004554,
+        "decisions": 150,
+        "mean_inference_ms": null,
+        "p95_inference_ms": null,
+        "human_control": "not_verified",
+        "replay_sha256": "52e1271f9dcb7cc3ee7702cdff41ba0d8f67b95542f423ff15bd55e7439b7e95",
+        "actual_difficulty": "VeryHard",
+        "requested_race": "Terran",
+        "requested_build": "Rush",
+        "startup_command_checks": 59,
+        "runtime_report_sha256": "c8c06bb04a4adb2d8972af0c53c7d96b692dd9b16f486f6378d41cd0963bfe25"
+      }
+    ]
+  },
+  "benchmark_with_loaded_training_data": {
+    "model_parameters": 645972,
+    "float32_weight_bytes": 2583888,
+    "cpu": "Intel64 Family 6 Model 154 Stepping 3, GenuineIntel",
+    "torch": "2.15.0+cpu",
+    "torch_threads": 1,
+    "physical_memory_bytes": 34014814208,
+    "process_rss_bytes": 3253604352,
+    "live_sc2_clients_at_start": 8,
+    "live_sc2_clients_at_end": 7,
+    "samples": [
+      {
+        "entities": 24,
+        "iterations": 100,
+        "p50_ms": 6.401399965398014,
+        "p95_ms": 8.964599983301014,
+        "p99_ms": 14.281599957030267
+      },
+      {
+        "entities": 165,
+        "iterations": 100,
+        "p50_ms": 15.754799998831004,
+        "p95_ms": 22.260800004005432,
+        "p99_ms": 24.931899970397353
+      },
+      {
+        "entities": 201,
+        "iterations": 100,
+        "p50_ms": 16.17319998331368,
+        "p95_ms": 21.327299997210503,
+        "p99_ms": 25.77260002726689
+      }
+    ],
+    "scope": "End-to-end CPU neural forward including tensor encoding; game stepping and sampling excluded"
+  },
+  "isolated_initial_benchmark": {
+    "model_parameters": 645972,
+    "float32_weight_bytes": 2583888,
+    "cpu": "Intel64 Family 6 Model 154 Stepping 3, GenuineIntel",
+    "torch": "2.15.0+cpu",
+    "torch_threads": 1,
+    "physical_memory_bytes": 34014814208,
+    "process_rss_bytes": 262959104,
+    "live_sc2_clients_at_start": 1,
+    "live_sc2_clients_at_end": 1,
+    "samples": [
+      {
+        "entities": 24,
+        "iterations": 300,
+        "p50_ms": 0.6762999692000449,
+        "p95_ms": 0.9648000122979283,
+        "p99_ms": 1.3460000045597553
+      },
+      {
+        "entities": 136,
+        "iterations": 300,
+        "p50_ms": 2.118899952620268,
+        "p95_ms": 3.5060999798588455,
+        "p99_ms": 4.149499989580363
+      },
+      {
+        "entities": 201,
+        "iterations": 300,
+        "p50_ms": 3.1593000167049468,
+        "p95_ms": 4.304700007196516,
+        "p99_ms": 6.34720001835376
+      }
+    ],
+    "scope": "Separate CPU inference process with three recorded player-view states; no complete rollout dataset loaded",
+    "policy_id": "556d6552e91f0a8138d99332118cdc6637a3e26350cc654092599abcb512d1c2"
+  },
+  "isolated_trained_benchmark": {
+    "model_parameters": 645972,
+    "float32_weight_bytes": 2583888,
+    "cpu": "Intel64 Family 6 Model 154 Stepping 3, GenuineIntel",
+    "torch": "2.15.0+cpu",
+    "torch_threads": 1,
+    "physical_memory_bytes": 34014814208,
+    "process_rss_bytes": 263008256,
+    "live_sc2_clients_at_start": 7,
+    "live_sc2_clients_at_end": 7,
+    "samples": [
+      {
+        "entities": 24,
+        "iterations": 300,
+        "p50_ms": 3.5767999943345785,
+        "p95_ms": 5.129700002726167,
+        "p99_ms": 6.453400012105703
+      },
+      {
+        "entities": 54,
+        "iterations": 300,
+        "p50_ms": 4.644400032702833,
+        "p95_ms": 6.947699992451817,
+        "p99_ms": 9.15030000032857
+      },
+      {
+        "entities": 201,
+        "iterations": 300,
+        "p50_ms": 12.340100016444921,
+        "p95_ms": 16.539599979296327,
+        "p99_ms": 17.463000025600195
+      }
+    ],
+    "scope": "Separate CPU inference process with three recorded player-view states; no complete rollout dataset loaded",
+    "policy_id": "f628d9d3d4e06ea80047c083b2cbdd6ef9fc556644d005fe36ff477e957b26db"
+  },
+  "teacher_imitation": "not_used",
+  "playing_strength_accepted": false,
+  "human_control": "not_verified",
+  "scouting_question_execution": "v1_advisory_only; subsequently masked unsupported",
+  "appearance_events": "ready contact appearances include returning workers; never purchases or reward targets",
+  "ping": {
+    "game_version": "5.0.17.98310",
+    "base_build": 98310,
+    "data_build": 98310,
+    "data_version": "9C1F3D3D30CA252E33FC67CA05CBE1EA"
+  },
+  "map_sha256": "9cb078a287c76c0b55e3bc137b0e4590415231367d7c5724ab1bfd24a06a1d1e",
+  "executable_sha256": "541a027834eb1c9d0004baa24568e3b07670df479f17256b475609a9158ac9f4",
+  "lock_sha256": "d63e8209bb114359967f6d741f2036bf786a572b2f73a5667eb6802b047ff6ce",
+  "versions": {
+    "core_version": "sc2-gru256-v1",
+    "adapter_version": "sc2-semantic-features-v2",
+    "shared_ontology": "strategic-semantics-v1",
+    "domain_ontology": "sc2-public-beliefs-v1",
+    "feature_version": "sc2-semantic-features-v2",
+    "normalization_version": "sc2-fixed-scales-v1",
+    "action_version": "director-action-v0",
+    "mask_version": "sc2-director-masks-v1",
+    "decoder_version": "sc2-director-decoder-v1",
+    "reward_version": "terminal-win-loss-v1"
+  },
+  "initial_state_sha256": "6d2ddb4d4f759075d228f975a3fec1f52c81c3d7c6c839f1ae7aee6bd2318225",
+  "lifecycle": {
+    "scope": "Thirty-game-second timeout/reset verification; not gameplay acceptance",
+    "episodes": [
+      {
+        "episode_id": "0d14cc39ec834994",
+        "source_revision": "3c38b0e204d0b9d97058c2500ce42c5f12aa2988",
+        "transitions": 11,
+        "last_sampling_loop": 640,
+        "final_loop": 672,
+        "final_seconds": 30.000000000000004,
+        "bootstrap_value": -0.33188751339912415,
+        "initial_memory_zero": true,
+        "scouting_head_active": false,
+        "initial_state_sha256": "6d2ddb4d4f759075d228f975a3fec1f52c81c3d7c6c839f1ae7aee6bd2318225",
+        "replay_sha256": "77404a5c8ed6e4ac5b4882315d378aea0fd87ed14c54dfa722aa12ac091c26dd",
+        "bootstrap_value_recomputed": -0.33188751339912415
+      },
+      {
+        "episode_id": "2d88a4775ffc419a",
+        "source_revision": "3c38b0e204d0b9d97058c2500ce42c5f12aa2988",
+        "transitions": 11,
+        "last_sampling_loop": 640,
+        "final_loop": 672,
+        "final_seconds": 30.000000000000004,
+        "bootstrap_value": -0.33188751339912415,
+        "initial_memory_zero": true,
+        "scouting_head_active": false,
+        "initial_state_sha256": "6d2ddb4d4f759075d228f975a3fec1f52c81c3d7c6c839f1ae7aee6bd2318225",
+        "replay_sha256": "7ff74fbc39e529e005d14380bd3d89b558e307dddc3193b5d95cf6b77d165e57",
+        "bootstrap_value_recomputed": -0.33188751339912415
+      },
+      {
+        "episode_id": "2dd4f9d403d247ac",
+        "source_revision": "3c38b0e204d0b9d97058c2500ce42c5f12aa2988",
+        "transitions": 11,
+        "last_sampling_loop": 640,
+        "final_loop": 672,
+        "final_seconds": 30.000000000000004,
+        "bootstrap_value": -0.33188751339912415,
+        "initial_memory_zero": true,
+        "scouting_head_active": false,
+        "initial_state_sha256": "6d2ddb4d4f759075d228f975a3fec1f52c81c3d7c6c839f1ae7aee6bd2318225",
+        "replay_sha256": "0db250ddfdd88790394f7a4ac01cdb727f94efffd0c57b581c834daab3ce1a75",
+        "bootstrap_value_recomputed": -0.33188751339912415
+      }
+    ]
+  },
+  "intentional_abort": {
+    "scope": "Intentional cancellation at first director decision",
+    "episode_id": "90fe3cdebdb04737",
+    "source_revision": "3c38b0e204d0b9d97058c2500ce42c5f12aa2988",
+    "outcome": "aborted",
+    "learning_eligible": false,
+    "worker_joined": true,
+    "initial_state_sha256": "6d2ddb4d4f759075d228f975a3fec1f52c81c3d7c6c839f1ae7aee6bd2318225",
+    "bot_error": null,
+    "replay_saved": false,
+    "replay_error": null,
+    "missing_replay_reason": "Intentional cancellation at first decision; replay finalization did not complete"
+  },
+  "python": "3.12.10",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "runtime_packages": {
+    "burnysc2": "7.3.0",
+    "pys2clientprotocol": "1.0.2",
+    "protobuf": "7.36.2"
+  }
+}
