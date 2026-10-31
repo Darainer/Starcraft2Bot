@@ -72,6 +72,29 @@ class BeliefStateV1:
         result["facts"] = json.loads(self.facts_json) if self.facts_json is not None else None
         return result
 
+    @classmethod
+    def from_dict(cls, data):
+        from dataclasses import replace
+
+        from source.replay_strategy import assessment_from_dict
+
+        assessment = assessment_from_dict(data["assessment"])
+        assessment = replace(
+            assessment,
+            raid_response_tags=tuple(assessment.raid_response_tags),
+            opening_hold=tuple(assessment.opening_hold) if assessment.opening_hold is not None else None,
+        )
+        return cls(
+            assessment,
+            Permissions(**data["permissions"]),
+            tuple(Target(**{**t, "position": tuple(t["position"])}) if t else None for t in data["targets"]),
+            StrategicStateV1.from_dict(data["shared"]),
+            json.dumps(data["facts"], sort_keys=True, allow_nan=False) if data["facts"] is not None else None,
+            data["target_overflow"],
+            schema_version=data["schema_version"],
+            domain_ontology_version=data["domain_ontology_version"],
+        )
+
 
 def target_table(state):
     ids = [target.id for target in state.targets]
@@ -203,6 +226,7 @@ def from_assessment(state, settings, *, facts=None, elapsed_seconds=0.0, episode
                 key: facts[key]
                 for key in (
                     "schema_version",
+                    "public_map_context",
                     "time_seconds",
                     "own",
                     "enemy_contacts",

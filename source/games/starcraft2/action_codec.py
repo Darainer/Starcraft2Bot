@@ -145,6 +145,28 @@ class DecodeResult:
             "decoder_version": self.decoder_version,
         }
 
+    @classmethod
+    def from_dict(cls, data):
+        from source.strategic_plan import MissionSpec
+
+        plan = dict(data["plan"])
+        plan["missions"] = tuple(MissionSpec(**{**m, "target": tuple(m["target"])}) for m in plan["missions"])
+        for key in ("production", "scores"):
+            plan[key] = tuple(tuple(pair) for pair in plan[key])
+        for key in ("scouting_requests", "response_evidence"):
+            plan[key] = tuple(plan[key])
+        return cls(
+            SampledAction.from_dict(data["sampled"]),
+            StrategicPlan(**plan),
+            tuple(data["override_reasons"]),
+            ActionMasks(
+                tuple(tuple(h) for h in data["execution_masks"]["heads"]),
+                tuple(data["execution_masks"]["active"]),
+            ),
+            tuple(data["execution_target_ids"]),
+            data["decoder_version"],
+        )
+
 
 def decode(sample, belief, plan_id):
     """Revalidate current masks using the sampled full target ID, never a new slot.

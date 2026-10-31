@@ -10,6 +10,21 @@ SHARED_ONTOLOGY = "strategic-semantics-v1"
 
 
 @dataclass(frozen=True)
+class Entity:
+    """A semantic entity; handles are for alignment and are never tensor features."""
+
+    handle: str
+    group: str
+    features: tuple[Feature, ...]
+
+    def __post_init__(self) -> None:
+        if not self.handle or self.group not in {"controlled", "contact", "candidate"}:
+            raise ValueError("Invalid semantic entity")
+        if not isinstance(self.features, tuple) or len({f.name for f in self.features}) != len(self.features):
+            raise ValueError("Invalid immutable entity features")
+
+
+@dataclass(frozen=True)
 class Feature:
     name: str
     value: float | None
@@ -59,6 +74,7 @@ class StrategicStateV1:
     normalization_version: str
     schema_version: str = "strategic-state-v1"
     ontology_version: str = SHARED_ONTOLOGY
+    entities: tuple[Entity, ...] = ()
 
     def __post_init__(self) -> None:
         if self.schema_version != "strategic-state-v1" or self.ontology_version != SHARED_ONTOLOGY:
@@ -69,11 +85,13 @@ class StrategicStateV1:
             raise ValueError("Invalid episode boundary")
         if not self.feature_version or not self.normalization_version:
             raise ValueError("Missing feature/normalization identity")
-        for items in (self.features, self.candidates, self.capabilities):
+        for items in (self.features, self.candidates, self.capabilities, self.entities):
             if not isinstance(items, tuple):
                 raise ValueError("Shared state collections must be immutable")
         names = [f.name for f in self.features]
         handles = [c.handle for c in self.candidates]
+        if len({(e.group, e.handle) for e in self.entities}) != len(self.entities):
+            raise ValueError("Duplicate semantic entity")
         if len(set(names)) != len(names) or len(set(handles)) != len(handles):
             raise ValueError("Duplicate semantic feature or candidate")
         if len(dict(self.capabilities)) != len(self.capabilities) or any(
@@ -93,4 +111,12 @@ class StrategicStateV1:
         )
         values["candidates"] = tuple(Candidate(**candidate) for candidate in data["candidates"])
         values["capabilities"] = tuple(tuple(pair) for pair in data["capabilities"])
+        values["entities"] = tuple(
+            Entity(
+                e["handle"],
+                e["group"],
+                tuple(Feature(**{**f, "evidence": tuple(f["evidence"])}) for f in e["features"]),
+            )
+            for e in data.get("entities", ())
+        )
         return cls(**values)

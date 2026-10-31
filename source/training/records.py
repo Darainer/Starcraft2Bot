@@ -140,3 +140,22 @@ class TransitionV1:
             "observed_effect_ids": self.observed_effect_ids,
             "elapsed_seconds": self.elapsed_seconds,
         }
+
+    @classmethod
+    def from_dict(cls, data):
+        return cls(
+            data["episode_id"],
+            data["decision_index"],
+            data["policy_id"],
+            BeliefStateV1.from_dict(data["before"]),
+            DecodeResult.from_dict(data["decoded"]),
+            BeliefStateV1.from_dict(data["after"]),
+            tuple(data["recurrent_input"]),
+            tuple(data["recurrent_output"]),
+            data["value_estimate"],
+            data["next_value"],
+            Outcome(data["outcome"]["reason"]),
+            tuple(data["issued_intent_ids"]),
+            tuple(data["observed_effect_ids"]),
+            data["schema_version"],
+        )
