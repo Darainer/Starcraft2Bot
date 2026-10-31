@@ -120,8 +120,8 @@ stronger bot.
 
 The declared set is complete: **24W/12D/0T across 36 games**. See the
 [final report](final-bot-report-2026-10-31.md). The integration remains experimental;
-no further tuning or games follow this set. The protocol below records the
-frozen evaluation boundary.
+that campaign ended with its report. The protocol below records its frozen
+evaluation boundary.
 
 The user subsequently reopened implementation work on counter composition,
 Oracle harassment and economic defense. This is a separate experimental branch;
@@ -156,6 +156,45 @@ Lock On, depleted shields/energy, empty worker lines, home emergency or an
 exposure limit. Unknown air defenses remain unknown. Ownership, pausing and
 one-order-per-actor rules apply. Toggle/attack orders occur in separate
 observations; queued orders do not prove damage or successful harassment.
+
+### Opt-in economic defense and local regroup candidate
+
+`--defend-assets` permits a short, typed defense opportunity for a productive
+Nexus or powered production structure whose observed HP/shields are falling.
+Nearby defenders must have enough health and at least 0.6 of the estimated
+opposing combat power, and reach the position before a conservative asset
+survival bound. This threshold is an experimental power heuristic, not an
+expected trade ratio. Full enemy potential DPS remains in the survival bound;
+rapid own health deterioration closes the opportunity. The strategic director
+and mission abort rules honor the same expiring exception. Critical individual
+units retain their escape behavior. Orders stay near the threatened asset.
+
+Enemy orders, weapon cooldown and engaged-target tags are explicitly absent
+from enemy observations in [Blizzard's raw protocol](https://github.com/Blizzard/s2client-proto/blob/master/s2clientprotocol/raw.proto#L128).
+The policy therefore records uncertain attribution rather than claiming that
+the larger army cannot retarget from a building to our army.
+
+`--local-regroup` prefers a short traversable step away from a recoverable
+skirmish, holding for three seconds without extending that timer every tick.
+Re-engagement requires observed changes: local reinforcements, shield/health
+recovery, cohesion, reduced enemy power, or reaching the new position with
+weapons ready. Remote reinforcements do not count. A probe lasts two seconds,
+with at least 20 seconds between probes and at most two per minute. No safer
+local point, catastrophic health/power, or twelve seconds without improvement
+falls back to withdrawal. These bounds are starting hypotheses for targeted
+testing. Both switches default off and can be evaluated independently from
+composition and harassment.
+
+Telemetry includes `assessment.combat_window`, its evidence and expiry,
+`plan.combat_window`, and `missions.main.local_regroup` with its initial
+metrics, point and timer. Offline assessment replay reconstructs these typed
+records. This adds no RL action-vector outputs or replay-oracle features.
+
+Software checks use synthetic observations and real SDK unit/command objects.
+New live performance and ability effects remain pending. The next trials should
+isolate one failure and one switch, three matched repeats per arm at 3600 game
+seconds, retaining all facts/logs/replays and the fixed specialists as controls.
+Do not use this candidate to revise the previous campaign's win counts.
 
 After software checks, freeze one integration revision. Run pressure versus
 VeryHard Terran and Zerg on BelShirVestigeLE, explicit Rush/Timing/Power/Macro/Air,

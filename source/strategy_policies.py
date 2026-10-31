@@ -3,7 +3,7 @@
 from dataclasses import dataclass
 
 from source.game_ontology import parameter
-from source.strategic_plan import Assessment, MissionSpec, StrategicPlan
+from source.strategic_plan import Assessment, MissionSpec, StrategicPlan, active_combat_window
 from source.strategy_profiles import PROFILES
 
 
@@ -64,6 +64,8 @@ def candidates(state: Assessment, continuing=False):
         result.append(Candidate("stabilize", "threat", 100, "Protect a threatened base"))
     elif state.rush_warning:
         result.append(Candidate("stabilize", "rally", 100, "Prepare defenders for scouted early aggression"))
+    if active_combat_window(state.combat_window, state.time) and state.health >= 0.6:
+        result.append(Candidate("stabilize", "combat_window", 130, state.combat_window.reason))
     # Loss accounting describes the preceding 12 seconds, which may already
     # have reversed. Heuristic override: at least 80% army health and 1.5x
     # current main-force power allow fighting through that trailing score.
@@ -126,6 +128,7 @@ def compose(state, choice, plan_id, ranked):
     objective = choice.objective
     remaining = state.army_supply
     missions = []
+    window = state.combat_window if choice.target_id == "combat_window" else None
     defending = objective == "stabilize"
     # A small home raid can coexist with pressure only when the remaining army
     # and the allocated response can each do useful work.
@@ -137,6 +140,7 @@ def compose(state, choice, plan_id, ranked):
     )
     split = (
         defending
+        and window is None
         and not state.rush_warning
         and state.threat_supply > 0
         and state.threat_supply <= min(12, remaining * 0.2)
@@ -161,11 +165,13 @@ def compose(state, choice, plan_id, ranked):
     point = {"home": state.home, "rally": state.rally, "threat": state.threat}.get(choice.target_id)
     if choice.target_id in targets:
         point = targets[choice.target_id].position
+    if window is not None:
+        point = window.position
     mode = "move" if objective in {"develop", "recover", "contain"} else "attack"
-    if objective == "stabilize" and state.home_advantage < 0.85:
+    if objective == "stabilize" and state.home_advantage < 0.85 and window is None:
         point, mode = state.home, "move"
         choice = Candidate("stabilize", "home", choice.score, "Concentrate defenders at a safe base")
-    if objective == "stabilize" and state.opening_hold is not None:
+    if objective == "stabilize" and state.opening_hold is not None and window is None:
         point, mode = tuple(state.opening_hold), "move"
         choice = Candidate(
             "stabilize", "rally", choice.score, "Hold opening defenders together near protected power"
@@ -202,7 +208,7 @@ def compose(state, choice, plan_id, ranked):
         plan_id,
         state.version,
         state.time,
-        state.time + 20,
+        min(state.time + 20, window.expires_at) if window is not None else state.time + 20,
         objective,
         tuple(missions),
         production,
@@ -218,4 +224,5 @@ def compose(state, choice, plan_id, ranked):
         playbook_id=state.playbook_id,
         playbook_uncertainty=state.playbook_uncertainty,
         tactical_policy=state.tactical_policy,
+        combat_window=window,
     )

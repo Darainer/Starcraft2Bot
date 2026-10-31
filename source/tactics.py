@@ -91,7 +91,7 @@ class TacticalController:
                 "orders": [],
             }
         army = bot.units.of_type(set(ARMY_TARGETS)).ready.filter(bot.control.eligible)
-        state = self.assessor.observe(bot, army)
+        state = self.assessor.observe(bot, army, self.missions.records.get("main", {}))
         self.last_assessment = state
         legacy = TacticalSituation(
             state.army_supply,
@@ -162,6 +162,7 @@ class TacticalController:
                 state.production,
                 state.response_policy,
                 state.playbook_id,
+                state.combat_window,
             )
             try:
                 validate_plan(self.director.active, state)
@@ -267,6 +268,7 @@ class TacticalController:
             "counter_composition": (
                 asdict(bot.counter_plan)
                 if bot.settings.composition_policy == "scouted"
+                and bot.settings.adaptive_composition
                 and getattr(bot, "counter_plan", None) is not None
                 else None
             ),
@@ -300,6 +302,9 @@ class TacticalController:
             for tag in mission["members"]
         }
         decisions, assigned_damage = [], {}
+        window = getattr(getattr(bot, "strategic_plan", None), "combat_window", None)
+        if window is not None and window.kind == "asset_defense":
+            enemies = enemies.filter(lambda enemy: enemy.distance_to(Point2(window.anchor)) <= 16)
         for unit in bot.units.of_type(set(ARMY_TARGETS)).ready:
             if not bot.available(unit) or not unit.can_attack:
                 continue

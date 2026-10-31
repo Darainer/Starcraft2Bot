@@ -6,7 +6,7 @@ from collections import Counter
 from pathlib import Path
 
 from source.opponent_beliefs import beliefs_from_dict
-from source.strategic_plan import Assessment, Opportunity, validate_plan
+from source.strategic_plan import Assessment, CombatWindow, Opportunity, validate_plan
 from source.strategy_director import StrategicDirector
 
 
@@ -19,9 +19,17 @@ def assessment_from_dict(data):
         values[key] = tuple(data[key]) if data[key] is not None else None
     values["production"] = tuple(tuple(pair) for pair in data["production"])
     values["response_evidence"] = tuple(data.get("response_evidence", ()))
+    values["raid_response_tags"] = tuple(data.get("raid_response_tags", ()))
+    if data.get("opening_hold") is not None:
+        values["opening_hold"] = tuple(data["opening_hold"])
     if "playbook_id" not in values and data.get("response_policy") == "early_robotics":
         values["playbook_id"] = "zerg_early_robotics"
     values["opponent_beliefs"] = beliefs_from_dict(data.get("opponent_beliefs"))
+    if data.get("combat_window") is not None:
+        window = dict(data["combat_window"])
+        for key in ("position", "anchor", "evidence"):
+            window[key] = tuple(window[key])
+        values["combat_window"] = CombatWindow(**window)
     return Assessment(**values)
 
 

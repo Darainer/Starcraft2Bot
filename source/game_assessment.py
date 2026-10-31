@@ -8,6 +8,7 @@ from sc2.position import Point2
 
 from source.combat_assessment import home_threats, observed_supply, power, visible_threats
 from source.composition import composition_targets
+from source.economic_defense import EconomicDefense
 from source.endgame_sweep import BASE_TYPES
 from source.expansion_intel import is_expansion
 from source.opponent_beliefs import beliefs_from_dict
@@ -29,8 +30,9 @@ class GameAssessment:
         self.upgrades = set()
         self.upgraded_at = -999
         self.visited = {}
+        self.economic_defense = EconomicDefense()
 
-    def observe(self, bot, army):
+    def observe(self, bot, army, recovery=None):
         fighters = army.filter(lambda unit: unit.can_attack)
         contacts = visible_threats(bot)
         incoming = home_threats(bot, contacts)
@@ -272,4 +274,6 @@ class GameAssessment:
             playbook_id=selection.id,
             playbook_uncertainty=selection.uncertainty,
             tactical_policy=selection.playbook.tactic,
+            combat_window=self.economic_defense.observe(bot, fighters, contacts, recovery or {}),
+            local_regroup=bot.settings.local_regroup,
         )

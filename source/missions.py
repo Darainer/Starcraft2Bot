@@ -9,7 +9,9 @@ from sc2.position import Point2
 from source.action_intents import ActionExecutor, ActionIntent
 from source.army_waves import center
 from source.combat_assessment import favorable, visible_threats
+from source.economic_defense import force_metrics
 from source.endgame_sweep import EndgameSweep
+from source.strategic_plan import active_combat_window
 from source.strategy_profiles import PROFILES
 
 
@@ -77,6 +79,25 @@ def retreat_waypoint(bot, unit, goal, contacts, geometry=None):
         return exposure + danger(x, y) * 4 + hypot(x - goal.x, y - goal.y) * 0.15
 
     return min(candidates, key=cost)
+
+
+def local_regroup_goal(bot, squad, contacts, anchor, home, geometry):
+    """A short traversable step away from contact, or no safe local option."""
+    if not squad or not contacts:
+        return None
+    representative = min(squad, key=lambda unit: (unit.is_flying, unit.distance_to(anchor)))
+    goal = anchor.towards(home, min(10, anchor.distance_to(home)))
+    closest = contacts.closest_to(anchor)
+    if goal.distance_to(anchor) < 3 or goal.distance_to(closest) <= anchor.distance_to(closest):
+        goal = anchor.towards(closest.position, -10)
+    point = retreat_waypoint(bot, representative, goal, contacts, geometry)
+    if (
+        3 <= point.distance_to(anchor) <= 14
+        and min(enemy.distance_to(point) for enemy in contacts)
+        >= min(enemy.distance_to(anchor) for enemy in contacts) + 3
+    ):
+        return point
+    return None
 
 
 class MissionPlanner:
@@ -168,7 +189,16 @@ class MissionPlanner:
                 < sum(u.health_max + u.shield_max for u in local) * 0.35
             )
             lost_members = old.get("supply", supply) - supply
-            abort = (nearby and not favorable(local, nearby, 0.85)) or damaged
+            window = getattr(plan, "combat_window", None)
+            opportunity = (
+                spec.role == "main"
+                and spec.target_id == "combat_window"
+                and window == getattr(state, "combat_window", None)
+                and active_combat_window(window, bot.time)
+                and anchor.distance_to(Point2(window.anchor)) <= 26
+                and force_metrics(bot, local, nearby, anchor)["health"] >= 0.6
+            )
+            abort = (nearby and not favorable(local, nearby, 0.6 if opportunity else 0.85)) or damaged
             if spec.role == "deny":
                 abort |= bool(contacts.closer_than(20, target)) and not favorable(
                     squad, contacts.closer_than(20, target), 1.3
@@ -177,13 +207,41 @@ class MissionPlanner:
             if (
                 abort
                 or (spec.role == "main" and plan.objective == "recover")
-                or (old.get("phase") == "recover" and bot.time < old.get("recover_until", 0))
+                or (
+                    not opportunity
+                    and old.get("phase") == "recover"
+                    and bot.time < old.get("recover_until", 0)
+                )
             ):
                 phase = "recover"
                 goal = Point2(old.get("retreat_goal", state.home))
+                regroup = None
+                if (
+                    getattr(state, "local_regroup", False)
+                    and spec.role == "main"
+                    and bot.settings.strategy == "auto"
+                    and not bot.settings.strategy_script
+                ):
+                    previous_regroup = old.get("local_regroup")
+                    metrics = force_metrics(bot, local, nearby, anchor)
+                    if previous_regroup and old.get("phase") == "recover":
+                        if bot.time - previous_regroup["since"] <= 12 and not damaged:
+                            goal = Point2(previous_regroup["goal"])
+                            if not contacts.closer_than(6, goal):
+                                regroup = previous_regroup
+                    elif metrics["health"] >= 0.35 and metrics["advantage"] >= 0.45:
+                        point = local_regroup_goal(bot, squad, nearby, anchor, Point2(state.home), geometry)
+                        if point is not None:
+                            goal = point
+                            regroup = {
+                                "since": bot.time,
+                                "anchor": list(anchor),
+                                "goal": list(goal),
+                                "metrics": metrics,
+                            }
                 if spec.target_id == "script" and plan.objective == "recover":
                     goal = target
-                elif (
+                elif regroup is None and (
                     old.get("phase") != "recover"
                     or not bot.townhalls.ready.closer_than(2, goal)
                     or contacts.closer_than(14, goal)
@@ -191,8 +249,12 @@ class MissionPlanner:
                     safe_bases = bot.townhalls.ready.filter(lambda base: not contacts.closer_than(14, base))
                     goal = safe_bases.closest_to(anchor).position if safe_bases else Point2(state.home)
                 record["retreat_goal"] = list(goal)
-                until = old.get("recover_until", bot.time + 8)
-                record["recover_until"] = max(until, bot.time + 8 if abort else until)
+                if regroup is not None:
+                    record["local_regroup"] = regroup
+                    record["recover_until"] = regroup["since"] + 3
+                else:
+                    until = old.get("recover_until", bot.time + 8)
+                    record["recover_until"] = max(until, bot.time + 8 if abort else until)
                 if old.get("phase") != "recover":
                     self.events.append(
                         {
