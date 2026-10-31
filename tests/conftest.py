@@ -92,6 +92,7 @@ def bot():
         U.BUNKER,
         U.MUTALISK,
         U.SIEGETANK,
+        U.SIEGETANKSIEGED,
         U.ZERGLING,
         U.ROACH,
         U.PHOTONCANNON,

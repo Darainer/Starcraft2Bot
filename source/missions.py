@@ -10,6 +10,7 @@ from source.action_intents import ActionExecutor, ActionIntent
 from source.army_waves import center
 from source.combat_assessment import favorable, visible_threats
 from source.endgame_sweep import EndgameSweep
+from source.siege_approach import approach_siege
 from source.strategy_profiles import PROFILES
 
 
@@ -246,12 +247,35 @@ class MissionPlanner:
                 destination = target if coherent else anchor
                 for unit in squad:
                     destinations[unit.tag] = ("attack" if coherent else "move", destination)
+            if (
+                spec.role == "main"
+                and phase != "recover"
+                and plan.objective not in {"recover", "finish"}
+                and bot.settings.strategy == "auto"
+            ):
+                approach = approach_siege(bot, squad, contacts, target, old, geometry)
+                if approach is not None:
+                    record.update(approach)
+                    if approach["siege_phase"] == "approach":
+                        phase = "approach"
+                        delta = Point2(approach["approach_goal"]) - squad.center
+                        for unit in squad:
+                            if unit.tag in approach["approach_members"]:
+                                destinations[unit.tag] = ("move", unit.position.offset(delta))
+                        if wave_report is not None:
+                            wave_report = {**wave_report, "phase": "approach", "siege_approach": approach}
             for unit in squad:
                 assignments[unit.tag] = f"{spec.id}:{spec.target_id}:{phase == 'recover'}"
             records[spec.id] = {**record, "phase": phase}
         self.records = records
         self.executor.assign(assignments)
         orders = []
+        approaching = {
+            tag
+            for record in records.values()
+            if record["phase"] == "approach"
+            for tag in record["approach_members"]
+        }
         for tag, (mode, target) in destinations.items():
             unit = available.find_by_tag(tag)
             if unit is None:
@@ -271,8 +295,9 @@ class MissionPlanner:
             ):
                 continue
             # Preserve weapon execution between tactical updates.
-            fighting = mode == "attack" or (
-                preserve_combat and not critical and not assignments[tag].endswith(":True")
+            fighting = tag not in approaching and (
+                mode == "attack"
+                or (preserve_combat and not critical and not assignments[tag].endswith(":True"))
             )
             if fighting and any(unit.target_in_range(enemy) for enemy in contacts):
                 continue

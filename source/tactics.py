@@ -292,6 +292,12 @@ class TacticalController:
             for tag in mission["members"]
         }
         decisions, assigned_damage = [], {}
+        approaching = {
+            tag
+            for mission in self.missions.records.values()
+            if mission["phase"] == "approach"
+            for tag in mission.get("approach_members", [])
+        }
         for unit in bot.units.of_type(set(ARMY_TARGETS)).ready:
             if not bot.available(unit) or not unit.can_attack:
                 continue
@@ -307,6 +313,8 @@ class TacticalController:
                     geometry = retreat_geometry(contacts)
                 waypoint = retreat_waypoint(bot, unit, home, contacts, geometry)
                 command, reason = unit.move(waypoint), "individual_retreat"
+            elif unit.tag in approaching:
+                continue  # Preserve the short formation move; critical retreat above still wins.
             elif unit.tag in recovering:
                 if bot.settings.strategy != "auto" or not self._automatic_recovery:
                     continue
