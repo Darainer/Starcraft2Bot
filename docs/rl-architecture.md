@@ -11,6 +11,12 @@ The separate [training and environment plan](rl-training-plan.md) defines teache
 collection, isolated public opponents, Linux container and retail compatibility
 gates, rollout accounting and staged BC/PPO acceptance.
 
+The [doctrine review](doctrine-inspired-control.md) connects enemy courses of
+action, mission intent, decision-linked reconnaissance and sustainment to this
+same belief/plan seam. These are proposed structures to test with the hardcoded
+bot; they do not establish reward weights or constrain a trained policy to an
+unvalidated strategy.
+
 The first learned component should replace strategic decision making while
 retaining the current validated execution boundary. It receives a world view
 expressed as observations, hypotheses and uncertainty, then emits a structured

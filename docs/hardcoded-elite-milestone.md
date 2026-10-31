@@ -7,6 +7,9 @@ failure examples and a frozen training opponent; it is not yet an accepted exper
 
 The separate [RL training plan](rl-training-plan.md) covers that later teacher
 pipeline, public opponents and the proposed headless container environment.
+The [doctrine review](doctrine-inspired-control.md) supplies a proposed operations
+process for coordinating intelligence, intent, reconnaissance, combat readiness
+and income replacement. Individual mechanisms still need targeted SC2 evidence.
 
 ## Working benchmark
 
