@@ -7,6 +7,10 @@ before implementing/training this learner. An accepted frozen rule bot will then
 provide a teacher and training opponent; current R2 failures must not be labeled
 expert behavior.
 
+The separate [training and environment plan](rl-training-plan.md) defines teacher
+collection, isolated public opponents, Linux container and retail compatibility
+gates, rollout accounting and staged BC/PPO acceptance.
+
 The first learned component should replace strategic decision making while
 retaining the current validated execution boundary. It receives a world view
 expressed as observations, hypotheses and uncertainty, then emits a structured
