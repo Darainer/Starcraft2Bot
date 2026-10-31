@@ -1,0 +1,116 @@
+[
+  {
+    "source": "R2",
+    "opponent": "Zerg",
+    "build": "Macro",
+    "repeat": 1,
+    "result": "Result.Victory",
+    "sampled_game_seconds": 1055.4,
+    "runtime_difficulty": "VeryHard",
+    "game_info_computer_difficulty": "VeryHard",
+    "protocol_difficulty_value": 7,
+    "game_time_limit": 1500,
+    "initial_state_sha256": "72babdb1d60ea843037a0afe130cfbc7ef685aaac38e221d5f75d6eb1ef9a59d",
+    "ping": {
+      "game_version": "5.0.17.98310",
+      "base_build": 98310,
+      "data_build": 98310,
+      "data_version": "9C1F3D3D30CA252E33FC67CA05CBE1EA"
+    }
+  },
+  {
+    "source": "R2",
+    "opponent": "Zerg",
+    "build": "Macro",
+    "repeat": 2,
+    "result": "Result.Victory",
+    "sampled_game_seconds": 1055.4,
+    "runtime_difficulty": "VeryHard",
+    "game_info_computer_difficulty": "VeryHard",
+    "protocol_difficulty_value": 7,
+    "game_time_limit": 1500,
+    "initial_state_sha256": "72babdb1d60ea843037a0afe130cfbc7ef685aaac38e221d5f75d6eb1ef9a59d",
+    "ping": {
+      "game_version": "5.0.17.98310",
+      "base_build": 98310,
+      "data_build": 98310,
+      "data_version": "9C1F3D3D30CA252E33FC67CA05CBE1EA"
+    }
+  },
+  {
+    "source": "R2",
+    "opponent": "Zerg",
+    "build": "Macro",
+    "repeat": 3,
+    "result": "Result.Victory",
+    "sampled_game_seconds": 1055.4,
+    "runtime_difficulty": "VeryHard",
+    "game_info_computer_difficulty": "VeryHard",
+    "protocol_difficulty_value": 7,
+    "game_time_limit": 1500,
+    "initial_state_sha256": "72babdb1d60ea843037a0afe130cfbc7ef685aaac38e221d5f75d6eb1ef9a59d",
+    "ping": {
+      "game_version": "5.0.17.98310",
+      "base_build": 98310,
+      "data_build": 98310,
+      "data_version": "9C1F3D3D30CA252E33FC67CA05CBE1EA"
+    }
+  },
+  {
+    "source": "RoboticsV2",
+    "opponent": "Zerg",
+    "build": "Timing",
+    "repeat": 1,
+    "result": "Result.Victory",
+    "sampled_game_seconds": 1050.4,
+    "runtime_difficulty": "VeryHard",
+    "game_info_computer_difficulty": "VeryHard",
+    "protocol_difficulty_value": 7,
+    "game_time_limit": 3600,
+    "initial_state_sha256": "b5e9fed55f291afeaf3cbbc30e51723f634d9d5c8f5e5d23427f87bd10462762",
+    "ping": {
+      "game_version": "5.0.17.98310",
+      "base_build": 98310,
+      "data_build": 98310,
+      "data_version": "9C1F3D3D30CA252E33FC67CA05CBE1EA"
+    }
+  },
+  {
+    "source": "RoboticsV2",
+    "opponent": "Zerg",
+    "build": "Timing",
+    "repeat": 2,
+    "result": "Result.Victory",
+    "sampled_game_seconds": 1050.4,
+    "runtime_difficulty": "VeryHard",
+    "game_info_computer_difficulty": "VeryHard",
+    "protocol_difficulty_value": 7,
+    "game_time_limit": 3600,
+    "initial_state_sha256": "b5e9fed55f291afeaf3cbbc30e51723f634d9d5c8f5e5d23427f87bd10462762",
+    "ping": {
+      "game_version": "5.0.17.98310",
+      "base_build": 98310,
+      "data_build": 98310,
+      "data_version": "9C1F3D3D30CA252E33FC67CA05CBE1EA"
+    }
+  },
+  {
+    "source": "RoboticsV2",
+    "opponent": "Zerg",
+    "build": "Timing",
+    "repeat": 3,
+    "result": "Result.Victory",
+    "sampled_game_seconds": 1050.4,
+    "runtime_difficulty": "VeryHard",
+    "game_info_computer_difficulty": "VeryHard",
+    "protocol_difficulty_value": 7,
+    "game_time_limit": 3600,
+    "initial_state_sha256": "b5e9fed55f291afeaf3cbbc30e51723f634d9d5c8f5e5d23427f87bd10462762",
+    "ping": {
+      "game_version": "5.0.17.98310",
+      "base_build": 98310,
+      "data_build": 98310,
+      "data_version": "9C1F3D3D30CA252E33FC67CA05CBE1EA"
+    }
+  }
+]

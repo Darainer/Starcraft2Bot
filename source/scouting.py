@@ -1,5 +1,6 @@
 """Assign an opening Probe and a persistent Observer patrol for enemy-force warnings."""
 
+from sc2.data import Race
 from sc2.ids.unit_typeid import UnitTypeId as U
 from sc2.position import Point2
 
@@ -9,6 +10,7 @@ from source.endgame_sweep import BASE_TYPES, DEFENSE_TYPES
 from source.expansion_intel import expansion_sites, is_expansion
 from source.opponent_beliefs import OpponentBeliefModel
 from source.opponent_strategy import OpponentStrategyModel
+from source.zerg_responses import ZergResponseSelector
 
 WORKERS = {U.PROBE, U.SCV, U.DRONE}
 
@@ -30,6 +32,7 @@ class ScoutController:
         self.observer_goal = None
         self.opponent_model = OpponentStrategyModel()
         self.belief_model = OpponentBeliefModel()
+        self.zerg_responses = ZergResponseSelector()
 
     def _rush_warning(self, bot, combat, buildings, report):
         """Short-lived opening alerts from visible evidence, never opponent settings."""
@@ -343,6 +346,10 @@ class ScoutController:
         worker_status = self._worker_scout(bot, enemies, report)
         report["opponent_strategy"] = self.opponent_model.observe(bot.time, report)
         report["opponent_beliefs"] = self.belief_model.observe(bot.time, report, bot.supply_army).to_dict()
+        if bot.enemy_race == Race.Zerg:
+            report["zerg_opening_response"] = self.zerg_responses.observe(bot.time, report)
+        else:
+            report.pop("zerg_opening_response", None)
         observer_status = self._observer_tick(bot) if bot.settings.scouting else {"phase": "disabled"}
         return {"phase": worker_status, "observer": observer_status, "intel": report}
 

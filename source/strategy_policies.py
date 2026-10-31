@@ -211,4 +211,8 @@ def compose(state, choice, plan_id, ranked):
         tuple((f"{c.objective}:{c.target_id}", round(c.score, 2)) for c in ranked),
         production_reason=production_reason,
         scouting_requests=scouting_requests,
+        response_policy=state.response_policy,
+        response_policy_until=state.response_policy_until,
+        response_reason=state.response_reason,
+        response_evidence=state.response_evidence,
     )

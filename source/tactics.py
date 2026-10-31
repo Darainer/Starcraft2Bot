@@ -160,6 +160,7 @@ class TacticalController:
                 state.health < PROFILES[bot.settings.profile]["retreat_health"],
                 int(state.army_supply // 4),
                 state.production,
+                state.response_policy,
             )
             try:
                 validate_plan(self.director.active, state)

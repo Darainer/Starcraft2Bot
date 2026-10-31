@@ -210,6 +210,17 @@ class GameAssessment:
             )
         maximum = sum(unit.health_max + unit.shield_max for unit in fighters)
         beliefs = beliefs_from_dict(bot.scout_report.get("opponent_beliefs"))
+        response = bot.scout_report.get("zerg_opening_response", {})
+        use_response = (
+            bot.enemy_race == Race.Zerg
+            and bot.settings.enabled
+            and bot.settings.attack
+            and bot.settings.adaptive_composition
+            and bot.settings.strategy == "auto"
+            and not bot.settings.strategy_script
+            and response.get("response") == "early_robotics"
+            and 0 <= response.get("time", -1) <= bot.time < response.get("valid_until", 0)
+        )
         return Assessment(
             bot.state.game_loop,
             bot.time,
@@ -246,4 +257,8 @@ class GameAssessment:
             opening_hold=opening_hold,
             opponent_beliefs=beliefs.relative_to(army_supply) if beliefs is not None else None,
             adaptive_composition=bot.settings.adaptive_composition,
+            response_policy="early_robotics" if use_response else "baseline",
+            response_policy_until=response["valid_until"] if use_response else 0,
+            response_reason=response.get("reason", "Retain baseline response"),
+            response_evidence=tuple(response.get("evidence", ())) if use_response else (),
         )

@@ -62,6 +62,10 @@ class Assessment:
     opponent_beliefs: OpponentBeliefs | None = None
     adaptive_composition: bool = False
     belief_control: bool = False
+    response_policy: str = "baseline"
+    response_policy_until: float = 0
+    response_reason: str = "Retain baseline response"
+    response_evidence: tuple[str, ...] = ()
 
     def to_dict(self):
         return asdict(self)
@@ -94,6 +98,10 @@ class StrategicPlan:
     scores: tuple[tuple[str, float], ...] = ()
     production_reason: str = "Recorded composition targets"
     scouting_requests: tuple[str, ...] = ()
+    response_policy: str = "baseline"
+    response_policy_until: float = 0
+    response_reason: str = "Retain baseline response"
+    response_evidence: tuple[str, ...] = ()
 
     def to_dict(self):
         return asdict(self)
@@ -103,6 +111,18 @@ def validate_plan(plan, state, max_age=5):
     """Reject stale/unsupported/infeasible proposals before activation."""
     if not isinstance(plan, StrategicPlan) or plan.objective not in OBJECTIVES:
         raise ValueError("Unsupported strategic plan")
+    if (
+        plan.response_policy not in {"baseline", "early_robotics"}
+        or plan.response_policy != state.response_policy
+    ):
+        raise ValueError("Unsupported or superseded response policy")
+    if plan.response_policy == "early_robotics" and not (
+        isfinite(plan.response_policy_until)
+        and state.time < plan.response_policy_until <= state.response_policy_until
+        and plan.response_evidence
+        and plan.response_evidence == state.response_evidence
+    ):
+        raise ValueError("Expired or unsupported response evidence")
     if len(set(plan.scouting_requests)) != len(plan.scouting_requests) or any(
         request not in {"commitment", "technology", "army", "expansions"}
         for request in plan.scouting_requests
