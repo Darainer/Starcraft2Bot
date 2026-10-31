@@ -146,7 +146,20 @@ base and exhausted its remaining lines. Pressure's three-base ceiling and
 A minimal subsequent configuration experiment keeps the original gates and
 Robotics-v2 gameplay, raising pressure to four bases and seventy workers. This
 tests preemptive fourth-base income, not recovery from an already empty bank;
-it is a separate frozen candidate pending its Power triplet.
+its [Power triplet](evaluations/2026-10-31-sustainable-pressure-v1-20261031-zerg-power.md)
+lost all three games at 1780.4 seconds. It never starts a fourth Nexus and is
+rejected as a repair. The full fingerprint differs only in the two declared
+assistant settings; world starts remain identical. This is a configuration
+ablation with its own comparison group, not a claim of unchanged settings.
+
+A subsequent engagement-range candidate (`287dbd5`) is based on counter-tech,
+excluding the rejected expansion/siege/wave drafts. It lets out-of-range actors
+close on a local visible combat contact during an engaged wave; the old anchor
+slots can leave them unable to fire. Recorded-state inspection found this gap
+in 29 of 38 ready actor-samples across the representative Timing engagement
+samples, mostly Zealots; these are correlated snapshots, not independent fights.
+The candidate passed 521 tests (88.58% coverage) and required checks. Its Terran
+Timing triplet is pending; the snapshot finding is not a playing-strength claim.
 
 The validated baseline is checked in on `feat/hardcoded-baseline-20261031`:
 runtime/trial fixes, R2 gameplay and passive belief/metric instrumentation.
