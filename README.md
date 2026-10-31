@@ -165,6 +165,9 @@ while its control rules are disabled by default. The
 
 ## Validation
 
+See the [overall bot status](docs/bot-status.md) for current Zerg/Terran results,
+integration gaps, scouting/data work and remaining acceptance gates.
+
 The experimental [scout-selected Zerg response](docs/zerg-scout-response-experiment.md)
 completed 15/15 VeryHard Zerg development wins: three repeats of each explicit
 build at the 3600-second bound. This is one map/seed per build; held-out and
