@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass
 
+from source.game_ontology import parameter
 from source.strategic_plan import Assessment, MissionSpec, StrategicPlan
 from source.strategy_profiles import PROFILES
 
@@ -12,6 +13,48 @@ class Candidate:
     target_id: str
     score: float
     reason: str
+
+
+def production_from_beliefs(state):
+    """Small, reversible supply transfers from fresh confirmed counter evidence."""
+    beliefs = state.opponent_beliefs
+    targets = dict(state.production)
+    if beliefs is None or beliefs.time > state.time:
+        return state.production, "Scouting composition overlay; strategy uncertainty unavailable", ()
+    requests = tuple(
+        name for name, value in sorted(beliefs.questions(), key=lambda q: -q[1]) if value >= 0.6
+    )[:2]
+    if not state.belief_control or not state.adaptive_composition or state.time < 240:
+        return state.production, "Preserve user targets and opening defense", requests
+
+    def supported(signal):
+        return (
+            signal.support is not None
+            and signal.support >= parameter("counter_minimum_support")
+            and signal.uncertainty <= parameter("counter_maximum_uncertainty")
+            and signal.evidence_age is not None
+            and signal.evidence_age + state.time - beliefs.time <= parameter("army_memory_seconds")
+        )
+
+    air, armor = supported(beliefs.air), supported(beliefs.armored_ground)
+    floor = 12 if supported(beliefs.light_ground) else 4
+    preferred = "stalkers" if air else "immortals" if armor else None
+    if preferred is None or targets.get(preferred, 0) <= 0 or targets.get("zealots", 0) - floor < 4:
+        return (
+            state.production,
+            "Retain targets: insufficient fresh counter evidence or transferable supply",
+            requests,
+        )
+    increment = 4 if preferred == "stalkers" else 2
+    if preferred == "immortals" and targets[preferred] + increment > 10:
+        return state.production, "Armored-ground counter target already at bounded ceiling", requests
+    targets[preferred] += increment
+    targets["zealots"] -= 4
+    return (
+        tuple(targets.items()),
+        f"Fresh {'air' if air else 'armored-ground'} evidence: transfer eight target supply to {preferred}",
+        requests,
+    )
 
 
 def candidates(state: Assessment, continuing=False):
@@ -47,6 +90,14 @@ def candidates(state: Assessment, continuing=False):
         # Unseen sites are reconnaissance objectives, never confirmed free bases.
         uncertainty = 8 if not target.visible else 0
         score = target.value - target.travel * 0.12 - uncertainty - min(25, age * 0.1)
+        if (
+            state.belief_control
+            and state.opponent_beliefs is not None
+            and state.opponent_beliefs.time <= state.time
+        ):
+            # Unknown global strength carries a cost; it never establishes a
+            # free attack. Local fight evidence/emergency overrides remain intact.
+            score -= max(0, state.opponent_beliefs.enemy_army.uncertainty - 0.4) * 20
         if target.defense and target.advantage < 1.2:
             result.append(Candidate("contain", target.id, 15, "Avoid fortified approach; scout and contain"))
             continue
@@ -146,6 +197,7 @@ def compose(state, choice, plan_id, ranked):
             remaining -= budget
     minimum = min(remaining, max(16, PROFILES[state.profile]["attack_supply"]))
     missions.append(MissionSpec("main", "main", choice.target_id, point, remaining, minimum, 50, mode))
+    production, production_reason, scouting_requests = production_from_beliefs(state)
     return StrategicPlan(
         plan_id,
         state.version,
@@ -153,8 +205,10 @@ def compose(state, choice, plan_id, ranked):
         state.time + 20,
         objective,
         tuple(missions),
-        state.production,
+        production,
         not state.threat_supply and not state.rush_warning and objective != "recover",
         choice.reason,
         tuple((f"{c.objective}:{c.target_id}", round(c.score, 2)) for c in ranked),
+        production_reason=production_reason,
+        scouting_requests=scouting_requests,
     )

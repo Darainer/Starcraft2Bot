@@ -3,6 +3,8 @@
 from dataclasses import asdict, dataclass
 from math import isfinite
 
+from source.opponent_beliefs import OpponentBeliefs
+
 Point = tuple[float, float]
 OBJECTIVES = {"stabilize", "develop", "pressure", "contain", "counterattack", "finish", "recover"}
 ROLES = {"main", "defend", "deny"}
@@ -57,6 +59,9 @@ class Assessment:
     raid_response_supply: float = 0
     raid_response_advantage: float = 0
     opening_hold: Point | None = None
+    opponent_beliefs: OpponentBeliefs | None = None
+    adaptive_composition: bool = False
+    belief_control: bool = False
 
     def to_dict(self):
         return asdict(self)
@@ -87,6 +92,8 @@ class StrategicPlan:
     expand: bool
     reason: str
     scores: tuple[tuple[str, float], ...] = ()
+    production_reason: str = "Recorded composition targets"
+    scouting_requests: tuple[str, ...] = ()
 
     def to_dict(self):
         return asdict(self)
@@ -96,6 +103,11 @@ def validate_plan(plan, state, max_age=5):
     """Reject stale/unsupported/infeasible proposals before activation."""
     if not isinstance(plan, StrategicPlan) or plan.objective not in OBJECTIVES:
         raise ValueError("Unsupported strategic plan")
+    if len(set(plan.scouting_requests)) != len(plan.scouting_requests) or any(
+        request not in {"commitment", "technology", "army", "expansions"}
+        for request in plan.scouting_requests
+    ):
+        raise ValueError("Unsupported scouting question")
     if not (plan.based_on <= state.version and 0 <= state.time - plan.created_at <= max_age):
         raise ValueError("Stale or future assessment")
     if not state.time < plan.expires_at <= plan.created_at + 120:

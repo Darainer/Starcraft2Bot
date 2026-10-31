@@ -7,6 +7,7 @@ from source.combat_assessment import home_threats, observed_supply, visible_thre
 from source.composition import composition_targets
 from source.endgame_sweep import BASE_TYPES, DEFENSE_TYPES
 from source.expansion_intel import expansion_sites, is_expansion
+from source.opponent_beliefs import OpponentBeliefModel
 from source.opponent_strategy import OpponentStrategyModel
 
 WORKERS = {U.PROBE, U.SCV, U.DRONE}
@@ -28,6 +29,7 @@ class ScoutController:
         self.observer_blocked = {}
         self.observer_goal = None
         self.opponent_model = OpponentStrategyModel()
+        self.belief_model = OpponentBeliefModel()
 
     def _rush_warning(self, bot, combat, buildings, report):
         """Short-lived opening alerts from visible evidence, never opponent settings."""
@@ -340,6 +342,7 @@ class ScoutController:
 
         worker_status = self._worker_scout(bot, enemies, report)
         report["opponent_strategy"] = self.opponent_model.observe(bot.time, report)
+        report["opponent_beliefs"] = self.belief_model.observe(bot.time, report, bot.supply_army).to_dict()
         observer_status = self._observer_tick(bot) if bot.settings.scouting else {"phase": "disabled"}
         return {"phase": worker_status, "observer": observer_status, "intel": report}
 
@@ -390,6 +393,11 @@ class ScoutController:
             if tag not in dead and bot.time - value[1] <= 180
         }
         report["known_enemy_tech"] = sorted({value[0] for value in self.tech_memory.values()})
+        report["known_enemy_tech_evidence"] = [
+            {"tag": str(tag), "kind": kind, "seen_seconds": seen}
+            for tag, (kind, seen) in self.tech_memory.items()
+        ]
+        report["enemy_unit_evidence"] = [{"tag": str(tag), **info} for tag, info in self.unit_memory.items()]
 
     def _worker_scout(self, bot, enemies, report):
         if not bot.settings.enabled or not bot.settings.attack or not bot.settings.scouting:

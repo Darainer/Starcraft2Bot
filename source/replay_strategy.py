@@ -5,6 +5,7 @@ import json
 from collections import Counter
 from pathlib import Path
 
+from source.opponent_beliefs import beliefs_from_dict
 from source.strategic_plan import Assessment, Opportunity, validate_plan
 from source.strategy_director import StrategicDirector
 
@@ -17,6 +18,7 @@ def assessment_from_dict(data):
     for key in ("home", "rally", "threat"):
         values[key] = tuple(data[key]) if data[key] is not None else None
     values["production"] = tuple(tuple(pair) for pair in data["production"])
+    values["opponent_beliefs"] = beliefs_from_dict(data.get("opponent_beliefs"))
     return Assessment(**values)
 
 

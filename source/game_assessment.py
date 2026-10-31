@@ -10,6 +10,7 @@ from source.combat_assessment import home_threats, observed_supply, power, visib
 from source.composition import composition_targets
 from source.endgame_sweep import BASE_TYPES
 from source.expansion_intel import is_expansion
+from source.opponent_beliefs import beliefs_from_dict
 from source.strategic_plan import Assessment, Opportunity
 from source.strategy_profiles import PROFILES
 
@@ -208,6 +209,7 @@ class GameAssessment:
                 )
             )
         maximum = sum(unit.health_max + unit.shield_max for unit in fighters)
+        beliefs = beliefs_from_dict(bot.scout_report.get("opponent_beliefs"))
         return Assessment(
             bot.state.game_loop,
             bot.time,
@@ -242,4 +244,6 @@ class GameAssessment:
             raid_response_supply=response_supply,
             raid_response_advantage=response_advantage,
             opening_hold=opening_hold,
+            opponent_beliefs=beliefs.relative_to(army_supply) if beliefs is not None else None,
+            adaptive_composition=bot.settings.adaptive_composition,
         )
