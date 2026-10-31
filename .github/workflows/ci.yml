@@ -20,7 +20,7 @@ jobs:
       - uses: astral-sh/setup-uv@v6
         with:
           enable-cache: true
-      - run: uv sync --locked --python 3.12
+      - run: uv sync --locked --extra training --python 3.12
       - run: uv run --locked ruff check .
       - run: uv run --locked ruff format --check .
       - run: uv run --locked mypy
@@ -33,7 +33,7 @@ jobs:
       - uses: astral-sh/setup-uv@v6
         with:
           enable-cache: true
-      - run: uv sync --locked --python 3.12
+      - run: uv sync --locked --extra training --python 3.12
       - run: uv run --locked --python 3.12 pytest --cov --cov-report=term-missing --cov-report=xml
       - run: uv run --locked --python 3.12 sc2-assistant --help
       - uses: actions/upload-artifact@v4

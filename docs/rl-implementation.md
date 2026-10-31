@@ -1,5 +1,11 @@
 # RL foundation implementation
 
+Follow-up: the [local training pilot](rl-training-pilot.md) implements the neural
+policy, enriched inputs, collection/environment and PPO stages described below
+as pending in the original foundation record. That document tracks the current
+implementation and live evidence; the foundation details here retain their
+original validation scope.
+
 Implementation started 2026-10-31 on `feat/rl-foundation-20261031`, from frozen
 source `64001d5`. This is an offline foundation for the approved
 [two-layer architecture](game-agnostic-architecture.md),
