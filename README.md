@@ -149,6 +149,10 @@ The [belief and scouting design](docs/opponent-beliefs-and-scouting.md) and
 foundation for the [first RL architecture](docs/rl-architecture.md): uncertain
 world beliefs feed a recurrent strategic policy and a guarded action-vector
 decoder. The RL architecture is a proposal; no trained RL policy is included.
+The separate [RL training plan](docs/rl-training-plan.md) covers teacher data,
+public opponents, headless Linux containers, patch compatibility and rollout
+throughput. [Winning-bot research](docs/research/winning-bot-tactics.md) supplies
+source-linked tactics and an inventory of public bots.
 The first belief/scouting live candidate was rejected; belief telemetry remains,
 while its control rules are disabled by default. The
 [hardcoded bot milestone](docs/hardcoded-elite-milestone.md) takes priority over RL training.
