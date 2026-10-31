@@ -175,6 +175,14 @@ class ArmyWaves:
             engaged = any(
                 u.is_visible and u.can_attack and u.distance_to(anchor) < 10 for u in bot.enemy_units
             )
+            combat_targets = bot.enemy_units.filter(
+                lambda enemy: (
+                    enemy.is_visible
+                    and enemy.can_be_attacked
+                    and enemy.can_attack
+                    and enemy.distance_to(anchor) < 20
+                )
+            )
             self.phase = "engage" if engaged else "advance" if coherent else "regroup"
             if self.phase == "regroup":
                 self.regroup_anchor = gathering
@@ -205,6 +213,18 @@ class ArmyWaves:
                 slot = waypoint.offset(
                     (forward.x * depth - forward.y * lateral, forward.y * depth + forward.x * lateral)
                 )
+                if engaged and unit.can_attack:
+                    targets = combat_targets.filter(
+                        lambda enemy, unit=unit: (
+                            unit.can_attack_air if enemy.is_flying else unit.can_attack_ground
+                        )
+                    )
+                    if targets and not any(unit.target_in_range(enemy) for enemy in targets):
+                        # A formation slot around the stopped anchor may never
+                        # bring this actor into weapon range. Close on a local
+                        # combat contact; existing firing/retreat guards still
+                        # arbitrate the order at mission and micro level.
+                        slot = targets.closest_to(unit).position
                 destinations[unit.tag] = (
                     "attack" if (coherent or engaged) and unit.can_attack else "move",
                     slot,
