@@ -96,6 +96,9 @@ Source must be committed and clean before collection. The normal assistant does
 not import PyTorch. The root runtime still supports Python 3.10; training requires
 3.11+. Windows and x86-64 Linux training resolve CPU wheels from the explicit
 official PyTorch index. The Linux SC2 environment remains a separate future gate.
+Development installs include the CPU learner so the existing CI commands exercise
+the neural tests. Runtime-only `uv sync --locked --no-dev` omits PyTorch unless
+the training extra is requested explicitly.
 
 The pilot writes outcome/optimizer/checkpoint identities and measured CPU timings
 to `pilot-results.json`. Benchmarks use actual recorded states and report median,

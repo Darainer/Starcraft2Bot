@@ -31,7 +31,7 @@ explicit = true
 torch = [{ index = "pytorch-cpu", marker = "sys_platform == 'win32' or (sys_platform == 'linux' and platform_machine == 'x86_64')" }]
 
 [dependency-groups]
-dev = ["pytest>=8,<10", "pytest-cov>=6,<8", "ruff>=0.11,<1", "pre-commit>=4,<5", "mypy>=1.15,<2"]
+dev = ["pytest>=8,<10", "pytest-cov>=6,<8", "ruff>=0.11,<1", "pre-commit>=4,<5", "mypy>=1.15,<2", "torch==2.15.0; python_version >= '3.11'"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["source"]
