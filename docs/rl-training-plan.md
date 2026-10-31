@@ -1,5 +1,10 @@
 # RL training and environment plan
 
+Implementation update, 2026-10-31: the user authorized beginning the offline
+belief/action/data contracts on a separate branch. See the
+[implementation record](rl-implementation.md). The rule-bot acceptance and frozen
+expert-teacher gates below remain unfulfilled; no policy has been trained.
+
 Version 0.2, 2026-10-31. **Training design; implementation follows the hardcoded
 bot milestone.** Use headless Linux containers as the eventual rollout target,
 subject to game-domain validation and a measured throughput pilot. Keep native

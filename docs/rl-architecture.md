@@ -2,6 +2,11 @@
 
 Version 0.2 — 2026-10-31. **Two-layer design approved; no RL policy has been trained.**
 
+Implementation update: the user authorized starting the offline foundation on a
+separate branch while rule-bot work continues. See [implementation status](rl-implementation.md)
+for the delivered contracts and pending collection/training gates. This does not
+accept the current bot as an expert teacher or certify a learned policy.
+
 Priority update: finish the [hardcoded bot milestone](hardcoded-elite-milestone.md)
 before implementing/training this learner. An accepted frozen rule bot will then
 provide a teacher and training opponent; current R2 failures must not be labeled
