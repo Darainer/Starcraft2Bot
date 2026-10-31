@@ -65,7 +65,7 @@ The local-play Compose example separates SC2, two bot controllers and a proxy,
 with local logs/results/replays. Its `v0.8.0` image tags are reference examples,
 not approved pins for our implementation; resolve and record immutable digests
 after validation.
-[Local-play Compose](https://github.com/aiarena/local-play-bootstrap/blob/master/docker-compose.yml)
+[Local-play Compose](https://github.com/aiarena/local-play-bootstrap/blob/main/docker-compose.yml)
 
 Prefer explicit internal service addresses and nonoverlapping port leases.
 Host networking is an option to benchmark: Docker supports it on Linux and as an

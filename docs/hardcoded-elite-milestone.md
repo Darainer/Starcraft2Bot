@@ -126,10 +126,13 @@ the new approach and commit phases, but the army still collapses. It passed
 
 An independent reachable-expansion candidate (`e9da001`) addresses Power's
 depletion deadlock by capping the worker gate at attainable saturation minus two,
-with a sixteen-worker floor and a mineral-bearing destination. Its parent and
-candidate Power triplets are being compared at 3600 seconds; this is separate
-from the rejected siege experiment. Software validation passed 525 tests
-(88.55% coverage), locked checks and builds.
+with a sixteen-worker floor and a positive-resource destination check. Its parent
+and candidate Power triplets both won 3/3 at 3600 seconds, ending at 820.4 and
+1245.4 respectively. The candidate delayed expansion because unseen resource
+amounts were treated as empty. It is not promoted. Software validation passed
+525 tests (88.55% coverage), locked checks and builds. The next variant preserves
+the distinction between unknown and depleted minerals and is evaluated on the
+earlier Robotics-only revision that actually suffered the depletion stall.
 
 The validated baseline is checked in on `feat/hardcoded-baseline-20261031`:
 runtime/trial fixes, R2 gameplay and passive belief/metric instrumentation.
