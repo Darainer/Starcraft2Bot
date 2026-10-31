@@ -1,8 +1,10 @@
 # Military doctrine for strategic control
 
-Design proposal, 2026-10-31. Use the **U.S. Army operations process**, supported
-by mission command, intelligence preparation, reconnaissance and sustainment, as
-one coherent framework for this bot. This is an analogy for software design and
+Approved background framework, 2026-10-31. Use the **U.S. Army operations process**,
+supported by mission command, intelligence preparation, reconnaissance and
+sustainment, in the game-agnostic core of the
+[two layer architecture](game-agnostic-architecture.md). StarCraft II is the first
+game-specific application. This is an analogy for software design and
 decision making under uncertainty. Doctrine does not establish SC2 counters,
 combat equations, probabilities or winning thresholds. Those require game data
 and matched experiments. No gameplay change is implemented by this document.
@@ -32,6 +34,9 @@ explanation of the concept, not a claim that the 2019 ADP 6-0 remains current.
 ## Mapping into the bot
 
 The existing modules provide foundations; the extensions below are proposals.
+The shared layer owns the reasoning concepts, while the StarCraft layer grounds
+them in SC2 evidence, mechanics and executable plans. Other games provide their
+own adapters; the same unit counters and numerical thresholds do not carry over.
 
 | Doctrine concept | Repository seam | Proposed SC2 contract |
 | --- | --- | --- |

@@ -148,14 +148,17 @@ The [belief and scouting design](docs/opponent-beliefs-and-scouting.md) and
 [source-linked game ontology](source/data/game_ontology.v1.json) provide the
 foundation for the [first RL architecture](docs/rl-architecture.md): uncertain
 world beliefs feed a recurrent strategic policy and a guarded action-vector
-decoder. The RL architecture is a proposal; no trained RL policy is included.
+decoder. The RL controller remains a design; no trained policy is included.
 The separate [RL training plan](docs/rl-training-plan.md) covers teacher data,
 public opponents, headless Linux containers, patch compatibility and rollout
 throughput. [Winning-bot research](docs/research/winning-bot-tactics.md) supplies
 source-linked tactics and an inventory of public bots.
-The [military doctrine review](docs/doctrine-inspired-control.md) proposes the
-Army operations process as a structure for beliefs, decision-linked scouting,
-mission intent, counter readiness and sustainable income.
+The approved [two layer architecture](docs/game-agnostic-architecture.md) separates
+a game-agnostic doctrine/reasoning core from a StarCraft-specific encoder,
+policy heads, decoder and execution adapter. The
+[military doctrine review](docs/doctrine-inspired-control.md) grounds beliefs,
+decision-linked scouting, intent, readiness and sustainable income. Additional
+games can supply their own adapters; cross-game weight transfer remains untested.
 The first belief/scouting live candidate was rejected; belief telemetry remains,
 while its control rules are disabled by default. The
 [hardcoded bot milestone](docs/hardcoded-elite-milestone.md) takes priority over RL training.

@@ -5,6 +5,12 @@ technology, enemy army supply and relative strength. Scouting should answer a
 specific decision question while accounting for the scout's replacement cost,
 lost mining time, route exposure and previous losses.
 
+The approved [two layer design](game-agnostic-architecture.md) keeps the concepts
+of evidence, uncertainty, COAs and decision-linked reconnaissance in a shared
+game-agnostic core. The beliefs and ontology described here remain the SC2 domain
+implementation; its adapter maps them into portable semantic state. A new game
+supplies its own observations, inference rules, scouting methods and action heads.
+
 ## Review findings
 
 The frozen R2 five-label estimator is observational (`control_enabled=False`).

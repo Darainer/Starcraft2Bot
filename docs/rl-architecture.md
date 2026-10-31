@@ -1,6 +1,6 @@
 # Belief-state reinforcement learning architecture
 
-Version 0.1 — 2026-10-31. **Architecture proposal; no RL policy has been trained.**
+Version 0.2 — 2026-10-31. **Two-layer design approved; no RL policy has been trained.**
 
 Priority update: finish the [hardcoded bot milestone](hardcoded-elite-milestone.md)
 before implementing/training this learner. An accepted frozen rule bot will then
@@ -11,20 +11,22 @@ The separate [training and environment plan](rl-training-plan.md) defines teache
 collection, isolated public opponents, Linux container and retail compatibility
 gates, rollout accounting and staged BC/PPO acceptance.
 
-The [doctrine review](doctrine-inspired-control.md) connects enemy courses of
-action, mission intent, decision-linked reconnaissance and sustainment to this
-same belief/plan seam. These are proposed structures to test with the hardcoded
-bot; they do not establish reward weights or constrain a trained policy to an
-unvalidated strategy.
+The approved [two layer architecture](game-agnostic-architecture.md) separates a
+game-agnostic doctrine/reasoning core from the StarCraft-specific observation
+encoder, policy/value heads, decoder and execution adapter. The
+[doctrine framework](doctrine-inspired-control.md) supplies enemy courses of
+action, intent, decision-linked reconnaissance, sustainment and assessment.
+Individual mechanisms and numerical weights still require SC2 evidence.
 
-The first learned component should replace strategic decision making while
-retaining the current validated execution boundary. It receives a world view
-expressed as observations, hypotheses and uncertainty, then emits a structured
-action vector. A deterministic decoder turns that vector into a `StrategicPlan`;
-existing controllers execute legal actions through `issue`.
+The first learned controller composes both layers while retaining the current
+execution boundary. The StarCraft encoder converts legal observations and domain
+beliefs into the shared semantic state. The recurrent core produces a strategic
+latent state; StarCraft heads emit the action vector. Its deterministic decoder
+produces a `StrategicPlan`, and existing controllers execute through `issue`.
 
 The source-linked [game ontology](../source/data/game_ontology.v1.json) defines
-concepts and relationships. The [belief/scouting design](opponent-beliefs-and-scouting.md)
+SC2 concepts and relationships. Portable doctrine/decision concepts belong to a
+separate shared ontology. The [belief/scouting design](opponent-beliefs-and-scouting.md)
 defines how evidence changes those beliefs. Neither the ontology nor a confident
 estimate is an omniscient world state. A learned dynamics model is a later,
 separate component.
@@ -50,35 +52,53 @@ one system; they are not assumed to be a ready-made combination.
 
 ```mermaid
 flowchart TD
-    API[Player-visible SC2 observation] --> F[Facts and observation history]
-    O[Versioned ontology and sources] --> B[Belief updater with uncertainty]
-    F --> B
-    B --> E[Belief and entity encoder]
-    F --> E
-    E --> R[Recurrent policy and value model]
-    R --> V[Structured action vector]
-    V --> D[Masked deterministic plan decoder]
-    D --> P[StrategicPlan validation]
-    P --> C[Economy, scouting, missions and micro]
-    C --> G[Ownership, resource and capability guards]
-    G --> I[issue and runtime adapter]
+    subgraph SC2[Game specific layer StarCraft II]
+        API[Player-visible SC2 observation] --> F[Facts and observation history]
+        O[SC2 ontology and sources] --> B[Domain belief updater]
+        F --> B
+        B --> E[SC2 semantic encoder and candidates]
+        F --> E
+        H[SC2 policy and value heads] --> V[DirectorActionV0]
+        V --> D[Masked deterministic decoder]
+        D --> P[StrategicPlan validation]
+        P --> C[Economy, scouting, missions and micro]
+        C --> G[Ownership, resource and capability guards]
+        G --> I[issue and runtime adapter]
+    end
+    subgraph Core[Game agnostic layer]
+        S[StrategicStateV1] --> R[Shared recurrent reasoning core]
+        K[Doctrine concepts and task capabilities] --> R
+        R --> Z[Strategic latent state]
+    end
+    E --> S
+    Z --> H
     I --> API
     API --> L[Outcome and transition logger]
+    S --> L
     V --> L
     D --> L
     L --> T[Rollout buffer and learner]
-    T --> R
+    T -. updates .-> E
+    T -. updates .-> R
+    T -. updates .-> H
 ```
 
-| Boundary | Current foundation | Proposed RL addition |
+| Boundary | Architectural owner | Current foundation and proposed addition |
 | --- | --- | --- |
-| Knowledge | `game_ontology.py`, source-linked JSON catalog | Version/hash pinned in every dataset and checkpoint |
-| Beliefs | `opponent_beliefs.py`, `scouting.py`, `GameAssessment` | Stable `BeliefStateV1` encoder, normalization and missing-value masks |
-| Strategy | `StrategicDirector`, `Assessment`, `StrategicPlan` | Local recurrent policy behind the same proposal/validation seam |
-| Decoding | `strategy_policies.py`, `validate_plan` | Deterministic vector-to-plan decoder with explicit constraints |
-| Execution | Missions, intents, economy, abilities, `issue` | Retain these controllers for the first learner |
-| Environment | Pinned BurnySC2 adapter in `runtime.py` | Training reset/step wrapper outside the SDK-private adapter |
-| Evidence | Player snapshots, replays, evaluation manifests | Decision transitions, masks, likelihoods, recurrent state and reward records |
+| Decision concepts | Game-agnostic core | Proposed portable ontology/contracts for evidence, COAs, intent, information requirements and effects |
+| Domain knowledge and beliefs | StarCraft layer | `game_ontology.py`, SC2 JSON catalog, `opponent_beliefs.py`, `scouting.py`, `GameAssessment`; map `BeliefStateV1` into shared `StrategicStateV1` |
+| Recurrent reasoning | Game-agnostic core | Proposed shared network; the current `StrategicDirector` is a rule-policy seam with SC2 contracts |
+| Heads and decoding | StarCraft layer | SC2 policy/value heads and conditional masks; decode `DirectorActionV0` through `validate_plan` |
+| Execution | StarCraft layer | Retain missions, intents, economy, abilities and `issue` for the first learner |
+| Environment | StarCraft layer | Retain pinned SDK boundary in `runtime.py`; add a public training environment wrapper |
+| Evidence | Both, through versioned records | Log shared semantic input and SC2 actions/guards/effects alongside recurrent state and likelihoods |
+
+`Assessment`, `StrategicPlan` and the current belief ontology are SC2-specific
+even where they avoid SDK imports. Implement explicit converters rather than
+relabeling them as portable. Shared code must not import SC2 identifiers or infer
+game mechanics from a raw unit/profile ID. Training/logging supports both modules
+without adding a third policy layer. Another game supplies its own encoder,
+heads, decoder and environment; transferable weights require separate evidence.
 
 Some belief/ontology code is currently an initial implementation under validation.
 The RL encoder, environment, learner, rollout buffer, trained weights and league
@@ -96,15 +116,17 @@ games at 820.4 seconds and was rejected. Runtime now retains belief telemetry bu
 uses R2 scouting and disables belief-driven plan control by default. Cost-aware
 scouting remains in an explicitly experimental controller. Rule-bot playing
 strength, rather than RL implementation, is the current milestone.
-The current software validation is **491 passing synthetic tests, 92.54% coverage**,
-locked dependency sync, Ruff lint/format, configured mypy and source/wheel builds.
-The wheel includes the exact ontology JSON. These checks do not train an RL
-policy or establish playing strength for the later belief/scouting revision.
+Software validation is recorded per frozen revision in the milestone record.
+The wheel includes the exact SC2 ontology JSON. Those checks do not train an RL
+policy or establish playing strength or cross-game transfer.
 
-## 3. World-state contract
+## 3. StarCraft state and shared state
 
-The actor receives `BeliefStateV1`, built only from information available to our
-participant at that decision. Each inferred dimension carries its estimate,
+The StarCraft adapter constructs `BeliefStateV1` only from information available
+to our participant at that decision. Its semantic encoder produces the shared
+`StrategicStateV1` defined in the two-layer design. The table below describes the
+SC2 domain view; raw SC2 IDs and resource conventions do not pass directly into
+the shared network. Each inferred dimension carries its estimate,
 uncertainty, evidence age and provenance. Unknown values have an explicit mask;
 encoding a missing value numerically as zero must never mean “enemy strength zero.”
 
@@ -143,17 +165,19 @@ and leakage-tested. Start with a critic using the same partial-information view.
 
 ### Encoder and memory
 
-Start with normalized scalar features and a pooled entity encoder for own units,
-enemy sightings and candidate locations. Include age, visibility, uncertainty,
-ownership and domain masks. Add a small GRU/LSTM over consecutive strategic
-decisions, the previous decoded action and its observed execution outcomes.
+The SC2 layer supplies normalized semantic scalar features and pooled entity
+encodings for own units, enemy sightings and candidate locations. Include age,
+visibility, uncertainty, control permissions and domain masks. The shared layer
+adds a small GRU/LSTM over consecutive decisions and a shared representation of
+previous intent and observed effects; raw SC2 action indices stay in its adapter.
 Persistent explicit beliefs complement recurrent memory; neither replaces the
 other. Keep the initial architecture small enough for local inference and measure
 latency under actual concurrent-game load.
 
-A concrete prototype budget is 64 features per encoded entity, masked pooling
-into 128 features per entity set, a 128-feature scalar encoder, and one
-256-state GRU shared by policy and value heads. These are starting design
+A concrete prototype budget places 64 features per encoded entity, masked pooling
+into 128 features per entity set and a 128-feature scalar encoder in the SC2
+module, with one 256-state GRU in the game-agnostic module. SC2 policy and value
+heads consume the shared recurrent output. These are starting design
 parameters, not benchmarked hardware requirements. Truncate entity sets with a
 deterministic relevance order, retain overflow counts, and record the truncation
 mask. Include uncertainty for omitted contacts rather than silently treating
@@ -167,7 +191,8 @@ The first policy should choose strategy, targets, production posture and scoutin
 questions. It should not learn raw mouse/keyboard commands, direct SDK calls,
 arbitrary Python, actor ownership rules or ability permissions.
 
-Proposed `DirectorActionV0` has **34 logits** with fixed, versioned ordering:
+Proposed `DirectorActionV0` is the **SC2 adapter's** interface, with **34 logits**
+and fixed, versioned ordering. It is not the universal action space for other games:
 
 | Head | Width | Meaning and decoding |
 | --- | ---: | --- |
@@ -178,14 +203,15 @@ Proposed `DirectorActionV0` has **34 logits** with fixed, versioned ordering:
 
 All four heads are categorical. The executed action is four sampled indices;
 34 is the policy-logit count, not the number of sampled actions. A separate
-scalar value head predicts return. Production templates are converted into
+SC2 scalar value head predicts its configured return. Production templates are converted into
 feasible bounded integer targets using ontology roles and current permissions;
 their exact weights belong to the versioned decoder. Target membership and ordering
 are deterministic at a given observation. The decoder logs both the original
 vector and its projected plan, including rounding, caps and fallback reasons.
-The first decoder retains existing mission allocation, macro priority rules and
-cost-aware scout method selection. It does not claim that all four heads can be
-plugged into the current director without implementing that decoder.
+The first SC2 decoder retains existing mission allocation and macro priority
+rules. Scout-method selection needs its own validated controller; the rejected
+cost-aware draft is not an accepted execution component. All four heads require
+the documented decoder before they can govern the current director.
 
 Sample objective first, then its conditional legal target, production posture
 and scouting question. Store the sum of active conditional log probabilities as
@@ -246,6 +272,10 @@ later be learned through the same action interface and outcome records.
 
 ## 6. Environment, time and experience records
 
+This section specifies the StarCraft adapter. Other games define their own legal
+observations, action timing, outcome semantics and environment lifecycle while
+preserving shared state/intent/feedback contracts.
+
 Use the native Windows runtime and newest installed binary first, with recorded
 ping/data identity. Training automation uses owned local matches, not Battle.net
 ladder attachment. Environment closure only cleans up owned clients. The global
@@ -261,9 +291,10 @@ it cannot block the game loop indefinitely.
 Log a transition at every policy decision:
 
 ```text
-episode / source / ontology / feature / action-schema versions
-observation loop and delta game time
-belief state + entity/candidate masks + allowed capabilities
+episode / source / core / adapter / shared-and-domain-ontology versions
+feature / action-schema / normalization versions
+SC2 observation loop, elapsed game time and declared semantic time units
+SC2 belief view + shared StrategicStateV1 + entity/candidate masks + capabilities
 recurrent input state and sequence/reset flags
 sampled vector + active heads + masks + old log probability + value estimate
 decoded plan + projection/rejection/override reasons
@@ -298,6 +329,10 @@ minutes before the outcome. Sequence training keeps episode boundaries, initial
 hidden state and any burn-in explicit; minibatches must not join unrelated games.
 
 ## 7. Learning objective and opponent pool
+
+The following reward contract applies to the first SC2 policy. Reward/outcome
+interpretation and the scalar value head belong to the game adapter; the shared
+core does not assume every future game has the same terminal outcomes or time units.
 
 Start with terminal victory/defeat reward and a value baseline. A true draw has
 its own result; a truncation is handled through bootstrapping. Add dense shaping
@@ -334,7 +369,7 @@ their own compute and evaluation decisions.
 
 ## 8. Metrics and acceptance
 
-| Layer | Measures | Failure the metric should expose |
+| Area | Measures | Failure the metric should expose |
 | --- | --- | --- |
 | Strategy estimation | Accuracy/coverage by horizon, time-weighted Brier error, false confidence, recognition lead | Correct classification only after the attack or unjustified certainty in fog |
 | Belief axes | Evidence age/coverage, uncertainty calibration where truth is available, prediction consistency | One fresh sighting refreshing unrelated beliefs; unobserved mistaken for absent |
@@ -365,9 +400,10 @@ multi-map/multi-seed holdout is not yet an executed validation result.
 1. **Belief and ontology foundation:** validate source-linked concepts, per-fact
    aging, unknown masks and immutable serialization. Add cost-aware scouting and
    published estimation/build/readiness metrics; establish recorded-state baselines.
-2. **Offline policy seam:** implement/version `BeliefStateV1`, candidate ordering,
-   `DirectorActionV0`, masks and deterministic decoder. Test resource conservation,
-   actor ownership, illegal/future/expired evidence and fallback behavior without SC2.
+2. **Offline policy seam:** implement/version shared `StrategicStateV1` and the
+   SC2 `BeliefStateV1` converter, candidate ordering, SC2 heads/`DirectorActionV0`,
+   masks and decoder. Test the import/semantic boundary, resource conservation,
+   actor ownership, stale evidence and fallback behavior without launching SC2.
 3. **Transition logger and environment:** verify reset/step/close, actual action
    effects, recurrent boundaries and terminal/truncation handling on local matches.
    Keep the SDK-private adapter pinned and run its lifecycle/protocol tests.
@@ -378,8 +414,9 @@ multi-map/multi-seed holdout is not yet an executed validation result.
    outcomes, legal execution and retention of established winners. Track all
    infrastructure failures and intentionally aborted trials separately.
 6. **Generalization and optional expansion:** evaluate unseen maps/seeds/policies;
-   consider more action heads, a league or Dreamer-style dynamics only after the
-   simpler baseline earns those changes.
+   add another game's adapter and compare transferred versus fresh core weights,
+   checking SC2 retention. More heads, leagues and learned dynamics need their
+   own evidence; architectural separation alone does not establish transfer.
 
 The first implementation task is the belief/decoder/data contract, not a large
 training cluster. Dependency selection and learner hyperparameters remain open

@@ -7,9 +7,11 @@ failure examples and a frozen training opponent; it is not yet an accepted exper
 
 The separate [RL training plan](rl-training-plan.md) covers that later teacher
 pipeline, public opponents and the proposed headless container environment.
-The [doctrine review](doctrine-inspired-control.md) supplies a proposed operations
-process for coordinating intelligence, intent, reconnaissance, combat readiness
-and income replacement. Individual mechanisms still need targeted SC2 evidence.
+The approved [two layer design](game-agnostic-architecture.md) places the
+[doctrine framework](doctrine-inspired-control.md) in a game-agnostic reasoning
+core and SC2 mechanics/execution in its game-specific adapter. The architecture
+can support other games; individual mechanisms and transfer still need evidence.
+The hardcoded milestone continues before implementing or training the learner.
 
 ## Working benchmark
 

@@ -1,6 +1,6 @@
 # RL training and environment plan
 
-Version 0.1, 2026-10-31. **Training design; implementation follows the hardcoded
+Version 0.2, 2026-10-31. **Training design; implementation follows the hardcoded
 bot milestone.** Use headless Linux containers as the eventual rollout target,
 subject to game-domain validation and a measured throughput pilot. Keep native
 Windows retail play as the current acceptance authority.
@@ -12,6 +12,13 @@ After acceptance, freeze the teacher before collecting imitation data. The
 [RL architecture](rl-architecture.md) defines the belief state, recurrent policy,
 34-logit `DirectorActionV0` and guarded `StrategicPlan` decoder; this document
 defines how to collect, train and evaluate that system.
+
+The approved [two layer design](game-agnostic-architecture.md) places doctrine and
+recurrent reasoning in a game-agnostic core. StarCraft owns its domain beliefs,
+semantic encoder, policy/value heads, action decoder and environment. Training
+orchestration records and updates this composed policy; it is not a third policy
+layer. The first learner is trained on SC2 after the hardcoded gate. Another game
+requires its own adapter and measured transfer, rather than a renamed SC2 schema.
 
 ## Recommended deployment
 
@@ -106,6 +113,10 @@ Linux trajectories are called expert examples there.
 
 ## Environment contract
 
+This is the StarCraft adapter's environment contract. Its encoder maps legal
+domain observations into shared `StrategicStateV1`; SC2 heads and the decoder
+translate the core's recurrent output into grounded actions.
+
 The proposed environment is Gymnasium-shaped, with no assumption that an existing
 wrapper already implements our belief/action contracts:
 
@@ -119,14 +130,16 @@ close() -> idempotent cleanup of this environment's owned resources
 directories, restores the declared opponent state, verifies ping/map identities,
 creates or joins the correct participant and records a loop-zero fingerprint.
 Reset the director, beliefs, squads, scout state, pending inference and recurrent
-memory. Failed setup is an infrastructure error; no episode starts with a
+memory, including the shared core's state when switching games. Failed setup is
+an infrastructure error; no episode starts with a
 half-initialized observation. A built-in opponent needs its explicit race,
 difficulty and build in the manifest. An external opponent requires coordinated
 participant joins and ports; passing an executable to the current Computer path
 does not implement that.
 
-`step` observes only our participant's legal raw state, constructs beliefs and
-deterministically ordered candidates, samples masked action heads, decodes and
+`step` observes only our participant's legal raw state, constructs SC2 beliefs and
+deterministically ordered candidates, encodes the shared semantic state, updates
+the common recurrent core, samples masked SC2 action heads, decodes and
 validates the plan, then advances the game with existing controllers until the
 next decision or episode boundary. Micro, resource and ownership checks retain
 their observation cadence. Current strategic updates occur every two game seconds
@@ -193,8 +206,9 @@ work and does not guarantee improvement in SC2.
 
 ## Recurrent PPO and opponents
 
-Use the architecture's small entity/belief encoder plus GRU/LSTM, masked
-categorical heads and value baseline. BC is optional; recurrent PPO is the first
+Use the architecture's SC2 entity/belief encoder, shared recurrent core and SC2
+masked categorical/value heads. Initial training can update both modules; record
+separate core and adapter checkpoints. BC is optional; recurrent PPO is the first
 RL learner. Collect transitions under a frozen policy version, then perform the
 documented update epochs on that batch. Do not append arbitrary historical or
 foreign-bot trajectories to a PPO batch. PPO's original procedure alternates
@@ -283,16 +297,21 @@ pilot rather than assuming maximum concurrency is best.
 These paths are proposals, not existing delivered files:
 
 ```text
-source/training/contracts.py       # versioned observations/transitions/manifests
-source/training/encoding.py        # legal beliefs, candidates, missingness masks
-source/training/action_codec.py    # vector -> validated plan; teacher labels
-source/training/environment.py     # reset/step/close via public runtime seam
-source/training/collector.py       # policy versions, recurrent sequences, storage
-source/training/teacher.py         # frozen rule policy and representability checks
-source/training/ppo.py             # BC/PPO training entry points and checkpoints
-config/training/                   # scenario splits, opponents, reward/cadence
-containers/training/               # later pinned images and local orchestration
-tests/training/                    # synthetic contracts and lifecycle tests
+source/strategy_core/contracts.py      # shared semantic state, intent and feedback
+source/strategy_core/doctrine.py       # shared decision concepts and assessment
+source/strategy_core/network.py        # game-agnostic recurrent reasoning
+source/games/starcraft2/encoding.py    # SC2 beliefs -> shared semantic state
+source/games/starcraft2/policy_heads.py # SC2 conditional heads and value baseline
+source/games/starcraft2/action_codec.py # SC2 vector -> guarded plan; teacher labels
+source/games/starcraft2/environment.py  # SC2 reset/step/close via public runtime
+source/games/starcraft2/teacher.py      # frozen rule policy; label representation
+source/training/collector.py           # policy versions, sequences and manifests
+source/training/ppo.py                 # composed-policy BC/PPO and checkpoints
+config/training/                       # scenario splits, opponents, reward/cadence
+containers/training/                   # later pinned images and orchestration
+tests/strategy_core/                   # semantic/import boundary tests
+tests/games/starcraft2/                # adapter, mask, decoder and lifecycle tests
+tests/training/                        # sequence and learning contract tests
 ```
 
 Keep private SDK changes in `source/runtime.py`; select the explicit training
@@ -300,7 +319,8 @@ mode through a tested public factory. Dependency choices and an optional trainin
 group need a separate reviewed lock update. No alternate `sc2` distribution is
 installed into the root environment to obtain a convenient wrapper.
 
-Each dataset/checkpoint manifest records source/teacher/policy commits and hashes,
+Each dataset/checkpoint manifest records core and adapter versions/checkpoints,
+shared and domain ontology/normalization versions, source/teacher/policy hashes,
 dependency lock, container digests, binary ping/data and map hashes, ontology,
 feature/action/decoder/mask/reward versions, opponent artifact/config/state,
 seeds, player slots, step/cadence, time limit, split and provenance. Keep raw
@@ -317,7 +337,7 @@ do not commit downloaded maps, replays, personal paths or large rollout shards.
 2. **Contract gate:** test encoding, leakage boundaries, masks, representable
    teacher labels, decoder guards, likelihoods and termination handling without
    launching SC2. Pass required repository checks for code changes.
-3. **Environment gate:** one owned match, then reproducible repeats; verify
+3. **Environment gate:** one owned SC2 match, then reproducible repeats; verify
    starting fingerprints, actual action effects, reset/close and error cleanup.
    Validate each external adapter and training domain separately.
 4. **Collection/BC gate:** complete transitions, round-trip teacher labels,
@@ -335,3 +355,11 @@ do not commit downloaded maps, replays, personal paths or large rollout shards.
    acceptance remain distinct; bot victories do not validate human input. Enable
    the policy only through the existing guarded strategy seam after its own
    documented acceptance.
+
+After SC2 acceptance, a second game needs the same adapter/contract/lifecycle
+checks, its own reward and time conventions, and a controlled transfer comparison.
+Compare a frozen pretrained core with a frozen random core while training the
+same new-game adapter. Compare fine-tuned transfer with joint training from
+scratch separately, matching trainable modules, architecture and data/compute
+budgets. Rerun SC2 retention. Passing the software boundary is not evidence of
+cross-game playing strength.
