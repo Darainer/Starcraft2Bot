@@ -1,0 +1,2 @@
+# Archived diffs contain whitespace-only context lines; preserve that patch data.
+/docs/experiments/**/*.patch -whitespace

@@ -144,7 +144,19 @@ are supported. Force Fields, Disruptor Novas, Oracle abilities, Archon merging,
 and transport-drop micro remain unsupported. See the
 [adaptive tactics architecture](docs/tactical-architecture-plan.md).
 
+The [belief and scouting design](docs/opponent-beliefs-and-scouting.md) and
+[source-linked game ontology](source/data/game_ontology.v1.json) provide the
+foundation for the [first RL architecture](docs/rl-architecture.md): uncertain
+world beliefs feed a recurrent strategic policy and a guarded action-vector
+decoder. The RL architecture is a proposal; no trained RL policy is included.
+The first belief/scouting live candidate was rejected; belief telemetry remains,
+while its control rules are disabled by default. The
+[hardcoded bot milestone](docs/hardcoded-elite-milestone.md) takes priority over RL training.
+
 ## Validation
+
+See the [latest production-recovery evaluation](docs/production-recovery-2026-10-31.md)
+for candidate-specific gameplay results and remaining acceptance gaps.
 
 ```bash
 uv sync --locked

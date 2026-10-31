@@ -242,9 +242,12 @@ outcome has been simulated, and no human input acceptance is inferred.
    tune multiple behaviors merely because the previous candidate had fewer idle
    facilities. Keep every action behind `issue` and retain ownership/reservations.
 
-For every behavioral candidate, freeze code/configuration, run the entire matched
-30-game matrix, inspect all repeats, and compare against both frozen references.
-Use configuration identities and comparison-group IDs; resolve infrastructure
+The original proposal required a complete matched 30-game matrix for every
+candidate. The user superseded that requirement on 2026-10-27: freeze each
+candidate and first finish three repeats of its targeted failure; reject poor
+candidates early. Only demonstrated improvements proceed to retention checks and
+broader regression testing. Compare against the frozen references using
+configuration identities and comparison-group IDs; resolve infrastructure
 failures and report timeouts as non-wins. The larger milestone remains 24/30
 while retaining previously winning groups, followed by the frozen 225-game
 three-race/three-map/five-seed holdout with at least 80% overall and 70% per race.
@@ -326,6 +329,76 @@ were stopped. See the [session closeout](session-closeout-2026-10-27.md) for res
 lessons, rejected integrations and unfinished production-reservation work. Later
 candidate source/tests are preserved as [patches](experiments/2026-10-27/README.md).
 This checkpoint is work in progress; it is not a promoted competitive policy.
+
+## Production recovery resumed — 2026-10-31
+
+The user authorized the review's next steps. The main checkout now has corrected
+synthetic structure supply and Robotics prices, independently asserted SDK costs
+and resource charging, and Windows wrappers that invoke the existing CLI through
+`python -m source.run_assistant`. The generated executable launcher was blocked
+by Windows application control (4551); no machine-wide security settings changed.
+See the [runtime recheck](evaluations/2026-10-31-runtime.md).
+
+The v5 archive's failing gas-release test was reproduced. Its fixture assigned
+the Robotics Facility two supply, causing BurnySC2's morph-cost calculation to
+subtract the producer price and report zero gas for an Immortal. Corrected
+fixtures resolve that failure. Additional tests cover reservation revocation,
+actual training costs and the reinforcement controller spending the same budget.
+
+Reconciliation and trials use separate clean `9fd64a1` worktrees, baseline
+scouting, unchanged dependency pins, explicit disabled combat abilities, and
+complete [candidate patches/manifests](experiments/2026-10-31/README.md).
+Frozen pressure/VeryHard/BelShirVestigeLE/seed-20261025/step-8/1500-second triplets
+retain the previous loop-zero fingerprints. Software validation and targeted
+gameplay results remain separate. The main working tree adopts R2 gameplay after
+its targeted/retention gates; R1 remains rejected.
+
+`production-v5-r1-20261031` passed 452 tests (92.74% coverage) but lost all three
+Zerg Macro games. It was rejected without broader testing. R2 changes only the
+priority construction path to try all safe powered Pylons; its regression case
+uses the captured crowded opening. R2 passed 453 tests (92.78% coverage), locked
+lint/format/type/build checks and its probe. Its targeted Macro triplet won 3/3
+at 1055.4 sampled game seconds, with matching starts, frozen source and nonempty
+replays. Rush, Power and both Air triplets also won 3/3, making the first five
+groups 15/15 wins. The remaining five scenarios completed under the same frozen
+gameplay. The [full development matrix](evaluations/2026-10-31-production-v5-r2-complete.md)
+finished **21 wins / 9 defeats / 0 timeouts**, versus the reference's 9/18/3.
+All 30 starts and nonempty replays passed verification; eight clients was the
+global ceiling. Remaining defeats are Terran Rush, Terran Timing and Zerg Timing.
+
+The user then requested longer games be resolved to judge effectiveness.
+Subsequent trials default to **3600 game seconds**, superseding the earlier
+1500-second acceptance budget. The completed shorter-bound results stay intact.
+Matched reference/R2 Zerg Timing triplets completed at 3600 seconds in a separate
+comparison group: reference `9fd64a1` won all three at 1515.4s; R2 lost all three
+at 1205.4s. All six loop-zero states match at the new limit. Relative to the old
+fingerprints only the recorded time-limit field differs. The old reference
+timeouts remain censored in their original group. The extension exposes a real
+Timing regression despite R2's broader shorter-bound improvements.
+
+Two simultaneously started retention runners selected the same timestamp and
+collided on report/log/replay paths. All six attempts are invalid: two failed
+before API startup and four owned clients were intentionally stopped. Their
+mixed artifacts and explicit abort labels remain local; none count as match
+results. Valid replacement runs used the same frozen source with staggered starts.
+The main checkout's runner now includes a UUID in its artifact prefix, with a
+synthetic test forcing two runners onto the same clock value. Gameplay and
+game/Python seeds are unchanged by that reporting fix.
+
+After adopting R2 gameplay, the main checkout passed locked sync, Ruff lint and
+format checks, configured mypy, **454 tests with 92.78% coverage**, and source/wheel
+builds. At that checkpoint its source differences from frozen R2 were UUID
+artifact naming and the subsequent 3600-second default. Later ontology, belief,
+scouting and director work is an experimental revision pending live acceptance.
+Shared human control remains unverified.
+
+The [strategy baseline](evaluations/2026-10-31-strategy-belief-baseline.md)
+calculates recognition and planned/delivered response metrics for all thirty R2
+games and the separate six-game long comparison. The [belief/scouting design](opponent-beliefs-and-scouting.md)
+records new instrumentation and its limits. The [first RL architecture](rl-architecture.md)
+specifies a recurrent belief-state policy, four categorical action heads with
+34 logits, a deterministic guarded decoder, transition logging, training and
+evaluation phases. No RL learner or trained weights are implemented.
 
 ## Research basis and limits
 
