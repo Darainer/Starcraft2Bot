@@ -55,4 +55,4 @@ known-first-party = ["source"]
 [tool.mypy]
 python_version = "3.10"
 strict = true
-files = ["source/assistant_control.py"]
+files = ["source/assistant_control.py", "source/strategy_core"]
