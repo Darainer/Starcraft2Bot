@@ -245,3 +245,39 @@ Its stop instruction was to avoid tuning during/after that final set, produce
 the report and stop. These are fixed-start development gates on one map, not
 independent samples, a new held-out benchmark or elite acceptance. Protoss,
 additional maps/seeds and established community bots remain outside this set.
+
+## Targeted Oracle/Archon follow-up (2026-10-31)
+
+Integration PR #5 is merged into the repository's primary branch `master`
+at `425bca8`. Follow-up work lives on
+`experiment/targeted-oracle-archon-20261031` in a separate PR. Earlier results
+remain attached to their frozen sources and settings.
+
+Start with the failed original-seed Terran Timing and Zerg Power conditions.
+For each scenario run three repeats of merged-source control, then three of
+the candidate, using identical pressure profile, VeryHard, explicit build,
+BelShirVestigeLE, game/Python seed 20261025, step eight, one-second snapshots,
+V3 revisit and a 3600-game-second limit. Enable scouted composition, Archon
+merging and Oracle/beam permission in both arms; keep economic-defense and
+local-regroup additions off to isolate this tactical comparison. Verify
+loop-zero physical state and full settings fingerprints within/between arms,
+native binary/data and map hashes, complete logs/replays, and immutable source
+manifests. Maximum eight global clients; complete targeted batches before tuning.
+
+Two observed implementation gaps motivate the first candidate: an Oracle
+cannot depart when its scouted worker line has slipped into fog, and unpaired
+Archon inputs can receive ordinary army movement before ever finding a partner.
+Test bounded beam-off transit/inspection of previously observed economic
+targets, requiring current visible workers for attacks; separately reserve
+and rendezvous intended Templar inputs at a safe local position. Retain
+ownership, ability legality, caster quotas, supply/resource accounting and
+explicit failure/timeout cleanup. Configured opponent builds are evaluation
+labels, never runtime tactic-selection inputs.
+
+Measure actual unit production/merges, Oracle inspections/beam activation,
+visible worker damage/losses, harassment survival/cost, Archon firing
+participation, pre-contact counter readiness, protected income and army/economy
+trades alongside resolved outcomes. Desired quotas and queued commands do not
+prove successful tactical use. Reject poor candidates after the targeted
+triplets; expand to Terran Rush/Power and winning-build regressions only when
+the targeted failure or a clearly identified delivery defect improves.
