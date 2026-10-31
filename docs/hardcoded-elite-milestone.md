@@ -164,9 +164,14 @@ samples, mostly Zealots; these are correlated snapshots, not independent fights.
 The candidate passed 521 tests (88.58% coverage) and required checks. Its
 [Terran Timing triplet](evaluations/2026-10-31-engagement-range-v1-20261031-terran-timing.md)
 won 3/3 at 1180.4 seconds, versus the parent's three defeats. Starts, source,
-binary/map identities and replays pass verification. Terran Rush, Zerg Macro
-and Zerg Timing are the next unchanged-source triplets; promotion waits for
-retention rather than the snapshot finding alone.
+binary/map identities and replays pass verification. Subsequent frozen triplets
+won [Terran Rush](evaluations/2026-10-31-engagement-range-v1-20261031-terran-rush.md)
+3/3 at 1090.4, but lost [Zerg Macro](evaluations/2026-10-31-engagement-range-v1-20261031-zerg-macro.md)
+3/3 at 1010.4/1005.7/1130.4 and [Zerg Timing](evaluations/2026-10-31-engagement-range-v1-20261031-zerg-timing.md)
+3/3 at 675.4. The composite is not promoted; no full matrix is spent confirming
+those failures. Counter-tech already lost Macro, and its own Timing condition
+has not been isolated, so the Zerg losses cannot be assigned entirely to the
+range change. These are experimental Terran successes, not a global solution.
 
 The validated baseline is checked in on `feat/hardcoded-baseline-20261031`:
 runtime/trial fixes, R2 gameplay and passive belief/metric instrumentation.
