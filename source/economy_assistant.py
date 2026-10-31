@@ -1048,14 +1048,23 @@ class EconomyAssistant(BotAI):
             and self.units(U.ZEALOT).amount >= 4
         ):
             plan.append((G.CHARGE, U.TWILIGHTCOUNCIL))
+        counter = scouted_counter_plan(self)
         air = (
             [(upgrade, U.CYBERNETICSCORE) for upgrade in AIR_UPGRADES]
-            if production_target(self, "voidrays")
+            if production_target(self, "voidrays") or counter is not None and self.units(U.VOIDRAY)
             else []
         )
         ground = [(upgrade, U.FORGE) for upgrade in GROUND_UPGRADES]
-        counter = scouted_counter_plan(self)
-        plan += ground + air if counter is not None and counter.upgrade_focus == "ground" else air + ground
+        ground_first = counter is not None and counter.upgrade_focus == "ground"
+        if counter is not None:
+            current_air = self.units(U.VOIDRAY).amount * self.calculate_supply_cost(U.VOIDRAY)
+            current_ground = sum(
+                self.calculate_supply_cost(unit.type_id)
+                for unit in self.units.of_type(set(ARMY_TARGETS) - {U.VOIDRAY})
+            )
+            if current_air + current_ground >= 16:
+                ground_first = current_ground >= current_air
+        plan += ground + air if ground_first else air + ground
         for upgrade, kind in plan:
             if self.already_pending_upgrade(upgrade) or not self.affordable(upgrade, reserve):
                 continue

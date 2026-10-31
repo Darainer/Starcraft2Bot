@@ -4,6 +4,11 @@
   "army_waves": true,
   "scouting": true,
   "adaptive_composition": true,
+  "composition_policy": "legacy",
+  "defend_assets": false,
+  "local_regroup": false,
+  "oracle_harass": false,
+  "oracle_beam": false,
   "warp_reinforcement": true,
   "warp_prisms": 1,
   "observers": 1,
@@ -35,5 +40,6 @@
   "immortals": 6,
   "high_templar": 0,
   "colossi": 0,
-  "voidrays": 0
+  "voidrays": 0,
+  "oracles": 0
 }

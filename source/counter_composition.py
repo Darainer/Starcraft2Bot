@@ -146,7 +146,7 @@ def propose_counter_plan(
     if any(not isfinite(value) or value <= 0 for value in costs.values()):
         raise ValueError("Native supply costs must be positive and finite")
     targets = dict.fromkeys(costs, 0)
-    budget = max(0, 200 - max_workers)
+    budget = max(0, 200 - max(max_workers, workers))
     targets["observers"] = max(support_targets.get("observers", 0), 2 if lurker else 0)
     targets["warp_prisms"] = support_targets.get("warp_prisms", 0)
     targets["sentries"] = 2 if ground else 0
@@ -173,7 +173,7 @@ def propose_counter_plan(
     if splash:
         desired = 2 if vikings >= 4 else 3 if late else 2
         targets["colossi"] = max(targets["colossi"], desired)
-    elif air_mass and not storm:
+    if air_mass and not storm:
         constraint = "Air mass: Storm is not enabled; ground-only splash cannot cover this demand"
 
     def allocated():

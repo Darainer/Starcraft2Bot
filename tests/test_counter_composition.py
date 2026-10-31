@@ -51,6 +51,8 @@ def test_air_mass_needs_domain_correct_splash_and_upgrades_for_our_units():
     permitted = plan("Zerg", air, storm=True)
     assert dict(permitted.targets)["high_templar"] > 0
     assert "TEMPLARARCHIVE" in permitted.tech_goals
+    mixed = plan("Zerg", air + [{**unit, "tag": f"g{unit['tag']}"} for unit in force("ROACH")])
+    assert dict(mixed.targets)["colossi"] >= 2 and mixed.splash_constraint
 
 
 def test_late_game_replacements_keep_splash_and_reduce_gateway_filler():
@@ -68,6 +70,12 @@ def test_combined_supply_budget_includes_support_and_harassment(workers):
     assert p.allocated_supply == sum(SUPPLY[k] * v for k, v in p.targets)
     assert p.allocated_supply + workers <= 200
     assert dict(p.targets)["oracles"] == 1
+
+
+def test_lower_worker_cap_does_not_erase_workers_still_on_the_field():
+    p = plan(max_workers=20, workers=60)
+    assert p.supply_budget == 140
+    assert p.allocated_supply + 60 <= 200
 
 
 def test_oracle_needs_both_permission_and_positive_economic_opportunity():
@@ -109,6 +117,10 @@ def test_adapter_preserves_settings_and_expires_without_fresh_scouts(bot, make_u
     targets = composition_targets(bot)
     assert scouted_counter_plan(bot).family == "zerg_armored"
     assert asdict(bot.settings) == before
+    bot.state.game_loop = 7840  # 350 seconds: stale sightings, bounded uncertain hold.
+    assert scouted_counter_plan(bot).uncertainty >= 0.7
+    assert bot.counter_plan == scouted_counter_plan(bot)
+    assert len(bot.counter_plan.evidence) == 4
     bot.state.game_loop = 8960  # 400 seconds, older than bounded hold.
     assert scouted_counter_plan(bot) is None
     assert composition_targets(bot)["immortals"] == bot.settings.immortals
@@ -137,6 +149,73 @@ def test_ground_counter_upgrade_precedes_air_even_when_enemy_is_flying(bot, make
     bot.get_available_abilities.return_value = [ground, air]
     assert asyncio.run(bot.upgrade(0))
     assert bot.actions[0].ability == ground
+
+
+def test_existing_air_force_receives_upgrades_during_ground_replacement_transition(bot, make_unit, populate):
+    configure(bot, make_unit, populate)
+    bot.settings.warp_reinforcement = False
+    populate(
+        *bot.all_own_units,
+        make_unit(U.CYBERNETICSCORE),
+        make_unit(U.FORGE),
+        *(make_unit(U.VOIDRAY) for _ in range(5)),
+    )
+    ground = bot.game_data.upgrades[G.PROTOSSGROUNDWEAPONSLEVEL1.value].research_ability.id
+    air = bot.game_data.upgrades[G.PROTOSSAIRWEAPONSLEVEL1.value].research_ability.id
+    bot.get_available_abilities.return_value = [ground, air]
+    assert dict(scouted_counter_plan(bot).targets)["voidrays"] == 0
+    assert asyncio.run(bot.upgrade(0))
+    assert bot.actions[0].ability == air
+
+
+@pytest.mark.parametrize("kind", [U.ROBOTICSBAY, U.STARGATE])
+def test_scouted_tech_investment_reaches_legal_builder_without_legacy_playbook(
+    bot, make_unit, populate, kind
+):
+    configure(bot, make_unit, populate)
+    bot.settings.playbook = "baseline"
+    if kind == U.STARGATE:
+        bot.scout_report = {"enemy_unit_evidence": force("BROODLORD", air=True, armored=True)}
+    populate(
+        *bot.all_own_units,
+        make_unit(U.CYBERNETICSCORE),
+        make_unit(U.ROBOTICSFACILITY),
+        make_unit(U.PYLON, (10, 0)),
+        make_unit(U.PROBE, (8, 0)),
+    )
+    assert asyncio.run(bot.fund_first_robotics(bot.townhalls.first, 24, kind))
+    assert (
+        len(bot.actions) == 1
+        and bot.actions[0].ability == bot.game_data.units[kind.value].creation_ability.id
+    )
+    bot.actions.clear()
+    bot._used.clear()
+    bot.control.released.add(bot.workers.first.tag)
+    assert not asyncio.run(bot.fund_first_robotics(bot.townhalls.first, 24, kind))
+    assert not bot.actions
+
+
+def test_late_healthy_army_reserves_upgrade_slot_ahead_of_replacements(bot, make_unit, populate):
+    configure(bot, make_unit, populate)
+    bot.control.command("!assist economy off")
+    bot.settings.production = bot.settings.upgrades = True
+    bot.settings.scouting = bot.settings.warp_reinforcement = False
+    bot.state.game_loop = 20160
+    bot.scout_report = {"enemy_unit_evidence": force("ROACH", armored=True, now=900)}
+    populate(
+        *bot.all_own_units,
+        make_unit(U.FORGE),
+        make_unit(U.CYBERNETICSCORE),
+        make_unit(U.ROBOTICSFACILITY),
+        make_unit(U.ROBOTICSBAY),
+        *(make_unit(U.STALKER) for _ in range(20)),
+        *(make_unit(U.IMMORTAL) for _ in range(2)),
+        *(make_unit(U.COLOSSUS) for _ in range(2)),
+    )
+    ground = bot.game_data.upgrades[G.PROTOSSGROUNDWEAPONSLEVEL1.value].research_ability.id
+    bot.get_available_abilities.return_value = [ground]
+    asyncio.run(bot.macro())
+    assert [action.ability for action in bot.actions] == [ground]
 
 
 @pytest.mark.parametrize(

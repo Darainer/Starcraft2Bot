@@ -83,6 +83,12 @@ def test_trials_run_sequential_bounded_games_and_write_summary(monkeypatch, tmp_
             "--snapshot-interval",
             "1",
             "--scout-revisit",
+            "--composition-policy",
+            "scouted",
+            "--oracle-harass",
+            "--oracle-beam",
+            "--defend-assets",
+            "--local-regroup",
         ]
     )
     assert len(commands) == 2
@@ -96,6 +102,10 @@ def test_trials_run_sequential_bounded_games_and_write_summary(monkeypatch, tmp_
     results = json.loads((tmp_path / "logs/latest-trials.json").read_text())
     assert [r["profile"] for r in results] == ["pressure", "air"]
     assert all(r["random_seed"] == 42 and r["opponent_build"] == "Macro" for r in results)
+    for flag in ("oracle_harass", "oracle_beam", "defend_assets", "local_regroup"):
+        assert all("--" + flag.replace("_", "-") in command for command in commands)
+        assert all(r[flag] is True for r in results)
+    assert all(r["composition_policy"] == "scouted" for r in results)
     trials.main(["--profiles", "balanced", "--realtime"])
     assert "--fast-test" not in commands[-1]
     assert commands[-1][commands[-1].index("--game-time-limit") + 1] == "3600"

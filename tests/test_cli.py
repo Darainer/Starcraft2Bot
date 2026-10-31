@@ -67,6 +67,18 @@ def test_launch_is_one_shared_participant_paused_on_request(installed):
     assert kwargs == {"probe": False, "attach_port": 5001}
 
 
+def test_composition_and_individual_tactical_flags_can_be_enabled_and_revoked(installed):
+    flags = ("oracle_harass", "oracle_beam", "defend_assets", "local_regroup")
+    run_assistant.main(
+        ["--composition-policy", "scouted", *("--" + name.replace("_", "-") for name in flags)]
+    )
+    settings = installed.call_args.args[2][0].ai.settings
+    assert settings.composition_policy == "scouted"
+    assert all(getattr(settings, name) for name in flags)
+    run_assistant.main([*("--no-" + name.replace("_", "-") for name in flags)])
+    assert all(not getattr(installed.call_args.args[2][0].ai.settings, name) for name in flags)
+
+
 def test_doctor_does_not_launch(installed, capsys):
     run_assistant.main(["--doctor"])
     result = json.loads(capsys.readouterr().out)

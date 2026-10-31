@@ -50,6 +50,8 @@ def scouted_counter_plan(bot):
         and s.strategy == "auto"
         and not s.strategy_script
     ):
+        bot.counter_plan = None
+        bot._counter_context = None
         return None
     evidence = list(bot.scout_report.get("enemy_unit_evidence", []))
     for unit in bot.enemy_units:
@@ -108,11 +110,13 @@ def scouted_counter_plan(bot):
         supply_costs=costs,
     )
     if proposed is None and old is not None and 0 <= bot.time - old.evidence_time < 75:
-        return replace(
+        bot.counter_plan = replace(
             old,
             uncertainty=max(0.7, old.uncertainty),
-            evidence=old.evidence + ("Stale vision: bounded plan hold; request new scouting",),
+            evidence=tuple(item for item in old.evidence if not item.startswith("Stale vision:"))
+            + ("Stale vision: bounded plan hold; request new scouting",),
         )
+        return bot.counter_plan
     if (
         proposed is not None
         and old is not None

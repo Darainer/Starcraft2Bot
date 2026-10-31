@@ -27,7 +27,12 @@ class OracleHarass:
         workers = bot.enemy_units.filter(
             lambda unit: unit.is_visible and not unit.is_hallucination and unit.type_id in WORKERS
         )
-        geometry = retreat_geometry(contacts)
+        geometry = tuple(
+            (*shape[:4], max(6, shape[4]), shape[5], max(24, shape[6]), shape[7], True)
+            if enemy.type_id == U.BUNKER
+            else shape
+            for enemy, shape in zip(contacts, retreat_geometry(contacts), strict=True)
+        )
         oracles = bot.units(U.ORACLE).ready
         self.raids = {tag: record for tag, record in self.raids.items() if tag in oracles.tags}
         orders = []
@@ -69,6 +74,8 @@ class OracleHarass:
                 reason = "home_emergency"
             elif target is None:
                 reason = "no_visible_worker_opportunity"
+            elif not active and oracle.energy < 50 and record["phase"] == "raid":
+                reason = "beam_activation_reserve"
             elif record["phase"] == "raid" and bot.time - record["started"] >= 30:
                 reason = "exposure_time_limit"
             if reason:
