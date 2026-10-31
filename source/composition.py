@@ -47,7 +47,8 @@ def archon_committed(bot):
     return bot.units(U.ARCHON).ready.amount + max(
         bot.units(U.ARCHON).not_ready.amount,
         bot.already_pending(U.ARCHON),
-        len(getattr(getattr(bot, "archon_controller", None), "pending", {})),
+        len(getattr(getattr(bot, "archon_controller", None), "pending", {}))
+        + len(getattr(getattr(bot, "archon_controller", None), "rendezvous", {})),
     )
 
 

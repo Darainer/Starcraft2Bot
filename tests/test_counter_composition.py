@@ -84,6 +84,25 @@ def test_oracle_needs_both_permission_and_positive_economic_opportunity():
     assert dict(plan(oracle_allowed=True, worker_opportunity=True).targets)["oracles"] == 1
 
 
+def test_archons_are_reserved_for_suitable_splash_prey_instead_of_every_ground_mix():
+    roaches = plan("Zerg", force("ROACH", armored=True), archon_merge=True)
+    assert dict(roaches.targets)["archons"] == 0
+    assert "TEMPLARARCHIVE" not in roaches.tech_goals
+    assert dict(roaches.targets)["immortals"] > 0 and dict(roaches.targets)["colossi"] >= 2
+    lings = plan("Zerg", force("ZERGLING", count=32, supply=0.5), archon_merge=True)
+    assert dict(lings.targets)["archons"] >= 2
+    assert "TEMPLARARCHIVE" in lings.tech_goals
+    hellions = plan(evidence=[{**unit, "light": True} for unit in force("HELLION")], archon_merge=True)
+    assert dict(hellions.targets)["archons"] == 0
+
+
+def test_visible_ghosts_constrain_shield_heavy_counter_investment():
+    marine = force("MARINE", count=20, supply=1)
+    ghosts = [{**unit, "tag": f"ghost-{unit['tag']}"} for unit in force("GHOST", count=2)]
+    assert dict(plan(evidence=marine, archon_merge=True).targets)["archons"] > 0
+    assert dict(plan(evidence=marine + ghosts, archon_merge=True).targets)["archons"] == 0
+
+
 @pytest.mark.parametrize("now", [254, 301, float("nan")])
 def test_individual_stale_future_and_invalid_contacts_are_not_evidence(now):
     assert plan(evidence=force("MARINE", now=now)) is None

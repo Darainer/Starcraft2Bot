@@ -161,8 +161,8 @@ the final unit and its ingredients as simultaneous army targets.
 
 The merge controller retains the requested caster quota, protecting higher
 energy Templars, and pairs nearby eligible inputs away from visible combat.
-It reserves exactly two actors before spells and tactical movement, checks
-current legal abilities, then queues one pair per observation through `issue`.
+It reserves exactly two actors before spells and tactical movement, validates
+catalog/group support, then queues one pair per observation through `issue`.
 The pinned SDK combines the two adjacent targetless orders into one raw
 `MORPH_ARCHON` action with exactly two tags, following the
 [Blizzard example](https://github.com/Blizzard/s2client-api/blob/614acc00abb5355e4c94a1b0279b46e9d845b7ce/examples/common/bot_examples.cc#L801)
@@ -224,7 +224,8 @@ metrics, point and timer. Offline assessment replay reconstructs these typed
 records. This adds no RL action-vector outputs or replay-oracle features.
 
 Software checks use synthetic observations and real SDK unit/command objects.
-New live performance and ability effects remain pending. The next trials should
+The targeted live follow-up below distinguishes delivery effects from strength.
+Subsequent trials should
 isolate one failure and one switch, three matched repeats per arm at 3600 game
 seconds, retaining all facts/logs/replays and the fixed specialists as controls.
 Do not use this candidate to revise the previous campaign's win counts.
@@ -245,3 +246,118 @@ Its stop instruction was to avoid tuning during/after that final set, produce
 the report and stop. These are fixed-start development gates on one map, not
 independent samples, a new held-out benchmark or elite acceptance. Protoss,
 additional maps/seeds and established community bots remain outside this set.
+
+## Targeted Oracle/Archon follow-up (2026-10-31)
+
+Integration PR #5 is merged into the repository's primary branch `master`
+at `425bca8`. Follow-up work lives on
+`experiment/targeted-oracle-archon-20261031` in a separate PR. Earlier results
+remain attached to their frozen sources and settings.
+
+Start with the failed original-seed Terran Timing and Zerg Power conditions.
+For each scenario run three repeats of merged-source control, then three of
+the candidate, using identical pressure profile, VeryHard, explicit build,
+BelShirVestigeLE, game/Python seed 20261025, step eight, one-second snapshots,
+V3 revisit and a 3600-game-second limit. Enable scouted composition, Archon
+merging and Oracle/beam permission in both arms; keep economic-defense and
+local-regroup additions off to isolate this tactical comparison. Verify
+loop-zero physical state and full settings fingerprints within/between arms,
+native binary/data and map hashes, complete logs/replays, and immutable source
+manifests. Maximum eight global clients; complete targeted batches before tuning.
+
+Two observed implementation gaps motivate the first candidate: an Oracle
+cannot depart when its scouted worker line has slipped into fog, and unpaired
+Archon inputs can receive ordinary army movement before ever finding a partner.
+Test bounded beam-off transit/inspection of previously observed economic
+targets, requiring current visible workers for attacks; separately reserve
+and rendezvous intended Templar inputs at a safe local position. Retain
+ownership, ability legality, caster quotas, supply/resource accounting and
+explicit failure/timeout cleanup. Configured opponent builds are evaluation
+labels, never runtime tactic-selection inputs.
+
+Measure actual unit production/merges, Oracle inspections/beam activation,
+visible worker damage/losses, harassment survival/cost, Archon firing
+participation, pre-contact counter readiness, protected income and army/economy
+trades alongside resolved outcomes. Desired quotas and queued commands do not
+prove successful tactical use. Reject poor candidates after the targeted
+triplets; expand to Terran Rush/Power and winning-build regressions only when
+the targeted failure or a clearly identified delivery defect improves.
+
+The first control (`425bca8`) lost all six games: Terran Timing at1258.9s and
+Zerg Power at1155.0s, three matching repeats each. Delivery v1 (`54154cd`)
+also lost all six: Timing at1285.7s, Power at1155.0s. Longer survival alone is
+not promotion evidence. See the sanitized
+[tactical results](experiments/2026-10-31/targeted-oracle-archon-results.json).
+
+Completed Power traces expose upstream failures. Archive readiness at541.1s
+does not create Archon inputs: all four Gateways have become Warpgates, while
+the milestone only funds Gateway training. A reconstructed Colossus gas
+reservation blocks15 of19 sampled nominally affordable Templar opportunities;
+this reconstruction is not a complete post-macro attribution. Oracle beam ON
+is available throughout its237 sampled observations, but distant singleton
+chases lose vision before reaching the six-unit activation gate. The closest
+sampled visible worker remains23.5 units away. Partial townhall observations
+also overwrite the earlier positive worker-line record with zero visible workers.
+
+Delivery v2 therefore adds a bounded first-input Warpgate investment after
+earlier counter milestones, paid through existing placement/ownership/reserve
+guards. Potential ability queries may ignore resources while saving; actual
+orders still require a current legal ability and affordability. A24-second
+reservation lease and8-second retry bound prevent permanent funding locks.
+Oracle inspection retains its own120-second positive worker-line memory and
+requires clustered workers for a long chase; nearby single-worker opportunities
+remain possible. Composition weights, unit caps and the comparison settings
+stay unchanged. Run the same two matched triplets before further tuning.
+
+A separate retail98310 mechanism diagnostic found another gate defect:
+`MORPH_ARCHON` is absent from both regular and resource-ignoring per-unit
+ability replies, yet the exact-two-tag command produces one ready Archon with
+no action error. The diagnostic spawned its inputs through the debug API and
+is **excluded from wins/losses and training**; its
+[sanitized evidence](experiments/2026-10-31/archon-group-command-diagnostic.json)
+records the observation/replay identity. Group merge validation now checks
+supported targetless catalog data and two distinct owned, ready, eligible,
+non-hallucinated Templars. Engine errors and confirmation expiry remain tracked.
+Per-unit replies continue to gate ordinary individual combat abilities.
+
+Delivery v2 (`abf76b1`) delivered a ready Archon in Power at694.3s and recorded
+weapon-cooldown participation, but still lost3/3 at1164.6s. Timing also lost3/3
+at1329.6s. It is not promoted as stronger play. The next narrow composition
+candidate reserves the automatic Archon investment for massed light/melee
+biological splash targets or suitable Zerg air; armored-heavy ground retains
+the Immortal/Colossus response. Fresh multiple-Ghost evidence constrains new
+shield-heavy investment without claiming that EMP was observed. Thresholds
+remain experimental. Test Power in one matched triplet before broadening.
+
+That selective-v3 triplet (`dbf4aee`) completed with three defeats at1089.6s.
+It delivered the first Colossus at579.6s versus630.0s in control, but no
+Archon or Oracle. The army trade ratio improved from0.518 to0.684 while own
+economic losses increased from4825 to5125; this is not a successful response.
+Do not broaden this candidate to a full matrix. All21 targeted benchmark games
+resolved as defeats, without timeouts/errors, with matching full loop-zero
+states and verified source/map/native-data/difficulty/replay identities.
+
+Delivery-v2 does establish actual Archon delivery: Power's first ready Archon
+at694.3s, three distinct Archons with sampled weapon cooldown, and Timing's
+first ready Archon at1054.3s with one firing participant. Its worse Power army
+ratio (0.473) accompanied less own economic loss (4150 versus4825) and more
+enemy economic damage (2800 versus1300). An army-only threshold would miss
+this distinction. Final score differences cannot attribute effects to a unit
+or justify promoting a candidate that still loses every repeat.
+
+Neither v2 nor v3 produced an Oracle. The positive target-memory change remains
+unvalidated in ordinary play. A separate retail diagnostic ran the real Oracle
+controller against debug-spawned nearby SCVs: beam buff appeared and one tracked
+worker died. Its [evidence](experiments/2026-10-31/oracle-beam-worker-diagnostic.json)
+is excluded from gameplay scores/training, just like the group-merge diagnostic.
+The next Oracle experiment needs an explicit bounded production/opportunity
+commitment before modifying attack micro again. It must preserve urgent defense,
+require current worker vision to attack and measure economic return and losses.
+
+The [status report](bot-status.md#targeted-oraclearchon-results) records the
+completed comparison and pending failure modes. All raw artifacts remain local;
+the [complete hash-verified fact archives](experiments/2026-10-31/targeted-observed-facts-archive.json)
+contain21 episodes/23649 facts with diagnostics excluded. Four frozen source
+commits preserve control/v1/v2/v3 for later comparison; no threshold is accepted
+as an elite tactic from these results. Economic-defense and local-regroup
+switches were off and need their own controlled test.

@@ -8,7 +8,14 @@ from sc2.ids.upgrade_id import UpgradeId as G
 
 from source.combat_assessment import observed_supply
 from source.combat_assessment import visible_threats as combat_threats
-from source.composition import production_target
+from source.composition import (
+    archon_committed,
+    archon_permitted,
+    merging_templar,
+    planned_target,
+    production_target,
+    scouted_counter_plan,
+)
 
 WARP_UNITS = {
     U.STALKER: (A.WARPGATETRAIN_STALKER, "stalkers"),
@@ -27,6 +34,95 @@ class WarpReinforcement:
         self.defense_signature = ()
         self.defense_supply_queued = 0
         self.last_report = {"phase": "waiting_for_tech"}
+        self.archon_input_report = {"phase": "not_requested"}
+        self.archon_input_started = None
+        self.archon_input_retry = -999
+
+    async def first_archon_input(self, bot):
+        """Fund one legal rear warp-in after earlier counter milestones.
+
+        The old first-counter path only trains from Gateways. Converted
+        Warpgates need their own bounded reservation and paid placement path.
+        """
+        self.archon_input_report = {"phase": "not_requested"}
+        counter = scouted_counter_plan(bot) if archon_permitted(bot) else None
+        if (
+            counter is None
+            or not bot.settings.production
+            or not bot.settings.warp_reinforcement
+            or G.WARPGATERESEARCH not in bot.state.upgrades
+            or not bot.structures(U.TEMPLARARCHIVE).ready
+            or bot.supply_workers < 24
+            or bot.supply_army < 24
+            or bot.supply_left < 2
+        ):
+            self.archon_input_started = None
+            return False
+        missing = max(0, dict(counter.minimums).get("archons", 0) - archon_committed(bot))
+        sources = sum(merging_templar(bot, unit) for unit in bot.units(U.HIGHTEMPLAR))
+        needed = planned_target(bot, "high_templar") + 2 * int(missing) + sources
+        if not missing or bot.units(U.HIGHTEMPLAR).amount + bot.already_pending(U.HIGHTEMPLAR) >= needed:
+            self.archon_input_started = None
+            return False
+        if self.archon_input_started is not None and bot.time - self.archon_input_started >= 24:
+            self.archon_input_retry = bot.time + 8
+            self.archon_input_started = None
+        if bot.time < self.archon_input_retry:
+            self.archon_input_report = {"phase": "reservation_cooldown", "until": self.archon_input_retry}
+            return False
+        prior = getattr(bot, "_first_tech_reservation", None)
+        if prior is not None and prior[0] != U.HIGHTEMPLAR:
+            return False
+        cost = bot.calculate_cost(U.HIGHTEMPLAR)
+        if bot.vespene < cost.vespene + bot.settings.reserve_gas and not (
+            bot.settings.gas
+            and any(g.assigned_harvesters > 0 and g.vespene_contents > 0 for g in bot.gas_buildings.ready)
+        ):
+            return False
+        pylons = bot.structures(U.PYLON).ready.filter(lambda pylon: bot.safe_at(pylon.position, 12))
+        if not pylons:
+            return False
+        anchor = pylons.closest_to(bot.start_location).position
+        ability = A.WARPGATETRAIN_HIGHTEMPLAR
+        for gate in bot.structures(U.WARPGATE).ready.idle:
+            if (
+                not gate.is_powered
+                or not bot.available(gate)
+                or bot.time - self.last_issued.get(gate.tag, -100) < 4
+            ):
+                continue
+            potential = await bot.get_available_abilities(gate, ignore_resource_requirements=True)
+            if ability not in potential:
+                continue
+            point = await self.placement(bot, ability, anchor)
+            if point is None or not bot.safe_at(point, 12):
+                continue
+            if self.archon_input_started is None:
+                self.archon_input_started = bot.time
+            if not bot.affordable(U.HIGHTEMPLAR):
+                bot._first_tech_reservation = (U.HIGHTEMPLAR, cost.vespene)
+                bot._macro_reserve = max(getattr(bot, "_macro_reserve", 0), cost.minerals)
+                self.archon_input_report = {
+                    "phase": "funding",
+                    "until": self.archon_input_started + 24,
+                    "missing_archons": missing,
+                }
+                return True
+            legal = await bot.get_available_abilities(gate)
+            if ability in legal and bot.issue_warp_in(gate.warp_in(U.HIGHTEMPLAR, point), U.HIGHTEMPLAR):
+                self.warpins += 1
+                self.last_issued[gate.tag] = bot.time
+                self.gate_positions[gate.tag] = point
+                self.reserved_positions.append((point, bot.time + 13))
+                self.archon_input_started = None
+                self.archon_input_report = {
+                    "phase": "input_queued_not_confirmed",
+                    "time": bot.time,
+                    "gate": gate.tag,
+                    "position": list(point),
+                }
+                return True
+        return False
 
     def reject(self, failure, now):
         if failure["result"] == 41:
@@ -147,6 +243,7 @@ class WarpReinforcement:
             )
         self.last_report = {
             "phase": phase,
+            "archon_input": self.archon_input_report,
             "queued_warp_in_orders": self.warpins,
             "anchor": list(anchor) if anchor is not None else None,
             "small_base_raid": {

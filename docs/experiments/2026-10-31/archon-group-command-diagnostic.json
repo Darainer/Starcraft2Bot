@@ -1,0 +1,31 @@
+{
+  "scope": "DEBUG-SPAWNED MECHANISM DIAGNOSTIC; EXCLUDED FROM GAMEPLAY SCORES AND TRAINING",
+  "merge_present_regular": [
+    false,
+    false
+  ],
+  "merge_present_ignore": [
+    false,
+    false
+  ],
+  "group_command_queued": [
+    true,
+    true
+  ],
+  "observed_archon_count": 1,
+  "observed_archon_ready": 1,
+  "mechanism_pass": true,
+  "action_errors": null,
+  "ping": {
+    "game_version": "5.0.17.98310",
+    "base_build": 98310,
+    "data_build": 98310,
+    "data_version": "9C1F3D3D30CA252E33FC67CA05CBE1EA"
+  },
+  "recording": "archon-group-diagnostic-20261031-212702.json",
+  "replay_sha256": "d7ca3ce644938df0e9456637a65b6d72b9c461c0046352a783bded61595971e0",
+  "replay_bytes": 8851,
+  "excluded_from_evaluation": true,
+  "excluded_from_training": true,
+  "human_control": "NOT_VERIFIED"
+}

@@ -529,6 +529,13 @@ class EconomyAssistant(BotAI):
             self._macro_reserve = self.calculate_cost(investment[1]).minerals
             self.produce(0)
             return
+        reinforcement = getattr(self, "reinforcement", None)
+        if (
+            archon_permitted(self)
+            and reinforcement is not None
+            and await reinforcement.first_archon_input(self)
+        ):
+            return
         playbook = active_playbook(self)
         if playbook.response in {"early_robotics", "counter_tech"} and await self.fund_first_robotics(
             home, completed_supply
