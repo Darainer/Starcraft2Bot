@@ -1,0 +1,58 @@
+{
+  "scope": "DEBUG-SPAWNED ORACLE/WORKERS MECHANISM DIAGNOSTIC; EXCLUDED FROM GAMEPLAY SCORES AND TRAINING",
+  "beam_buff_observed": true,
+  "confirmed_worker_deaths": 1,
+  "initial_worker_tags": 3,
+  "mechanism_pass": true,
+  "controller_history": [
+    {
+      "time": 0.7142857142857143,
+      "unit_tag": 4338221057,
+      "action": "beam_on",
+      "phase": "raid"
+    },
+    {
+      "time": 1.0714285714285714,
+      "unit_tag": 4338221057,
+      "action": "attack_worker",
+      "phase": "raid"
+    },
+    {
+      "time": 1.4285714285714286,
+      "unit_tag": 4338221057,
+      "action": "attack_worker",
+      "phase": "raid"
+    },
+    {
+      "time": 1.7857142857142858,
+      "unit_tag": 4338221057,
+      "action": "attack_worker",
+      "phase": "raid"
+    },
+    {
+      "time": 2.142857142857143,
+      "unit_tag": 4338221057,
+      "action": "attack_worker",
+      "phase": "raid"
+    },
+    {
+      "time": 2.5,
+      "unit_tag": 4338221057,
+      "action": "beam_off",
+      "phase": "raid"
+    }
+  ],
+  "ping": {
+    "game_version": "5.0.17.98310",
+    "base_build": 98310,
+    "data_build": 98310,
+    "data_version": "9C1F3D3D30CA252E33FC67CA05CBE1EA"
+  },
+  "human_control": "NOT_VERIFIED",
+  "recording": "oracle-beam-diagnostic-20261031-214512.json",
+  "replay_sha256": "b41b3c0111abb031074dd019acaef1da5914481a35b5007c55fcbc9edf40e2b3",
+  "replay_bytes": 8700,
+  "excluded_from_evaluation": true,
+  "excluded_from_training": true,
+  "interpretation": "The real Oracle controller activated beam and a tracked debug-spawned SCV died. This verifies the local execution sequence, not strategic target selection, ordinary production, safety, cost-effectiveness or wins. The diagnostic intentionally leaves the match; its result is excluded."
+}

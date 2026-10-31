@@ -1,20 +1,81 @@
 {
-  "archive": "targeted-controls-v1-20261031",
+  "schema_version": 2,
   "input_schema": "sc2-observed-facts-v2",
   "phase": "complete",
-  "episodes": 12,
-  "facts": 13605,
-  "artifacts": 180,
-  "bytes": 3206177377,
+  "episodes": 21,
+  "facts": 23649,
+  "artifacts": 309,
+  "bytes": 5509426001,
   "world_split_groups": 2,
-  "eligible_episodes": 12,
-  "manifest_sha256": "0c8595824a099fb7f10e3d57a4fd55180626e1489d5ebe6898c2386fc74f8fa7",
-  "extractor_sha256": {
-    "opponent_dataset.py": "388a3b2919ba1aca89a9811ee8922c2fc271d7ba26a58c8df55adf9fc0c12334",
-    "scouting_facts.py": "e8e977a16b34e6b419b336a01da1c352d13bd6835d0b6e50565f74ea207fda42",
-    "scouting_diagnostics.py": "59c8de59823f24084d981cd1d0dde98946877a72fa1c22f6dc46bab74e36aa51",
-    "opponent_strategy.py": "cb21f8dbd847b0db62dd90b99a3669442f46ed83631402c0eb6e24f418382f8c"
-  },
-  "excluded_diagnostic": "debug-spawned Archon group-command diagnostic; not in either input matrix",
-  "scope": "Player-visible facts; weak episode labels/results/provenance separate. Repeated fixed starts are correlated; this is not an elite-teacher acceptance or learned strategy model."
+  "archives": [
+    {
+      "archive": "targeted-controls-v1-20261031",
+      "phase": "complete",
+      "episodes": 12,
+      "facts": 13605,
+      "artifacts": 180,
+      "bytes": 3206177377,
+      "world_split_groups": 2,
+      "eligible_episodes": 12,
+      "manifest_sha256": "0c8595824a099fb7f10e3d57a4fd55180626e1489d5ebe6898c2386fc74f8fa7",
+      "extractor_sha256": {
+        "opponent_dataset.py": "388a3b2919ba1aca89a9811ee8922c2fc271d7ba26a58c8df55adf9fc0c12334",
+        "scouting_facts.py": "e8e977a16b34e6b419b336a01da1c352d13bd6835d0b6e50565f74ea207fda42",
+        "scouting_diagnostics.py": "59c8de59823f24084d981cd1d0dde98946877a72fa1c22f6dc46bab74e36aa51",
+        "opponent_strategy.py": "cb21f8dbd847b0db62dd90b99a3669442f46ed83631402c0eb6e24f418382f8c"
+      },
+      "source_commits": [
+        "425bca8",
+        "54154cd"
+      ],
+      "archived_hashes_verified": true
+    },
+    {
+      "archive": "targeted-v2-20261031",
+      "phase": "complete",
+      "episodes": 6,
+      "facts": 6990,
+      "artifacts": 90,
+      "bytes": 1627387991,
+      "world_split_groups": 2,
+      "eligible_episodes": 6,
+      "manifest_sha256": "6c6bcaad8d7584ba3d6a1c363381e941f9c371fe2655e3604594e214faa26c08",
+      "extractor_sha256": {
+        "opponent_dataset.py": "388a3b2919ba1aca89a9811ee8922c2fc271d7ba26a58c8df55adf9fc0c12334",
+        "scouting_facts.py": "e8e977a16b34e6b419b336a01da1c352d13bd6835d0b6e50565f74ea207fda42",
+        "scouting_diagnostics.py": "59c8de59823f24084d981cd1d0dde98946877a72fa1c22f6dc46bab74e36aa51",
+        "opponent_strategy.py": "cb21f8dbd847b0db62dd90b99a3669442f46ed83631402c0eb6e24f418382f8c"
+      },
+      "source_commits": [
+        "abf76b1"
+      ],
+      "archived_hashes_verified": true
+    },
+    {
+      "archive": "targeted-selective-v3-20261031",
+      "phase": "complete",
+      "episodes": 3,
+      "facts": 3054,
+      "artifacts": 39,
+      "bytes": 675860633,
+      "world_split_groups": 1,
+      "eligible_episodes": 3,
+      "manifest_sha256": "84c125b8744791b222dd8dc55206a4bfc6ca9ace530b7e8ef94dfcbd185da4ed",
+      "extractor_sha256": {
+        "opponent_dataset.py": "388a3b2919ba1aca89a9811ee8922c2fc271d7ba26a58c8df55adf9fc0c12334",
+        "scouting_facts.py": "e8e977a16b34e6b419b336a01da1c352d13bd6835d0b6e50565f74ea207fda42",
+        "scouting_diagnostics.py": "59c8de59823f24084d981cd1d0dde98946877a72fa1c22f6dc46bab74e36aa51",
+        "opponent_strategy.py": "cb21f8dbd847b0db62dd90b99a3669442f46ed83631402c0eb6e24f418382f8c"
+      },
+      "source_commits": [
+        "dbf4aee"
+      ],
+      "archived_hashes_verified": true
+    }
+  ],
+  "excluded_diagnostics": [
+    "debug-spawned Archon group-command diagnostic",
+    "debug-spawned Oracle beam/worker diagnostic"
+  ],
+  "scope": "Player-visible facts; weak episode labels/results/provenance separate. All three archives complete and hash verified. Repeated fixed starts are correlated and grouped with prior policies; this is not elite-teacher acceptance or a learned strategy model."
 }

@@ -193,8 +193,8 @@
       "archon_goal_samples": 491,
       "ready_archive_no_gateway_samples": 287,
       "oracle_events": {
-        "return_and_recharge": 82,
-        "approach_visible_workers": 13
+        "approach_visible_workers": 13,
+        "return_and_recharge": 82
       },
       "oracle_exit_reasons": {},
       "archon_events": {},
@@ -248,8 +248,8 @@
       "archon_goal_samples": 491,
       "ready_archive_no_gateway_samples": 287,
       "oracle_events": {
-        "return_and_recharge": 82,
-        "approach_visible_workers": 13
+        "approach_visible_workers": 13,
+        "return_and_recharge": 82
       },
       "oracle_exit_reasons": {},
       "archon_events": {},
@@ -303,8 +303,8 @@
       "archon_goal_samples": 491,
       "ready_archive_no_gateway_samples": 287,
       "oracle_events": {
-        "return_and_recharge": 82,
-        "approach_visible_workers": 13
+        "approach_visible_workers": 13,
+        "return_and_recharge": 82
       },
       "oracle_exit_reasons": {},
       "archon_events": {},
@@ -360,9 +360,9 @@
       "oracle_events": {},
       "oracle_exit_reasons": {},
       "archon_events": {
+        "rendezvous_expired": 2,
         "rendezvous_reserved": 3,
-        "rendezvous_became_unsafe": 1,
-        "rendezvous_expired": 2
+        "rendezvous_became_unsafe": 1
       },
       "observed_archon_tags": 0,
       "observed_archon_cooldown_tags": 0,
@@ -416,9 +416,9 @@
       "oracle_events": {},
       "oracle_exit_reasons": {},
       "archon_events": {
+        "rendezvous_expired": 2,
         "rendezvous_reserved": 3,
-        "rendezvous_became_unsafe": 1,
-        "rendezvous_expired": 2
+        "rendezvous_became_unsafe": 1
       },
       "observed_archon_tags": 0,
       "observed_archon_cooldown_tags": 0,
@@ -472,9 +472,9 @@
       "oracle_events": {},
       "oracle_exit_reasons": {},
       "archon_events": {
+        "rendezvous_expired": 2,
         "rendezvous_reserved": 3,
-        "rendezvous_became_unsafe": 1,
-        "rendezvous_expired": 2
+        "rendezvous_became_unsafe": 1
       },
       "observed_archon_tags": 0,
       "observed_archon_cooldown_tags": 0,
@@ -662,6 +662,504 @@
         "killed_economy": 1300.0,
         "killed_technology": 0,
         "killed_structures": 1050.0
+      },
+      "frozen_files_verified": 54
+    },
+    {
+      "arm": "delivery_v2",
+      "source_commit": "abf76b1",
+      "scenario": "Terran Timing",
+      "recording": "runtime-20261031-213001-982337-9a36d631890747a5940a3a780298b673-001.json",
+      "result": "Result.Defeat",
+      "game_seconds": 1329.6,
+      "initial_state_sha256": "7a84c02cb3bf23e967d017a58881b1e81b72c79c24c234457efcee421ec7795d",
+      "matched_control": true,
+      "replay_bytes": 238780,
+      "replay_sha256": "12aef54b4385f002fb3f5759c5039a2f54ce243632abd4ff3f097da413e22c8f",
+      "first_observed_seconds": {
+        "IMMORTAL": 271.071,
+        "TWILIGHTCOUNCIL": 483.214,
+        "COLOSSUS": 558.214,
+        "TEMPLARARCHIVE": 960.0,
+        "HIGHTEMPLAR": 999.643,
+        "ARCHON": 1045.714
+      },
+      "first_ready_seconds": {
+        "IMMORTAL": 271.071,
+        "TWILIGHTCOUNCIL": 522.857,
+        "COLOSSUS": 558.214,
+        "TEMPLARARCHIVE": 999.643,
+        "HIGHTEMPLAR": 1002.857,
+        "ARCHON": 1054.286
+      },
+      "peak_sampled_units": {
+        "IMMORTAL": 5,
+        "TWILIGHTCOUNCIL": 1,
+        "COLOSSUS": 2,
+        "TEMPLARARCHIVE": 1,
+        "HIGHTEMPLAR": 3,
+        "ARCHON": 1
+      },
+      "archon_goal_samples": 444,
+      "ready_archive_no_gateway_samples": 175,
+      "oracle_events": {},
+      "oracle_exit_reasons": {},
+      "archon_events": {
+        "rendezvous_reserved": 4,
+        "rendezvous_expired": 1,
+        "rendezvous_became_unsafe": 2,
+        "merge_queued_not_confirmed": 1,
+        "source_transformed_or_disappeared": 1
+      },
+      "observed_archon_tags": 1,
+      "observed_archon_cooldown_tags": 1,
+      "observed_oracle_beam_tags": 0,
+      "army_trade_ratio": 0.668,
+      "economy_scores": {
+        "lost_army": 22825.0,
+        "lost_economy": 6525.0,
+        "lost_technology": 3150.0,
+        "killed_army": 15250.0,
+        "killed_economy": 2775.0,
+        "killed_technology": 100.0,
+        "killed_structures": 1675.0
+      },
+      "frozen_files_verified": 54
+    },
+    {
+      "arm": "delivery_v2",
+      "source_commit": "abf76b1",
+      "scenario": "Terran Timing",
+      "recording": "runtime-20261031-213001-982337-9a36d631890747a5940a3a780298b673-002.json",
+      "result": "Result.Defeat",
+      "game_seconds": 1329.6,
+      "initial_state_sha256": "7a84c02cb3bf23e967d017a58881b1e81b72c79c24c234457efcee421ec7795d",
+      "matched_control": true,
+      "replay_bytes": 238684,
+      "replay_sha256": "bdfa08b1b6468475c91b5550bb145c72f761d2facef75ac009e86ff76608f8f8",
+      "first_observed_seconds": {
+        "IMMORTAL": 271.071,
+        "TWILIGHTCOUNCIL": 483.214,
+        "COLOSSUS": 558.214,
+        "TEMPLARARCHIVE": 960.0,
+        "HIGHTEMPLAR": 999.643,
+        "ARCHON": 1045.714
+      },
+      "first_ready_seconds": {
+        "IMMORTAL": 271.071,
+        "TWILIGHTCOUNCIL": 522.857,
+        "COLOSSUS": 558.214,
+        "TEMPLARARCHIVE": 999.643,
+        "HIGHTEMPLAR": 1002.857,
+        "ARCHON": 1054.286
+      },
+      "peak_sampled_units": {
+        "IMMORTAL": 5,
+        "TWILIGHTCOUNCIL": 1,
+        "COLOSSUS": 2,
+        "TEMPLARARCHIVE": 1,
+        "HIGHTEMPLAR": 3,
+        "ARCHON": 1
+      },
+      "archon_goal_samples": 444,
+      "ready_archive_no_gateway_samples": 175,
+      "oracle_events": {},
+      "oracle_exit_reasons": {},
+      "archon_events": {
+        "rendezvous_reserved": 4,
+        "rendezvous_expired": 1,
+        "rendezvous_became_unsafe": 2,
+        "merge_queued_not_confirmed": 1,
+        "source_transformed_or_disappeared": 1
+      },
+      "observed_archon_tags": 1,
+      "observed_archon_cooldown_tags": 1,
+      "observed_oracle_beam_tags": 0,
+      "army_trade_ratio": 0.668,
+      "economy_scores": {
+        "lost_army": 22825.0,
+        "lost_economy": 6525.0,
+        "lost_technology": 3150.0,
+        "killed_army": 15250.0,
+        "killed_economy": 2775.0,
+        "killed_technology": 100.0,
+        "killed_structures": 1675.0
+      },
+      "frozen_files_verified": 54
+    },
+    {
+      "arm": "delivery_v2",
+      "source_commit": "abf76b1",
+      "scenario": "Terran Timing",
+      "recording": "runtime-20261031-213001-982337-9a36d631890747a5940a3a780298b673-003.json",
+      "result": "Result.Defeat",
+      "game_seconds": 1329.6,
+      "initial_state_sha256": "7a84c02cb3bf23e967d017a58881b1e81b72c79c24c234457efcee421ec7795d",
+      "matched_control": true,
+      "replay_bytes": 238688,
+      "replay_sha256": "aa632b166d773713f86b104112ff50385e45728d7b31059cddd8bef9c8364726",
+      "first_observed_seconds": {
+        "IMMORTAL": 271.071,
+        "TWILIGHTCOUNCIL": 483.214,
+        "COLOSSUS": 558.214,
+        "TEMPLARARCHIVE": 960.0,
+        "HIGHTEMPLAR": 999.643,
+        "ARCHON": 1045.714
+      },
+      "first_ready_seconds": {
+        "IMMORTAL": 271.071,
+        "TWILIGHTCOUNCIL": 522.857,
+        "COLOSSUS": 558.214,
+        "TEMPLARARCHIVE": 999.643,
+        "HIGHTEMPLAR": 1002.857,
+        "ARCHON": 1054.286
+      },
+      "peak_sampled_units": {
+        "IMMORTAL": 5,
+        "TWILIGHTCOUNCIL": 1,
+        "COLOSSUS": 2,
+        "TEMPLARARCHIVE": 1,
+        "HIGHTEMPLAR": 3,
+        "ARCHON": 1
+      },
+      "archon_goal_samples": 444,
+      "ready_archive_no_gateway_samples": 175,
+      "oracle_events": {},
+      "oracle_exit_reasons": {},
+      "archon_events": {
+        "rendezvous_reserved": 4,
+        "rendezvous_expired": 1,
+        "rendezvous_became_unsafe": 2,
+        "merge_queued_not_confirmed": 1,
+        "source_transformed_or_disappeared": 1
+      },
+      "observed_archon_tags": 1,
+      "observed_archon_cooldown_tags": 1,
+      "observed_oracle_beam_tags": 0,
+      "army_trade_ratio": 0.668,
+      "economy_scores": {
+        "lost_army": 22825.0,
+        "lost_economy": 6525.0,
+        "lost_technology": 3150.0,
+        "killed_army": 15250.0,
+        "killed_economy": 2775.0,
+        "killed_technology": 100.0,
+        "killed_structures": 1675.0
+      },
+      "frozen_files_verified": 54
+    },
+    {
+      "arm": "delivery_v2",
+      "source_commit": "abf76b1",
+      "scenario": "Zerg Power",
+      "recording": "runtime-20261031-212950-909732-a0a189eec630412fa749793e8bbe3dbb-001.json",
+      "result": "Result.Defeat",
+      "game_seconds": 1164.6,
+      "initial_state_sha256": "b75719c2063a9f3278cff73ee69bb596429623a2e9cf41aa8bc9bf56c645d9ff",
+      "matched_control": true,
+      "replay_bytes": 171266,
+      "replay_sha256": "e38e45aa342bb700128b47aa9c2e75fe0f6b215ec0b9d4899f804c082bfcd492",
+      "first_observed_seconds": {
+        "IMMORTAL": 371.786,
+        "TWILIGHTCOUNCIL": 428.571,
+        "TEMPLARARCHIVE": 502.5,
+        "HIGHTEMPLAR": 606.429,
+        "COLOSSUS": 622.5,
+        "ARCHON": 685.714
+      },
+      "first_ready_seconds": {
+        "IMMORTAL": 371.786,
+        "TWILIGHTCOUNCIL": 466.071,
+        "TEMPLARARCHIVE": 541.071,
+        "HIGHTEMPLAR": 609.643,
+        "COLOSSUS": 622.5,
+        "ARCHON": 694.286
+      },
+      "peak_sampled_units": {
+        "IMMORTAL": 2,
+        "TWILIGHTCOUNCIL": 1,
+        "TEMPLARARCHIVE": 1,
+        "HIGHTEMPLAR": 3,
+        "COLOSSUS": 2,
+        "ARCHON": 2
+      },
+      "archon_goal_samples": 732,
+      "ready_archive_no_gateway_samples": 496,
+      "oracle_events": {},
+      "oracle_exit_reasons": {},
+      "archon_events": {
+        "rendezvous_reserved": 3,
+        "merge_queued_not_confirmed": 3,
+        "source_transformed_or_disappeared": 3
+      },
+      "observed_archon_tags": 3,
+      "observed_archon_cooldown_tags": 3,
+      "observed_oracle_beam_tags": 0,
+      "army_trade_ratio": 0.473,
+      "economy_scores": {
+        "lost_army": 14375.0,
+        "lost_economy": 4150.0,
+        "lost_technology": 2050.0,
+        "killed_army": 6800.0,
+        "killed_economy": 2800.0,
+        "killed_technology": 0,
+        "killed_structures": 1050.0
+      },
+      "frozen_files_verified": 54
+    },
+    {
+      "arm": "delivery_v2",
+      "source_commit": "abf76b1",
+      "scenario": "Zerg Power",
+      "recording": "runtime-20261031-212950-909732-a0a189eec630412fa749793e8bbe3dbb-002.json",
+      "result": "Result.Defeat",
+      "game_seconds": 1164.6,
+      "initial_state_sha256": "b75719c2063a9f3278cff73ee69bb596429623a2e9cf41aa8bc9bf56c645d9ff",
+      "matched_control": true,
+      "replay_bytes": 171265,
+      "replay_sha256": "1189343e537d35e7822a7518a32ca5adddf7527a7b3b03ecaf681d9c026a9239",
+      "first_observed_seconds": {
+        "IMMORTAL": 371.786,
+        "TWILIGHTCOUNCIL": 428.571,
+        "TEMPLARARCHIVE": 502.5,
+        "HIGHTEMPLAR": 606.429,
+        "COLOSSUS": 622.5,
+        "ARCHON": 685.714
+      },
+      "first_ready_seconds": {
+        "IMMORTAL": 371.786,
+        "TWILIGHTCOUNCIL": 466.071,
+        "TEMPLARARCHIVE": 541.071,
+        "HIGHTEMPLAR": 609.643,
+        "COLOSSUS": 622.5,
+        "ARCHON": 694.286
+      },
+      "peak_sampled_units": {
+        "IMMORTAL": 2,
+        "TWILIGHTCOUNCIL": 1,
+        "TEMPLARARCHIVE": 1,
+        "HIGHTEMPLAR": 3,
+        "COLOSSUS": 2,
+        "ARCHON": 2
+      },
+      "archon_goal_samples": 732,
+      "ready_archive_no_gateway_samples": 496,
+      "oracle_events": {},
+      "oracle_exit_reasons": {},
+      "archon_events": {
+        "rendezvous_reserved": 3,
+        "merge_queued_not_confirmed": 3,
+        "source_transformed_or_disappeared": 3
+      },
+      "observed_archon_tags": 3,
+      "observed_archon_cooldown_tags": 3,
+      "observed_oracle_beam_tags": 0,
+      "army_trade_ratio": 0.473,
+      "economy_scores": {
+        "lost_army": 14375.0,
+        "lost_economy": 4150.0,
+        "lost_technology": 2050.0,
+        "killed_army": 6800.0,
+        "killed_economy": 2800.0,
+        "killed_technology": 0,
+        "killed_structures": 1050.0
+      },
+      "frozen_files_verified": 54
+    },
+    {
+      "arm": "delivery_v2",
+      "source_commit": "abf76b1",
+      "scenario": "Zerg Power",
+      "recording": "runtime-20261031-212950-909732-a0a189eec630412fa749793e8bbe3dbb-003.json",
+      "result": "Result.Defeat",
+      "game_seconds": 1164.6,
+      "initial_state_sha256": "b75719c2063a9f3278cff73ee69bb596429623a2e9cf41aa8bc9bf56c645d9ff",
+      "matched_control": true,
+      "replay_bytes": 171268,
+      "replay_sha256": "20639f8f4af7c14a028ee03c13dbe8f5bc285cd3b0d6a457d8c7620f195e1fd5",
+      "first_observed_seconds": {
+        "IMMORTAL": 371.786,
+        "TWILIGHTCOUNCIL": 428.571,
+        "TEMPLARARCHIVE": 502.5,
+        "HIGHTEMPLAR": 606.429,
+        "COLOSSUS": 622.5,
+        "ARCHON": 685.714
+      },
+      "first_ready_seconds": {
+        "IMMORTAL": 371.786,
+        "TWILIGHTCOUNCIL": 466.071,
+        "TEMPLARARCHIVE": 541.071,
+        "HIGHTEMPLAR": 609.643,
+        "COLOSSUS": 622.5,
+        "ARCHON": 694.286
+      },
+      "peak_sampled_units": {
+        "IMMORTAL": 2,
+        "TWILIGHTCOUNCIL": 1,
+        "TEMPLARARCHIVE": 1,
+        "HIGHTEMPLAR": 3,
+        "COLOSSUS": 2,
+        "ARCHON": 2
+      },
+      "archon_goal_samples": 732,
+      "ready_archive_no_gateway_samples": 496,
+      "oracle_events": {},
+      "oracle_exit_reasons": {},
+      "archon_events": {
+        "rendezvous_reserved": 3,
+        "merge_queued_not_confirmed": 3,
+        "source_transformed_or_disappeared": 3
+      },
+      "observed_archon_tags": 3,
+      "observed_archon_cooldown_tags": 3,
+      "observed_oracle_beam_tags": 0,
+      "army_trade_ratio": 0.473,
+      "economy_scores": {
+        "lost_army": 14375.0,
+        "lost_economy": 4150.0,
+        "lost_technology": 2050.0,
+        "killed_army": 6800.0,
+        "killed_economy": 2800.0,
+        "killed_technology": 0,
+        "killed_structures": 1050.0
+      },
+      "frozen_files_verified": 54
+    },
+    {
+      "arm": "selective_v3",
+      "source_commit": "dbf4aee",
+      "scenario": "Zerg Power",
+      "recording": "runtime-20261031-214326-713116-edb8da1cfa3845d9ac421deede1e1c2e-001.json",
+      "result": "Result.Defeat",
+      "game_seconds": 1089.6,
+      "initial_state_sha256": "b75719c2063a9f3278cff73ee69bb596429623a2e9cf41aa8bc9bf56c645d9ff",
+      "matched_control": true,
+      "replay_bytes": 214583,
+      "replay_sha256": "19c94f32d1230c15fa827b31c66aa72527b3d9ee5a3aa15eb0cd0214eebc8909",
+      "first_observed_seconds": {
+        "IMMORTAL": 371.786,
+        "TWILIGHTCOUNCIL": 430.714,
+        "COLOSSUS": 579.643
+      },
+      "first_ready_seconds": {
+        "IMMORTAL": 371.786,
+        "TWILIGHTCOUNCIL": 468.214,
+        "COLOSSUS": 579.643
+      },
+      "peak_sampled_units": {
+        "IMMORTAL": 3,
+        "TWILIGHTCOUNCIL": 1,
+        "COLOSSUS": 2
+      },
+      "archon_goal_samples": 4,
+      "ready_archive_no_gateway_samples": 0,
+      "oracle_events": {},
+      "oracle_exit_reasons": {},
+      "archon_events": {},
+      "observed_archon_tags": 0,
+      "observed_archon_cooldown_tags": 0,
+      "observed_oracle_beam_tags": 0,
+      "army_trade_ratio": 0.684,
+      "economy_scores": {
+        "lost_army": 14325.0,
+        "lost_economy": 5125.0,
+        "lost_technology": 2000.0,
+        "killed_army": 9800.0,
+        "killed_economy": 1525.0,
+        "killed_technology": 0,
+        "killed_structures": 975.0
+      },
+      "frozen_files_verified": 54
+    },
+    {
+      "arm": "selective_v3",
+      "source_commit": "dbf4aee",
+      "scenario": "Zerg Power",
+      "recording": "runtime-20261031-214326-713116-edb8da1cfa3845d9ac421deede1e1c2e-002.json",
+      "result": "Result.Defeat",
+      "game_seconds": 1089.6,
+      "initial_state_sha256": "b75719c2063a9f3278cff73ee69bb596429623a2e9cf41aa8bc9bf56c645d9ff",
+      "matched_control": true,
+      "replay_bytes": 214577,
+      "replay_sha256": "dd480a8916f187a3cc8e58483fc19b012700ce1ec6b17717d7bdd683b1ddc70f",
+      "first_observed_seconds": {
+        "IMMORTAL": 371.786,
+        "TWILIGHTCOUNCIL": 430.714,
+        "COLOSSUS": 579.643
+      },
+      "first_ready_seconds": {
+        "IMMORTAL": 371.786,
+        "TWILIGHTCOUNCIL": 468.214,
+        "COLOSSUS": 579.643
+      },
+      "peak_sampled_units": {
+        "IMMORTAL": 3,
+        "TWILIGHTCOUNCIL": 1,
+        "COLOSSUS": 2
+      },
+      "archon_goal_samples": 4,
+      "ready_archive_no_gateway_samples": 0,
+      "oracle_events": {},
+      "oracle_exit_reasons": {},
+      "archon_events": {},
+      "observed_archon_tags": 0,
+      "observed_archon_cooldown_tags": 0,
+      "observed_oracle_beam_tags": 0,
+      "army_trade_ratio": 0.684,
+      "economy_scores": {
+        "lost_army": 14325.0,
+        "lost_economy": 5125.0,
+        "lost_technology": 2000.0,
+        "killed_army": 9800.0,
+        "killed_economy": 1525.0,
+        "killed_technology": 0,
+        "killed_structures": 975.0
+      },
+      "frozen_files_verified": 54
+    },
+    {
+      "arm": "selective_v3",
+      "source_commit": "dbf4aee",
+      "scenario": "Zerg Power",
+      "recording": "runtime-20261031-214326-713116-edb8da1cfa3845d9ac421deede1e1c2e-003.json",
+      "result": "Result.Defeat",
+      "game_seconds": 1089.6,
+      "initial_state_sha256": "b75719c2063a9f3278cff73ee69bb596429623a2e9cf41aa8bc9bf56c645d9ff",
+      "matched_control": true,
+      "replay_bytes": 214574,
+      "replay_sha256": "ab5a74a7f8e2326df0bdc133e4eedf145afe03806a23ba82e3d6c19439ed297b",
+      "first_observed_seconds": {
+        "IMMORTAL": 371.786,
+        "TWILIGHTCOUNCIL": 430.714,
+        "COLOSSUS": 579.643
+      },
+      "first_ready_seconds": {
+        "IMMORTAL": 371.786,
+        "TWILIGHTCOUNCIL": 468.214,
+        "COLOSSUS": 579.643
+      },
+      "peak_sampled_units": {
+        "IMMORTAL": 3,
+        "TWILIGHTCOUNCIL": 1,
+        "COLOSSUS": 2
+      },
+      "archon_goal_samples": 4,
+      "ready_archive_no_gateway_samples": 0,
+      "oracle_events": {},
+      "oracle_exit_reasons": {},
+      "archon_events": {},
+      "observed_archon_tags": 0,
+      "observed_archon_cooldown_tags": 0,
+      "observed_oracle_beam_tags": 0,
+      "army_trade_ratio": 0.684,
+      "economy_scores": {
+        "lost_army": 14325.0,
+        "lost_economy": 5125.0,
+        "lost_technology": 2000.0,
+        "killed_army": 9800.0,
+        "killed_economy": 1525.0,
+        "killed_technology": 0,
+        "killed_structures": 975.0
       },
       "frozen_files_verified": 54
     }
