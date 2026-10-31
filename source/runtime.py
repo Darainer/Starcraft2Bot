@@ -358,6 +358,13 @@ async def connection(installation, attach_port=None):
 class SharedClient(Client):
     """Preserve selection and check JoinGame errors before the SDK consumes them."""
 
+    async def observation(self, game_loop=None):
+        response = await super().observation(game_loop)
+        # BurnySC2 calls on_end before preparing the terminal/time-limit state.
+        # Retain the actual final response for the public training adapter.
+        self.latest_observation = response
+        return response
+
     async def available_ability_snapshot(self, units):
         if not units:
             return {}
@@ -558,6 +565,25 @@ def recorded_observations(report_path):
             bot.actions.clear()
             bot.unit_tags_received_action.clear()
             yield bot, row
+
+
+def prepare_final_observation(bot):
+    """Prepare the last real observation at SDK end, without advancing/resetting.
+
+    Keep the SDK-private state preparation inside this reviewed boundary. A
+    missing final observation is an infrastructure failure, never fabricated.
+    """
+    from sc2.game_state import GameState
+
+    response = getattr(bot.client, "latest_observation", None)
+    if response is None or not response.HasField("observation"):
+        raise RuntimeError("Missing final player observation")
+    final = GameState(response.observation)
+    if final.game_loop < bot.state.game_loop:
+        raise RuntimeError("Final observation clock moved backwards")
+    if final.game_loop > bot.state.game_loop:
+        bot._prepare_step(final, pb.Response(game_info=bot.game_info._proto))
+    return final.game_loop
 
 
 class RuntimeAssistant(EconomyAssistant):
