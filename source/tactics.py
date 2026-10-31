@@ -8,9 +8,10 @@ from sc2.position import Point2
 
 from source.army_waves import ArmyWaves
 from source.combat_assessment import visible_threats
+from source.composition import merging_templar
 from source.economy_assistant import ARMY_TARGETS
 from source.game_assessment import GameAssessment
-from source.missions import MissionPlanner
+from source.missions import MissionPlanner, retreat_geometry, retreat_waypoint
 from source.strategic_plan import MissionSpec, Opportunity, StrategicPlan, validate_plan
 from source.strategy_director import StrategicDirector
 from source.strategy_profiles import PROFILES
@@ -73,10 +74,12 @@ class TacticalController:
         self._last_director = -999
         self._signature = None
         self._micro_allowed = True
+        self._automatic_recovery = False
 
     def tick(self, bot, observation=None, available_abilities=None):
         self.active_mode = "manual"
         self._micro_allowed = False
+        self._automatic_recovery = False
         if not bot.settings.enabled or not bot.settings.attack:
             self.missions.reset()
             self.waves.reset()
@@ -88,8 +91,10 @@ class TacticalController:
                 "reason": "Attack control disabled or assistant paused",
                 "orders": [],
             }
-        army = bot.units.of_type(set(ARMY_TARGETS)).ready.filter(bot.control.eligible)
-        state = self.assessor.observe(bot, army)
+        army = bot.units.of_type(set(ARMY_TARGETS)).ready.filter(
+            lambda unit: bot.control.eligible(unit) and not merging_templar(bot, unit)
+        )
+        state = self.assessor.observe(bot, army, self.missions.records.get("main", {}))
         self.last_assessment = state
         legacy = TacticalSituation(
             state.army_supply,
@@ -158,6 +163,9 @@ class TacticalController:
                 state.health < PROFILES[bot.settings.profile]["retreat_health"],
                 int(state.army_supply // 4),
                 state.production,
+                state.response_policy,
+                state.playbook_id,
+                state.combat_window,
             )
             try:
                 validate_plan(self.director.active, state)
@@ -233,8 +241,15 @@ class TacticalController:
         bot.strategic_plan = plan
         bot.economic_emergency = requested == "auto" and (state.threat_supply >= 8 or state.rush_warning)
         self._micro_allowed = requested not in {"retreat", "regroup"}
+        self._automatic_recovery = requested == "auto"
         result = self.missions.execute(
-            bot, army, plan, state, self.waves, preserve_combat=self._micro_allowed
+            bot,
+            army,
+            plan,
+            state,
+            self.waves,
+            preserve_combat=self._micro_allowed,
+            recovery_micro=self._automatic_recovery,
         )
         for event in result["events"]:
             if event["time"] == bot.time and event["result"] == "unfavorable_fight":
@@ -253,6 +268,13 @@ class TacticalController:
             "plan": plan.to_dict(),
             "decision_history": list(self.director.history),
             "action_outcomes": list(self.missions.executor.outcomes),
+            "counter_composition": (
+                asdict(bot.counter_plan)
+                if bot.settings.composition_policy == "scouted"
+                and bot.settings.adaptive_composition
+                and getattr(bot, "counter_plan", None) is not None
+                else None
+            ),
         }
         if decision["wave"] is None:
             decision["wave"] = {"phase": self.missions.records.get("main", {}).get("phase", "assemble")}
@@ -267,32 +289,76 @@ class TacticalController:
             or bot.settings.strategy in {"retreat", "regroup"}
         ):
             return []
-        if self.active_mode not in {"push", "defend", "regroup"}:
+        if self.active_mode not in {"push", "defend", "regroup"} and not (
+            self.active_mode == "retreat" and self._automatic_recovery and bot.settings.strategy == "auto"
+        ):
             return []
         enemies = (bot.enemy_units | bot.enemy_structures).filter(
             lambda u: u.is_visible and u.can_be_attacked
         )
         contacts = visible_threats(bot)
+        geometry = None
         recovering = {
-            tag
+            tag: mission
             for mission in self.missions.records.values()
             if mission["phase"] == "recover"
             for tag in mission["members"]
         }
         decisions, assigned_damage = [], {}
+        window = getattr(getattr(bot, "strategic_plan", None), "combat_window", None)
+        if window is not None and window.kind == "asset_defense":
+            enemies = enemies.filter(lambda enemy: enemy.distance_to(Point2(window.anchor)) <= 16)
         for unit in bot.units.of_type(set(ARMY_TARGETS)).ready:
-            if not bot.available(unit) or not unit.can_attack or unit.tag in recovering:
+            if not bot.available(unit) or not unit.can_attack:
                 continue
             targets = enemies.filter(lambda enemy, unit=unit: unit.target_in_range(enemy))
             command, reason = None, None
             if unit.health + unit.shield < (unit.health_max + unit.shield_max) * 0.25:
-                home = Point2(self.last_assessment.home) if self.last_assessment else bot.start_location
-                command, reason = unit.move(home), "individual_retreat"
+                home = (
+                    Point2(recovering[unit.tag]["retreat_goal"])
+                    if unit.tag in recovering and "retreat_goal" in recovering[unit.tag]
+                    else (Point2(self.last_assessment.home) if self.last_assessment else bot.start_location)
+                )
+                if geometry is None:
+                    geometry = retreat_geometry(contacts)
+                waypoint = retreat_waypoint(bot, unit, home, contacts, geometry)
+                command, reason = unit.move(waypoint), "individual_retreat"
+            elif unit.tag in recovering:
+                if bot.settings.strategy != "auto" or not self._automatic_recovery:
+                    continue
+                if targets and unit.weapon_cooldown == 0:
+                    target = min(
+                        targets,
+                        key=lambda enemy: (
+                            not enemy.can_attack,
+                            enemy.health + enemy.shield,
+                            unit.distance_to(enemy),
+                        ),
+                    )
+                    command, reason = unit.attack(target), "recovery_volley"
+                else:
+                    goal = Point2(
+                        recovering[unit.tag].get(
+                            "retreat_goal",
+                            self.last_assessment.home if self.last_assessment else bot.start_location,
+                        )
+                    )
+                    if geometry is None:
+                        geometry = retreat_geometry(contacts)
+                    command = unit.move(retreat_waypoint(bot, unit, goal, contacts, geometry))
+                    reason = "recovery_escape"
             elif targets and unit.weapon_cooldown == 0:
                 target = min(
                     targets,
                     key=lambda e: (
                         assigned_damage.get(e.tag, 0) >= e.health + e.shield,
+                        -sum(
+                            (1.3 if other.is_biological else 1)
+                            for other in enemies
+                            if other.is_flying == e.is_flying and other.distance_to(e) <= 1 + other.radius
+                        )
+                        if unit.type_id == U.ARCHON
+                        else 0,
                         not e.can_attack,
                         e.health + e.shield,
                         unit.distance_to(e),

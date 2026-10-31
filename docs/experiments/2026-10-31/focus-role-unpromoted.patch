@@ -1,0 +1,138 @@
+--- a/source/tactics.py
++++ b/source/tactics.py
+@@ -1,6 +1,7 @@
+ """Observable-state tactical policies; all orders retain human ownership checks."""
+ 
+ from dataclasses import asdict, dataclass, replace
++from math import ceil
+ from pathlib import Path
+ 
+ from sc2.ids.unit_typeid import UnitTypeId as U
+@@ -17,6 +18,29 @@
+ from source.strategy_scripts import run_strategy_script
+ 
+ WORKER_TYPES = {U.PROBE, U.SCV, U.DRONE}
++
++
++def focus_target(unit, targets, assigned_damage):
++    """Use live armor/attribute damage and avoid leaving artillery until last.
++
++    Siege weights are explicit targeting heuristics, not simulated splash DPS.
++    Candidates are already in weapon range: this never orders a pursuit.
++    """
++
++    def score(enemy):
++        remaining = enemy.health + enemy.shield - assigned_damage.get(enemy.tag, 0)
++        damage, speed, _ = unit.calculate_damage_vs_target(enemy)
++        priority = 3 if enemy.type_id == U.SIEGETANKSIEGED else 1.5 if enemy.type_id == U.SIEGETANK else 1
++        volley_time = ceil(max(0, remaining) / max(0.5, damage)) * max(0.1, speed)
++        return (
++            remaining <= 0,
++            not enemy.can_attack,
++            volley_time / priority,
++            unit.distance_to(enemy),
++            enemy.tag,
++        )
++
++    return min(targets, key=score)
+ 
+ 
+ @dataclass(frozen=True)
+@@ -311,14 +335,9 @@
+                 if bot.settings.strategy != "auto" or not self._automatic_recovery:
+                     continue
+                 if targets and unit.weapon_cooldown == 0:
+-                    target = min(
+-                        targets,
+-                        key=lambda enemy: (
+-                            not enemy.can_attack,
+-                            enemy.health + enemy.shield,
+-                            unit.distance_to(enemy),
+-                        ),
+-                    )
++                    target = focus_target(unit, targets, assigned_damage)
++                    damage = unit.calculate_damage_vs_target(target)[0]
++                    assigned_damage[target.tag] = assigned_damage.get(target.tag, 0) + damage
+                     command, reason = unit.attack(target), "recovery_volley"
+                 else:
+                     goal = Point2(
+@@ -332,15 +351,7 @@
+                     command = unit.move(retreat_waypoint(bot, unit, goal, contacts, geometry))
+                     reason = "recovery_escape"
+             elif targets and unit.weapon_cooldown == 0:
+-                target = min(
+-                    targets,
+-                    key=lambda e: (
+-                        assigned_damage.get(e.tag, 0) >= e.health + e.shield,
+-                        not e.can_attack,
+-                        e.health + e.shield,
+-                        unit.distance_to(e),
+-                    ),
+-                )
++                target = focus_target(unit, targets, assigned_damage)
+                 damage = unit.calculate_damage_vs_target(target)[0]
+                 assigned_damage[target.tag] = assigned_damage.get(target.tag, 0) + damage
+                 if unit.order_target != target.tag:
+--- /dev/null
++++ b/tests/test_focus_roles.py
+@@ -0,0 +1,60 @@
++from s2clientprotocol import data_pb2
++from sc2.ids.unit_typeid import UnitTypeId as U
++
++from source.tactics import TacticalController, focus_target
++
++
++def weapons(bot, kind, damage, attacks, bonus_attribute, bonus):
++    weapon = bot.game_data.units[kind.value]._proto.weapons[0]
++    weapon.damage, weapon.attacks, weapon.speed = damage, attacks, 1
++    del weapon.damage_bonus[:]
++    weapon.damage_bonus.add(attribute=bonus_attribute, bonus=bonus)
++
++
++def opponents(bot, make_unit):
++    marine = make_unit(U.MARINE, (3, 0), alliance=4, health=45, health_max=45, shield=0)
++    tank = make_unit(U.SIEGETANK, (4, 0), alliance=4, health=175, health_max=175, shield=0)
++    for kind, attribute in ((U.MARINE, data_pb2.Light), (U.SIEGETANK, data_pb2.Armored)):
++        data = bot.game_data.units[kind.value]._proto
++        del data.attributes[:]
++        data.attributes.append(attribute)
++    return marine, tank
++
++
++def test_immortal_uses_armor_bonus_and_targets_artillery_instead_of_lowest_hp(bot, make_unit):
++    weapons(bot, U.IMMORTAL, 20, 1, data_pb2.Armored, 30)
++    immortal = make_unit(U.IMMORTAL)
++    marine, tank = opponents(bot, make_unit)
++    assert immortal.calculate_damage_vs_target(tank)[0] > immortal.calculate_damage_vs_target(marine)[0]
++    assert focus_target(immortal, [marine, tank], {}) == tank
++
++
++def test_colossus_retains_efficient_light_target_despite_artillery_priority(bot, make_unit):
++    weapons(bot, U.COLOSSUS, 10, 2, data_pb2.Light, 5)
++    colossus = make_unit(U.COLOSSUS)
++    marine, tank = opponents(bot, make_unit)
++    assert focus_target(colossus, [tank, marine], {}) == marine
++
++
++def test_committed_lethal_volley_redirects_the_next_shooter(bot, make_unit):
++    weapons(bot, U.IMMORTAL, 20, 1, data_pb2.Armored, 30)
++    immortal = make_unit(U.IMMORTAL)
++    marine, tank = opponents(bot, make_unit)
++    assert focus_target(immortal, [marine, tank], {tank.tag: 175}) == marine
++
++
++def test_micro_does_not_chase_distant_artillery_or_take_human_actor(bot, make_unit, populate):
++    weapons(bot, U.IMMORTAL, 20, 1, data_pb2.Armored, 30)
++    immortal = make_unit(U.IMMORTAL)
++    marine, tank = opponents(bot, make_unit)
++    tank._proto.pos.x = 30
++    populate(immortal, marine, tank)
++    bot.settings.attack = True
++    controller = TacticalController()
++    controller.active_mode = "push"
++    assert controller.micro(bot)[0]["action"] == "focus_fire"
++    assert bot.actions[0].target == marine
++    bot._used.clear()
++    bot.actions.clear()
++    immortal._proto.is_selected = True
++    assert controller.micro(bot) == [] and not bot.actions

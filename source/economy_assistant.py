@@ -4,16 +4,30 @@ import math
 
 from loguru import logger
 from sc2.bot_ai import BotAI
+from sc2.data import Race
 from sc2.ids.ability_id import AbilityId as A
 from sc2.ids.buff_id import BuffId
 from sc2.ids.unit_typeid import UnitTypeId as U
 from sc2.ids.upgrade_id import UpgradeId as G
 from sc2.unit_command import UnitCommand
 
+from source.archon_merge import ArchonMerge
 from source.assistant_control import Control, within_budget
 from source.combat_assessment import visible_threats
-from source.composition import composition_targets, production_target
-from source.layout import find_spaced_placement
+from source.composition import (
+    UNIT_NAMES,
+    archon_committed,
+    archon_permitted,
+    composition_targets,
+    merging_templar,
+    oracle_permitted,
+    planned_target,
+    production_target,
+    scouted_counter_plan,
+)
+from source.layout import find_spaced_placement, layout_clear
+from source.strategy_portfolio import active_playbook
+from source.strategy_profiles import PROFILES
 
 ARMY_TARGETS = {
     U.ZEALOT: "zealots",
@@ -23,19 +37,28 @@ ARMY_TARGETS = {
     U.HIGHTEMPLAR: "high_templar",
     U.COLOSSUS: "colossi",
     U.VOIDRAY: "voidrays",
+    U.ARCHON: "archons",
 }
 PRODUCERS = {
     U.GATEWAY: (U.STALKER, U.ZEALOT, U.SENTRY, U.HIGHTEMPLAR),
     U.ROBOTICSFACILITY: (U.OBSERVER, U.WARPPRISM, U.IMMORTAL, U.COLOSSUS),
-    U.STARGATE: (U.VOIDRAY,),
+    U.STARGATE: (U.VOIDRAY, U.ORACLE),
 }
-PRODUCTION_TARGETS = {**ARMY_TARGETS, U.WARPPRISM: "warp_prisms", U.OBSERVER: "observers"}
+PRODUCTION_TARGETS = {
+    **ARMY_TARGETS,
+    U.WARPPRISM: "warp_prisms",
+    U.OBSERVER: "observers",
+    U.ORACLE: "oracles",
+}
 SPELLS = {
     A.EFFECT_BLINK_STALKER,
     A.PSISTORM_PSISTORM,
     A.FEEDBACK_FEEDBACK,
     A.GUARDIANSHIELD_GUARDIANSHIELD,
     A.EFFECT_VOIDRAYPRISMATICALIGNMENT,
+    A.BEHAVIOR_PULSARBEAMON,
+    A.BEHAVIOR_PULSARBEAMOFF,
+    A.MORPH_ARCHON,
 }
 GROUND_UPGRADES = tuple(
     getattr(G, f"{family}{level}")
@@ -77,6 +100,9 @@ class EconomyAssistant(BotAI):
         self._last_allocation = -10.0
         self._last_hud = -10.0
         self._used = set()
+        self._archon_reserved_tags = set()
+        self.archon_controller = ArchonMerge()
+        self._archon_report = {"enabled": False, "events": [], "pending_pairs": []}
         self._casts = {}
         self._storms = []
         self._last_upgrade = -60.0
@@ -101,7 +127,12 @@ class EconomyAssistant(BotAI):
         )
 
     def available(self, unit):
-        return unit.tag != self.scout_tag and unit.tag not in self._used and self.control.eligible(unit)
+        return (
+            unit.tag != self.scout_tag
+            and unit.tag not in self._used
+            and self.control.eligible(unit)
+            and not merging_templar(self, unit)
+        )
 
     def issue(self, command, paid=False, supply=False, scout_order=False):
         if not isinstance(command, UnitCommand):
@@ -122,6 +153,13 @@ class EconomyAssistant(BotAI):
 
     def affordable(self, item, extra_minerals=0):
         cost = self.calculate_cost(item)
+        investment = getattr(self, "_first_tech_reservation", None)
+        if (
+            investment is not None
+            and item != investment[0]
+            and self.vespene - cost.vespene < self.settings.reserve_gas + investment[1]
+        ):
+            return False
         return self.can_afford(item) and within_budget(
             self.minerals, self.vespene, cost.minerals, cost.vespene, self.settings, extra_minerals
         )
@@ -166,6 +204,7 @@ class EconomyAssistant(BotAI):
                 error.ability_id,
                 error.result,
             )
+        self._archon_report = await self.archon_controller.tick(self)
         if self.settings.enabled:
             await self.powers()
         await self.on_tactical_step()
@@ -205,12 +244,16 @@ class EconomyAssistant(BotAI):
         workers = self.workers.filter(lambda w: self.available(w) and (w.is_idle or w.is_gathering))
         return workers.closest_to(point) if workers else None
 
-    async def safe_expansion_location(self, reference):
+    async def safe_expansion_location(self, reference, require_minerals=False):
         preferred = await self.get_next_expansion()
         candidates = ([preferred] if preferred else []) + sorted(
             self.expansion_locations_list, key=reference.distance_to
         )
         for location in candidates:
+            if require_minerals and not self.mineral_field.closer_than(10, location).filter(
+                lambda patch: patch.mineral_contents > 0
+            ):
+                continue
             if any(base.distance_to(location) < 10 for base in self.townhalls):
                 continue
             if self.enemy_structures.closer_than(10, location):
@@ -322,7 +365,36 @@ class EconomyAssistant(BotAI):
     async def macro(self):
         """At most one paid action per macro tick, plus periodic worker allocation."""
         s = self.settings
+        self._first_tech_reservation = None
         bases = self.townhalls.ready
+        contacts = visible_threats(self)
+        early_contact = self.time < 180 and any(
+            any(enemy.distance_to(base) < 32 for base in bases) for enemy in contacts
+        )
+        completed_supply = sum(
+            self.calculate_supply_cost(unit.type_id)
+            for unit in self.units.of_type(set(ARMY_TARGETS)).ready
+            if unit.can_attack
+        )
+        requested_supply = sum(
+            production_target(self, name) * self.calculate_supply_cost(kind)
+            for kind, name in ARMY_TARGETS.items()
+            if kind in {U.ZEALOT, U.STALKER}
+        )
+        first_defender = (
+            self.enemy_race == Race.Zerg
+            and s.attack
+            and s.production
+            and self.time < 180
+            and requested_supply > 0
+            and (completed_supply < min(6, requested_supply) or early_contact)
+        )
+        self.opening_phase = (
+            "defend" if first_defender and early_contact else "first_force" if first_defender else "complete"
+        )
+        self._opening_reserve = 0
+        if not first_defender:
+            self.opening_defense_anchor = None
         self._macro_reserve = 0
         base_target = s.bases
         capacity = len(self.structures.of_type(set(PRODUCERS) | {U.WARPGATE}))
@@ -336,14 +408,26 @@ class EconomyAssistant(BotAI):
             return
         home = bases.closest_to(self.start_location)
         safe_bases = bases.filter(lambda base: self.safe_at(base.position))
+        core_priority = (
+            first_defender
+            and not early_contact
+            and s.construction
+            and self.units(U.ZEALOT).amount + self.already_pending(U.ZEALOT) >= 2
+            and not self.structures(U.CYBERNETICSCORE)
+            and not self.already_pending(U.CYBERNETICSCORE)
+        )
+        if first_defender and not core_priority and self.produce_opening_defender():
+            return
         if not safe_bases:
+            if first_defender and s.construction and await self.opening_battery(home, contacts):
+                return
             if s.supply and self.supply_cap < 200 and need_supply:
                 safe_pylons = self.structures(U.PYLON).ready.filter(
                     lambda pylon: self.safe_at(pylon.position)
                 )
                 if await self.build_supply_pylons([pylon.position for pylon in safe_pylons], pylon_target):
                     return
-            if self.economic_emergency and s.production and self.produce(0):
+            if not first_defender and self.economic_emergency and s.production and self.produce(0):
                 return
             if (
                 s.expansion
@@ -351,6 +435,7 @@ class EconomyAssistant(BotAI):
                 and not self.already_pending(U.NEXUS)
                 and self.supply_workers >= 14
                 and not self.economic_emergency
+                and not first_defender
                 and (self.strategic_plan is None or self.strategic_plan.expand)
             ):
                 location = await self.safe_expansion_location(self.start_location)
@@ -362,6 +447,31 @@ class EconomyAssistant(BotAI):
                     return
             return
         home = safe_bases.closest_to(home)
+        # Saturation falls as mineral patches disappear. Saving for a replacement
+        # mineral line must not require training up to the normal expansion gate:
+        # that same depleted saturation also prevents producing more workers.
+        depleted_income = (
+            self.time >= 360
+            and any(base.ideal_harvesters < 8 for base in safe_bases)
+            and sum(base.ideal_harvesters for base in safe_bases) < max(8, self.supply_workers * 0.6)
+        )
+        if (
+            depleted_income
+            and s.expansion
+            and self.townhalls.amount < base_target
+            and not self.already_pending(U.NEXUS)
+            and self.supply_workers >= 14
+            and not self.economic_emergency
+            and (self.strategic_plan is None or self.strategic_plan.expand)
+            and (not s.attack or self.supply_army >= 12)
+        ):
+            location = await self.safe_expansion_location(home.position, require_minerals=True)
+            if location and self.builder(location):
+                self._macro_reserve = 400
+                if not self.affordable(U.NEXUS):
+                    return  # Retain the remaining bank instead of spending the recovery fund.
+                if await self.build_structure(U.NEXUS, location, max_distance=2):
+                    return
         # Spending/building first prevents allocation from claiming every idle builder.
         if (
             s.supply
@@ -378,6 +488,21 @@ class EconomyAssistant(BotAI):
             if not self.already_pending(U.PYLON) and not self.affordable(U.PYLON):
                 self._macro_reserve = self.calculate_cost(U.PYLON).minerals
                 return  # Save for supply instead of repeatedly spending on probes.
+        if first_defender and s.construction:
+            gateways = self.structures(U.GATEWAY) | self.structures(U.WARPGATE)
+            count = len(gateways) + sum(
+                kind == U.GATEWAY and expiry > self.time and not gateways.closer_than(2, point)
+                for kind, point, expiry in self.construction_reservations.values()
+            )
+            if count == 1 and self.structures(U.PYLON).ready:
+                self._macro_reserve = 150
+                if self.affordable(U.GATEWAY):
+                    pylons = self.structures(U.PYLON).ready.filter(lambda p: self.safe_at(p.position))
+                    if pylons:
+                        await self.build_structure(
+                            U.GATEWAY, pylons.closest_to(home).position, allow_pending=True
+                        )
+                return  # Complete parallel capacity before Core/worker/natural investment.
         if s.construction:
             for kind, prerequisite in ((U.GATEWAY, U.PYLON), (U.CYBERNETICSCORE, U.GATEWAY)):
                 if (
@@ -387,12 +512,43 @@ class EconomyAssistant(BotAI):
                     and self.structures(prerequisite).ready
                 ):
                     self._macro_reserve = self.calculate_cost(kind).minerals
-                    pylons = self.structures(U.PYLON).ready
-                    if pylons and await self.build_structure(kind, pylons.closest_to(home).position):
-                        return
+                    pylons = self.structures(U.PYLON).ready.filter(lambda p: self.safe_at(p.position))
+                    # The opening can hold production while funding this tech.
+                    # A crowded closest Pylon must not hide another powered site.
+                    for pylon in pylons.sorted_by_distance_to(home):
+                        if await self.build_structure(kind, pylon.position):
+                            return
                     if self.minerals < self.calculate_cost(kind).minerals:
                         return
-        if self.economic_emergency:
+        # A legal first tech counter is an explicit investment, not an
+        # affordability fallback. Urgent supply and depleted-income recovery
+        # above retain priority; powerless/human-owned/blocked tech never locks
+        # this budget. Very low worker counts retain their recovery economy.
+        investment = self.first_tech_combat()
+        if investment is not None and not (early_contact and completed_supply < 6):
+            self._macro_reserve = self.calculate_cost(investment[1]).minerals
+            self.produce(0)
+            return
+        playbook = active_playbook(self)
+        if playbook.response in {"early_robotics", "counter_tech"} and await self.fund_first_robotics(
+            home, completed_supply
+        ):
+            return
+        if playbook.fund_bay and await self.fund_first_robotics(home, completed_supply, U.ROBOTICSBAY):
+            return
+        counter = scouted_counter_plan(self)
+        if counter is not None:
+            for goal in counter.tech_goals:
+                kind = getattr(U, goal)
+                if kind in {
+                    U.ROBOTICSFACILITY,
+                    U.ROBOTICSBAY,
+                    U.STARGATE,
+                    U.TWILIGHTCOUNCIL,
+                    U.TEMPLARARCHIVE,
+                } and await self.fund_first_robotics(home, completed_supply, kind):
+                    return
+        if self.economic_emergency and not first_defender:
             if s.production and self.produce(0):
                 return
             if s.construction and await self.construct(home, 0, army_only=True):
@@ -406,16 +562,17 @@ class EconomyAssistant(BotAI):
             for nexus in safe_bases.idle:
                 if (
                     self.available(nexus)
-                    and self.affordable(U.PROBE)
+                    and self.affordable(U.PROBE, self._opening_reserve)
                     and self.issue(nexus.train(U.PROBE), paid=True, supply=True)
                 ):
                     return
         gas_limit = min(2 * len(bases), max(1, int((self.supply_workers - 12) / 8)))
+        active_gases = self.gas_buildings.filter(lambda gas: not gas.is_ready or gas.vespene_contents > 0)
         if (
             s.gas
             and (self.structures(U.GATEWAY) or self.structures(U.CYBERNETICSCORE))
-            and len(self.gas_buildings) < gas_limit
-            and (not self.gas_buildings or self.vespene < max(300, self.minerals))
+            and len(active_gases) < gas_limit
+            and (not active_gases or self.vespene < max(300, self.minerals))
             and not self.already_pending(U.ASSIMILATOR)
         ):
             for base in safe_bases:
@@ -429,6 +586,20 @@ class EconomyAssistant(BotAI):
                         and self.issue(worker.build_gas(geyser), paid=True)
                     ):
                         return
+        if first_defender:
+            if s.construction and await self.opening_battery(home, contacts):
+                return
+            if (
+                early_contact
+                and s.construction
+                and len(self.structures(U.GATEWAY) | self.structures(U.WARPGATE)) < 2
+                and not self.already_pending(U.GATEWAY)
+                and self.affordable(U.GATEWAY, self._opening_reserve)
+            ):
+                pylons = self.structures(U.PYLON).ready.filter(lambda p: self.safe_at(p.position))
+                if pylons:
+                    await self.build_structure(U.GATEWAY, pylons.closest_to(home).position)
+            return  # Retain the defense fund; do not buy technology or a natural.
         # Get a useful opening defense before saving for a natural in auto play.
         if s.attack and s.production and self.structures(U.CYBERNETICSCORE).ready:
             fighting_supply = sum(
@@ -442,6 +613,7 @@ class EconomyAssistant(BotAI):
             and self.townhalls.amount < base_target
             and not self.already_pending(U.NEXUS)
             and not self.economic_emergency
+            and not first_defender
             and (self.strategic_plan is None or self.strategic_plan.expand)
             and (self.structures(U.GATEWAY) or self.structures(U.CYBERNETICSCORE))
             and self.supply_workers >= (16 if len(bases) == 1 else 20 * len(bases) - 2)
@@ -454,6 +626,17 @@ class EconomyAssistant(BotAI):
                     return
         # Keep idle production working. Reserve periodic opportunities for tech
         # and infrastructure, rather than starving either behind the other.
+        counter = scouted_counter_plan(self)
+        if (
+            counter is not None
+            and counter.late_game
+            and completed_supply >= 48
+            and s.upgrades
+            and not self.economic_emergency
+            and self.time - self._last_upgrade >= 30
+            and await self.upgrade(expansion_reserve)
+        ):
+            return
         if s.production and self.time - self._last_production >= 1 and self.produce(expansion_reserve):
             self._last_production = self.time
             return
@@ -472,6 +655,71 @@ class EconomyAssistant(BotAI):
             self.produce(expansion_reserve)
         # Also runs in on_step after paid actions via the separate allocation clock.
 
+    def produce_opening_defender(self):
+        """A legal first force; avoid spending its Stalker gas on support units."""
+        gateways = self.structures(U.GATEWAY).ready.idle.filter(
+            lambda gateway: (
+                gateway.is_powered
+                and self.available(gateway)
+                and self._blocked_producers.get(gateway.tag, 0) <= self.time
+            )
+        )
+        if not gateways:
+            return False
+        kinds = [U.STALKER, U.ZEALOT] if self.structures(U.CYBERNETICSCORE).ready else [U.ZEALOT]
+        for kind in kinds:
+            target = production_target(self, ARMY_TARGETS[kind])
+            if target <= self.units(kind).amount + self.already_pending(kind):
+                continue
+            if self.tech_requirement_progress(kind) < 1:
+                continue
+            self._opening_reserve = self.calculate_cost(kind).minerals
+            if self.affordable(kind) and self.issue(gateways.first.train(kind), paid=True, supply=True):
+                self._last_production = self.time
+                return True
+            return False  # Preserve this legal defender's budget instead of buying a Sentry.
+        return False
+
+    async def opening_battery(self, home, contacts):
+        """Protected powered placements; the front Pylon need not hug the Nexus."""
+        batteries = self.structures(U.SHIELDBATTERY).closer_than(14, home)
+        ready = batteries.ready.filter(lambda battery: battery.is_powered)
+        if ready:
+            battery = ready.closest_to(home)
+            if battery.distance_to(home) <= 6 + home.radius:
+                anchor = battery.position.towards(home.position, min(3, battery.distance_to(home)))
+                if self.in_pathing_grid(anchor) and self.is_visible(anchor):
+                    self.opening_defense_anchor = tuple(anchor)
+        if batteries or self.already_pending(U.SHIELDBATTERY):
+            return False
+        direction = contacts.closest_to(home).position if contacts else self.game_info.map_center
+        hold = home.position.towards(
+            self.game_info.map_center, max(8, PROFILES[self.settings.profile]["rally_distance"])
+        )
+        forward = self.structures(U.PYLON).ready.closest_to(hold) if self.structures(U.PYLON).ready else None
+        anchors = [home.position.towards(forward.position, 3.5)] if forward else []
+        anchors += [home.position.offset(offset) for offset in ((6, 0), (-6, 0), (0, 6), (0, -6))]
+        anchors.sort(key=lambda point: max(point.distance_to(home), point.distance_to(hold)))
+        if self.structures(U.CYBERNETICSCORE).ready and self.affordable(
+            U.SHIELDBATTERY, self._opening_reserve
+        ):
+            for anchor in anchors:
+                point = await find_spaced_placement(self, U.SHIELDBATTERY, anchor, 4)
+                if (
+                    point is not None
+                    and self.state.psionic_matrix.covers(point)
+                    and point.distance_to(home) <= 6 + home.radius
+                    and self.safe_at(point)
+                    and await self.build_structure(U.SHIELDBATTERY, point, max_distance=0)
+                ):
+                    return True
+        # Protect a location before contact makes the exposed front power unusable.
+        if self.settings.supply and not self.already_pending(U.PYLON):
+            rear = home.position.towards(direction, -8)
+            if not self.state.psionic_matrix.covers(rear) and self.affordable(U.PYLON, self._opening_reserve):
+                return await self.build_structure(U.PYLON, rear, max_distance=4)
+        return False
+
     async def build_supply_pylons(self, anchors, target):
         if self.already_pending(U.PYLON) >= target:
             return False
@@ -479,6 +727,122 @@ class EconomyAssistant(BotAI):
             if await self.build_structure(U.PYLON, anchor, max_distance=18, allow_pending=True):
                 return True
         return False
+
+    async def fund_first_robotics(self, home, completed_supply, kind=U.ROBOTICSFACILITY):
+        """Fund an attainable requested Robotics prerequisite before cheap fallbacks.
+
+        Reserve only with income, a safe powered placement and an eligible
+        reachable builder. Emergency defense and the opening force stay ahead.
+        """
+        prior = getattr(self, "_first_tech_reservation", None)
+        if prior is not None and prior[0] in {
+            U.ROBOTICSFACILITY,
+            U.ROBOTICSBAY,
+            U.STARGATE,
+            U.TWILIGHTCOUNCIL,
+            U.TEMPLARARCHIVE,
+        }:
+            self._first_tech_reservation = None
+        if kind not in {U.ROBOTICSFACILITY, U.ROBOTICSBAY, U.STARGATE, U.TWILIGHTCOUNCIL, U.TEMPLARARCHIVE}:
+            raise ValueError("Unsupported Robotics investment")
+        s = self.settings
+        bay = kind == U.ROBOTICSBAY
+        air = kind == U.STARGATE
+        merge = kind in {U.TWILIGHTCOUNCIL, U.TEMPLARARCHIVE}
+        counter = scouted_counter_plan(self)
+        if bay and not (
+            active_playbook(self).fund_bay or counter is not None and kind.name in counter.tech_goals
+        ):
+            return False
+        if air and not (counter is not None and kind.name in counter.tech_goals):
+            return False
+        if merge and not (
+            counter is not None and archon_permitted(self) and dict(counter.targets)["archons"]
+        ):
+            return False
+        if (
+            not (s.enabled and s.attack and s.production and s.construction)
+            or (self.economic_emergency and (not bay or completed_supply < 24))
+            or completed_supply < (12 if bay or air or merge else 6)
+            or self.supply_workers < (20 if air or merge else 16)
+            or not self.structures(
+                U.ROBOTICSFACILITY
+                if bay
+                else U.TWILIGHTCOUNCIL
+                if kind == U.TEMPLARARCHIVE
+                else U.CYBERNETICSCORE
+            ).ready
+            or self.structures(kind)
+            or self.already_pending(kind)
+        ):
+            return False
+        targets = composition_targets(self)
+        if bay and production_target(self, "colossi") <= 0:
+            return False
+        if air and not (targets["voidrays"] or targets.get("oracles", 0)):
+            return False
+        if (
+            not bay
+            and not air
+            and not merge
+            and not (
+                targets["immortals"]
+                or targets["colossi"]
+                or (s.scouting and production_target(self, "observers") > 0)
+                or (s.warp_reinforcement and production_target(self, "warp_prisms") > 0)
+            )
+        ):
+            return False
+        cost = self.calculate_cost(kind)
+        if self.minerals < cost.minerals + s.reserve_minerals and not any(
+            base.ideal_harvesters > 0 and base.assigned_harvesters > 0 for base in self.townhalls.ready
+        ):
+            return False
+        if self.vespene < cost.vespene + s.reserve_gas and not (
+            s.gas
+            and any(
+                gas.vespene_contents > 0 and gas.assigned_harvesters > 0 for gas in self.gas_buildings.ready
+            )
+        ):
+            return False
+        pylons = self.structures(U.PYLON).ready.filter(lambda pylon: self.safe_at(pylon.position))
+        if not pylons:
+            return False
+        if not hasattr(self, "_robotics_sites"):
+            self._robotics_sites = {}
+        cached = self._robotics_sites.get(kind)
+        if cached is not None and cached[0] is None and cached[1] > self.time:
+            return False
+        placement = cached[0] if cached is not None and cached[1] > self.time else None
+        if placement is not None and not (
+            layout_clear(self, kind, placement)
+            and self.safe_at(placement)
+            and self.state.psionic_matrix.covers(placement)
+        ):
+            placement = None
+        if placement is None:
+            for pylon in pylons.sorted_by_distance_to(home):
+                placement = await find_spaced_placement(self, kind, pylon.position, 12)
+                if placement is not None and self.safe_at(placement):
+                    break
+            self._robotics_sites[kind] = (placement, self.time + 5)
+        if placement is None:
+            return False
+        worker = self.builder(placement)
+        if worker is None:
+            return False
+        query = getattr(self.client, "query_pathing", None)
+        if query is not None and worker.distance_to(placement) >= 3 and not await query(worker, placement):
+            return False
+        self._first_tech_reservation = (kind, cost.vespene)
+        self._macro_reserve = max(getattr(self, "_macro_reserve", 0), cost.minerals)
+        if self.affordable(kind):
+            if self.issue(worker.build(kind, placement), paid=True):
+                self.construction_reservations[worker.tag] = (kind, placement, self.time + 45)
+            else:
+                self._first_tech_reservation = None
+                return False
+        return True
 
     async def construct(self, home, reserve, army_only=False):
         s = self.settings
@@ -505,15 +869,35 @@ class EconomyAssistant(BotAI):
                 + int(targets["immortals"] + targets["colossi"] >= 8 and bases >= 3),
                 U.CYBERNETICSCORE,
             ),
-            (U.STARGATE, min(3, (targets["voidrays"] + 5) // 6, bases), U.CYBERNETICSCORE),
+            (
+                U.STARGATE,
+                min(
+                    3,
+                    max(
+                        (targets["voidrays"] + 5) // 6,
+                        int(oracle_permitted(self) and targets.get("oracles", s.oracles) > 0),
+                    ),
+                    bases,
+                ),
+                U.CYBERNETICSCORE,
+            ),
             (U.GATEWAY, gateway_target, U.CYBERNETICSCORE),
             (U.ROBOTICSBAY, int(targets["colossi"] > 0), U.ROBOTICSFACILITY),
             (
                 U.TWILIGHTCOUNCIL,
-                int(s.blink or targets["high_templar"] > 0 or (s.upgrades and self.supply_army >= 20)),
+                int(
+                    s.blink
+                    or targets["high_templar"] > 0
+                    or targets.get("archons", 0) > 0
+                    or (s.upgrades and self.supply_army >= 20)
+                ),
                 U.CYBERNETICSCORE,
             ),
-            (U.TEMPLARARCHIVE, int(targets["high_templar"] > 0), U.TWILIGHTCOUNCIL),
+            (
+                U.TEMPLARARCHIVE,
+                int(targets["high_templar"] > 0 or targets.get("archons", 0) > 0),
+                U.TWILIGHTCOUNCIL,
+            ),
             (
                 U.FORGE,
                 int(s.upgrades and self.supply_army >= 12) * (1 + int(self.supply_army >= 60)),
@@ -531,7 +915,18 @@ class EconomyAssistant(BotAI):
         for kind, target, prerequisite in plan:
             if opening_defense and kind in {U.ROBOTICSFACILITY, U.STARGATE}:
                 continue
-            if army_only and kind not in {U.GATEWAY, U.ROBOTICSFACILITY, U.STARGATE}:
+            if (
+                army_only
+                and kind not in {U.GATEWAY, U.ROBOTICSFACILITY, U.STARGATE}
+                and not (
+                    kind == U.ROBOTICSBAY
+                    and (
+                        active_playbook(self).fund_bay
+                        or scouted_counter_plan(self) is not None
+                        and targets["colossi"] > 0
+                    )
+                )
+            ):
                 continue
             count = self.structures(kind).amount
             if kind == U.GATEWAY:
@@ -559,7 +954,108 @@ class EconomyAssistant(BotAI):
                 return True
         return False
 
+    def first_tech_combat(self):
+        """Choose an attainable first combat milestone; queued orders are not effects."""
+        self._first_tech_reservation = None
+        if not (self.settings.enabled and self.settings.attack and self.settings.production):
+            return None
+        seen = getattr(self, "_first_tech_combat_seen", set())
+        for kind in (U.STALKER, U.IMMORTAL, U.OBSERVER, U.COLOSSUS):
+            if self.units(kind):
+                seen.add(kind)
+        self._first_tech_combat_seen = seen
+        if self.supply_workers < 12:
+            return None
+        if (
+            self.economic_emergency
+            and sum(
+                self.calculate_supply_cost(u.type_id)
+                for u in self.units.of_type(set(ARMY_TARGETS)).ready
+                if u.can_attack
+            )
+            < 6
+        ):
+            return None
+        choices = [(U.GATEWAY, U.STALKER, 0)]
+        if self.settings.scouting and production_target(self, "observers") > 0 and U.OBSERVER not in seen:
+            choices.append((U.ROBOTICSFACILITY, U.OBSERVER, 0))
+        choices.append((U.ROBOTICSFACILITY, U.IMMORTAL, 0))
+        counter = scouted_counter_plan(self)
+        if active_playbook(self).complete_colossus and counter is None:
+            choices.append((U.ROBOTICSFACILITY, U.COLOSSUS, 0))
+        if counter is not None:
+            minimums = dict(counter.minimums)
+            for name in counter.priority:
+                kind = UNIT_NAMES[name]
+                if minimums.get(name, 0):
+                    if kind == U.ARCHON:
+                        missing = max(0, minimums[name] - archon_committed(self))
+                        if not missing:
+                            continue
+                        sources = sum(merging_templar(self, unit) for unit in self.units(U.HIGHTEMPLAR))
+                        choices.append(
+                            (
+                                U.GATEWAY,
+                                U.HIGHTEMPLAR,
+                                planned_target(self, "high_templar") + 2 * int(missing) + sources,
+                            )
+                        )
+                        continue
+                    producer = U.GATEWAY if kind == U.STALKER else U.ROBOTICSFACILITY
+                    choices.append((producer, kind, minimums[name]))
+        for producer, kind, minimum in choices:
+            needed = minimum > self.units(kind).ready.amount + self.already_pending(kind)
+            if (
+                not needed and (minimum > 0 or kind in seen or self.already_pending(kind))
+            ) or production_target(self, PRODUCTION_TARGETS[kind]) <= 0:
+                continue
+            prerequisite = (
+                U.CYBERNETICSCORE
+                if kind == U.STALKER
+                else U.ROBOTICSBAY
+                if kind == U.COLOSSUS
+                else U.TEMPLARARCHIVE
+                if kind == U.HIGHTEMPLAR
+                else U.ROBOTICSFACILITY
+            )
+            if not self.structures(prerequisite).ready or self.tech_requirement_progress(kind) < 1:
+                continue
+            buildings = self.structures(producer).ready.idle.filter(
+                lambda b: (
+                    b.is_powered and self.available(b) and self._blocked_producers.get(b.tag, 0) <= self.time
+                )
+            )
+            if not buildings or self.supply_left < self.calculate_supply_cost(kind):
+                continue
+            cost = self.calculate_cost(kind)
+            # Do not mortgage minerals/gas that cannot currently be earned.
+            # Allocation and replacement gas must be allowed to establish income.
+            mineral_need = cost.minerals + self.settings.reserve_minerals
+            gas_need = cost.vespene + self.settings.reserve_gas
+            if self.minerals < mineral_need and not any(
+                b.ideal_harvesters > 0 and b.assigned_harvesters > 0 for b in self.townhalls.ready
+            ):
+                continue
+            if self.vespene < gas_need and not (
+                self.settings.gas
+                and any(
+                    g.vespene_contents > 0 and g.assigned_harvesters > 0 for g in self.gas_buildings.ready
+                )
+            ):
+                continue
+            self._first_tech_reservation = (kind, cost.vespene)
+            return buildings.first, kind
+        return None
+
     def produce(self, reserve):
+        investment = self.first_tech_combat()
+        if investment is not None:
+            building, kind = investment
+            self._macro_reserve = max(getattr(self, "_macro_reserve", 0), self.calculate_cost(kind).minerals)
+            if self.affordable(kind, reserve) and self.issue(building.train(kind), paid=True, supply=True):
+                self._last_production = self.time
+                return True
+            return False
         producers = list(PRODUCERS.items())
         order = producers[self._production_cursor :] + producers[: self._production_cursor]
         for producer, kinds in order:
@@ -568,6 +1064,7 @@ class EconomyAssistant(BotAI):
                 for kind in kinds
                 if (kind != U.WARPPRISM or (self.settings.attack and self.settings.warp_reinforcement))
                 and (kind != U.OBSERVER or self.settings.scouting)
+                and (kind != U.ORACLE or oracle_permitted(self) and not self.economic_emergency)
                 and not (self.economic_emergency and kind == U.WARPPRISM and self.supply_army < 20)
                 and production_target(self, PRODUCTION_TARGETS[kind]) > 0
                 and self.units(kind).amount
@@ -613,9 +1110,29 @@ class EconomyAssistant(BotAI):
             and self.units(U.ZEALOT).amount >= 4
         ):
             plan.append((G.CHARGE, U.TWILIGHTCOUNCIL))
-        if production_target(self, "voidrays"):
-            plan += [(upgrade, U.CYBERNETICSCORE) for upgrade in AIR_UPGRADES]
-        plan += [(upgrade, U.FORGE) for upgrade in GROUND_UPGRADES]
+        counter = scouted_counter_plan(self)
+        air = (
+            [(upgrade, U.CYBERNETICSCORE) for upgrade in AIR_UPGRADES]
+            if production_target(self, "voidrays") or counter is not None and self.units(U.VOIDRAY)
+            else []
+        )
+        ground = [(upgrade, U.FORGE) for upgrade in GROUND_UPGRADES]
+        if counter is not None and self.units(U.ARCHON).ready:
+            ground = [
+                (getattr(G, f"{family}{level}"), U.FORGE)
+                for level in range(1, 4)
+                for family in ("PROTOSSGROUNDWEAPONSLEVEL", "PROTOSSSHIELDSLEVEL", "PROTOSSGROUNDARMORSLEVEL")
+            ]
+        ground_first = counter is not None and counter.upgrade_focus == "ground"
+        if counter is not None:
+            current_air = self.units(U.VOIDRAY).amount * self.calculate_supply_cost(U.VOIDRAY)
+            current_ground = sum(
+                self.calculate_supply_cost(unit.type_id)
+                for unit in self.units.of_type(set(ARMY_TARGETS) - {U.VOIDRAY})
+            )
+            if current_air + current_ground >= 16:
+                ground_first = current_ground >= current_air
+        plan += ground + air if ground_first else air + ground
         for upgrade, kind in plan:
             if self.already_pending_upgrade(upgrade) or not self.affordable(upgrade, reserve):
                 continue

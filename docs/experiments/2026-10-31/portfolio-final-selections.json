@@ -1,0 +1,4419 @@
+{
+  "source_commit": "d0f8cf3",
+  "scope": "Observed selected packages, reasons and evidence. Durations weight the preceding recorded selection until the next sample. Selection frequency is not correct-choice accuracy or causal policy value. No configured build enters selection.",
+  "records": [
+    {
+      "matrix": "portfolio-final-main",
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-001.json",
+      "trial_id": 1,
+      "race": "Terran",
+      "build": "Rush",
+      "seed": 20261025,
+      "result": "Result.Defeat",
+      "sampled_seconds": 1316.8,
+      "first_selection_seconds": {
+        "baseline": 0.0,
+        "terran_counter_tech": 43.929,
+        "terran_counter_range": 188.571
+      },
+      "selected_seconds": {
+        "baseline": 233.571,
+        "terran_counter_tech": 92.143,
+        "terran_counter_range": 991.071
+      },
+      "time_weighted_selection_uncertainty": 0.4862896663954456,
+      "transitions": [
+        {
+          "time_seconds": 0.0,
+          "playbook": "baseline",
+          "reason": "Insufficient positive scouting; retain baseline and gather evidence",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 43.929,
+          "playbook": "terran_counter_tech",
+          "reason": "Observed Terran ground production supports bounded counter-tech investment",
+          "evidence": [
+            "Observed BARRACKS within 90 seconds"
+          ],
+          "uncertainty": 0.65,
+          "valid_until": 133.92857142857144
+        },
+        {
+          "time_seconds": 136.071,
+          "playbook": "baseline",
+          "reason": "Insufficient positive scouting; retain baseline and gather evidence",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 188.571,
+          "playbook": "terran_counter_range",
+          "reason": "Fresh Terran ground force supports funded counters and local range closing",
+          "evidence": [
+            "Observed Terran ground supply >= 4 within 45 seconds"
+          ],
+          "uncertainty": 0.35,
+          "valid_until": 233.57142857142858
+        },
+        {
+          "time_seconds": 319.286,
+          "playbook": "baseline",
+          "reason": "Insufficient positive scouting; retain baseline and gather evidence",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 373.929,
+          "playbook": "terran_counter_range",
+          "reason": "Fresh Terran ground force supports funded counters and local range closing",
+          "evidence": [
+            "Observed Terran ground supply >= 4 within 45 seconds"
+          ],
+          "uncertainty": 0.35,
+          "valid_until": 418.92857142857144
+        },
+        {
+          "time_seconds": 435.0,
+          "playbook": "baseline",
+          "reason": "Insufficient positive scouting; retain baseline and gather evidence",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 450.0,
+          "playbook": "terran_counter_range",
+          "reason": "Fresh Terran ground force supports funded counters and local range closing",
+          "evidence": [
+            "Observed Terran ground supply >= 4 within 45 seconds"
+          ],
+          "uncertainty": 0.35,
+          "valid_until": 495.00000000000006
+        },
+        {
+          "time_seconds": 512.143,
+          "playbook": "baseline",
+          "reason": "Insufficient positive scouting; retain baseline and gather evidence",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 525.0,
+          "playbook": "terran_counter_range",
+          "reason": "Fresh Terran ground force supports funded counters and local range closing",
+          "evidence": [
+            "Observed Terran ground supply >= 4 within 45 seconds"
+          ],
+          "uncertainty": 0.35,
+          "valid_until": 570.0
+        },
+        {
+          "time_seconds": 603.214,
+          "playbook": "baseline",
+          "reason": "Insufficient positive scouting; retain baseline and gather evidence",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 620.357,
+          "playbook": "terran_counter_range",
+          "reason": "Fresh Terran ground force supports funded counters and local range closing",
+          "evidence": [
+            "Observed Terran ground supply >= 4 within 45 seconds"
+          ],
+          "uncertainty": 0.35,
+          "valid_until": 665.3571428571429
+        },
+        {
+          "time_seconds": 675.0,
+          "playbook": "baseline",
+          "reason": "Insufficient positive scouting; retain baseline and gather evidence",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 701.786,
+          "playbook": "terran_counter_range",
+          "reason": "Fresh Terran ground force supports funded counters and local range closing",
+          "evidence": [
+            "Observed Terran ground supply >= 4 within 45 seconds"
+          ],
+          "uncertainty": 0.35,
+          "valid_until": 746.7857142857143
+        },
+        {
+          "time_seconds": 883.929,
+          "playbook": "baseline",
+          "reason": "Insufficient positive scouting; retain baseline and gather evidence",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 894.643,
+          "playbook": "terran_counter_range",
+          "reason": "Fresh Terran ground force supports funded counters and local range closing",
+          "evidence": [
+            "Observed Terran ground supply >= 4 within 45 seconds"
+          ],
+          "uncertainty": 0.35,
+          "valid_until": 939.6428571428572
+        }
+      ]
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-002.json",
+      "trial_id": 2,
+      "race": "Terran",
+      "build": "Rush",
+      "seed": 20261025,
+      "result": "Result.Defeat",
+      "sampled_seconds": 1316.8,
+      "first_selection_seconds": {
+        "baseline": 0.0,
+        "terran_counter_tech": 43.929,
+        "terran_counter_range": 188.571
+      },
+      "selected_seconds": {
+        "baseline": 233.571,
+        "terran_counter_tech": 92.143,
+        "terran_counter_range": 991.071
+      },
+      "time_weighted_selection_uncertainty": 0.4862896663954456,
+      "transitions": [
+        {
+          "time_seconds": 0.0,
+          "playbook": "baseline",
+          "reason": "Insufficient positive scouting; retain baseline and gather evidence",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 43.929,
+          "playbook": "terran_counter_tech",
+          "reason": "Observed Terran ground production supports bounded counter-tech investment",
+          "evidence": [
+            "Observed BARRACKS within 90 seconds"
+          ],
+          "uncertainty": 0.65,
+          "valid_until": 133.92857142857144
+        },
+        {
+          "time_seconds": 136.071,
+          "playbook": "baseline",
+          "reason": "Insufficient positive scouting; retain baseline and gather evidence",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 188.571,
+          "playbook": "terran_counter_range",
+          "reason": "Fresh Terran ground force supports funded counters and local range closing",
+          "evidence": [
+            "Observed Terran ground supply >= 4 within 45 seconds"
+          ],
+          "uncertainty": 0.35,
+          "valid_until": 233.57142857142858
+        },
+        {
+          "time_seconds": 319.286,
+          "playbook": "baseline",
+          "reason": "Insufficient positive scouting; retain baseline and gather evidence",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 373.929,
+          "playbook": "terran_counter_range",
+          "reason": "Fresh Terran ground force supports funded counters and local range closing",
+          "evidence": [
+            "Observed Terran ground supply >= 4 within 45 seconds"
+          ],
+          "uncertainty": 0.35,
+          "valid_until": 418.92857142857144
+        },
+        {
+          "time_seconds": 435.0,
+          "playbook": "baseline",
+          "reason": "Insufficient positive scouting; retain baseline and gather evidence",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 450.0,
+          "playbook": "terran_counter_range",
+          "reason": "Fresh Terran ground force supports funded counters and local range closing",
+          "evidence": [
+            "Observed Terran ground supply >= 4 within 45 seconds"
+          ],
+          "uncertainty": 0.35,
+          "valid_until": 495.00000000000006
+        },
+        {
+          "time_seconds": 512.143,
+          "playbook": "baseline",
+          "reason": "Insufficient positive scouting; retain baseline and gather evidence",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 525.0,
+          "playbook": "terran_counter_range",
+          "reason": "Fresh Terran ground force supports funded counters and local range closing",
+          "evidence": [
+            "Observed Terran ground supply >= 4 within 45 seconds"
+          ],
+          "uncertainty": 0.35,
+          "valid_until": 570.0
+        },
+        {
+          "time_seconds": 603.214,
+          "playbook": "baseline",
+          "reason": "Insufficient positive scouting; retain baseline and gather evidence",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 620.357,
+          "playbook": "terran_counter_range",
+          "reason": "Fresh Terran ground force supports funded counters and local range closing",
+          "evidence": [
+            "Observed Terran ground supply >= 4 within 45 seconds"
+          ],
+          "uncertainty": 0.35,
+          "valid_until": 665.3571428571429
+        },
+        {
+          "time_seconds": 675.0,
+          "playbook": "baseline",
+          "reason": "Insufficient positive scouting; retain baseline and gather evidence",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 701.786,
+          "playbook": "terran_counter_range",
+          "reason": "Fresh Terran ground force supports funded counters and local range closing",
+          "evidence": [
+            "Observed Terran ground supply >= 4 within 45 seconds"
+          ],
+          "uncertainty": 0.35,
+          "valid_until": 746.7857142857143
+        },
+        {
+          "time_seconds": 883.929,
+          "playbook": "baseline",
+          "reason": "Insufficient positive scouting; retain baseline and gather evidence",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 894.643,
+          "playbook": "terran_counter_range",
+          "reason": "Fresh Terran ground force supports funded counters and local range closing",
+          "evidence": [
+            "Observed Terran ground supply >= 4 within 45 seconds"
+          ],
+          "uncertainty": 0.35,
+          "valid_until": 939.6428571428572
+        }
+      ]
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-003.json",
+      "trial_id": 3,
+      "race": "Terran",
+      "build": "Rush",
+      "seed": 20261025,
+      "result": "Result.Defeat",
+      "sampled_seconds": 1316.8,
+      "first_selection_seconds": {
+        "baseline": 0.0,
+        "terran_counter_tech": 43.929,
+        "terran_counter_range": 188.571
+      },
+      "selected_seconds": {
+        "baseline": 233.571,
+        "terran_counter_tech": 92.143,
+        "terran_counter_range": 991.071
+      },
+      "time_weighted_selection_uncertainty": 0.4862896663954456,
+      "transitions": [
+        {
+          "time_seconds": 0.0,
+          "playbook": "baseline",
+          "reason": "Insufficient positive scouting; retain baseline and gather evidence",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 43.929,
+          "playbook": "terran_counter_tech",
+          "reason": "Observed Terran ground production supports bounded counter-tech investment",
+          "evidence": [
+            "Observed BARRACKS within 90 seconds"
+          ],
+          "uncertainty": 0.65,
+          "valid_until": 133.92857142857144
+        },
+        {
+          "time_seconds": 136.071,
+          "playbook": "baseline",
+          "reason": "Insufficient positive scouting; retain baseline and gather evidence",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 188.571,
+          "playbook": "terran_counter_range",
+          "reason": "Fresh Terran ground force supports funded counters and local range closing",
+          "evidence": [
+            "Observed Terran ground supply >= 4 within 45 seconds"
+          ],
+          "uncertainty": 0.35,
+          "valid_until": 233.57142857142858
+        },
+        {
+          "time_seconds": 319.286,
+          "playbook": "baseline",
+          "reason": "Insufficient positive scouting; retain baseline and gather evidence",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 373.929,
+          "playbook": "terran_counter_range",
+          "reason": "Fresh Terran ground force supports funded counters and local range closing",
+          "evidence": [
+            "Observed Terran ground supply >= 4 within 45 seconds"
+          ],
+          "uncertainty": 0.35,
+          "valid_until": 418.92857142857144
+        },
+        {
+          "time_seconds": 435.0,
+          "playbook": "baseline",
+          "reason": "Insufficient positive scouting; retain baseline and gather evidence",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 450.0,
+          "playbook": "terran_counter_range",
+          "reason": "Fresh Terran ground force supports funded counters and local range closing",
+          "evidence": [
+            "Observed Terran ground supply >= 4 within 45 seconds"
+          ],
+          "uncertainty": 0.35,
+          "valid_until": 495.00000000000006
+        },
+        {
+          "time_seconds": 512.143,
+          "playbook": "baseline",
+          "reason": "Insufficient positive scouting; retain baseline and gather evidence",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 525.0,
+          "playbook": "terran_counter_range",
+          "reason": "Fresh Terran ground force supports funded counters and local range closing",
+          "evidence": [
+            "Observed Terran ground supply >= 4 within 45 seconds"
+          ],
+          "uncertainty": 0.35,
+          "valid_until": 570.0
+        },
+        {
+          "time_seconds": 603.214,
+          "playbook": "baseline",
+          "reason": "Insufficient positive scouting; retain baseline and gather evidence",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 620.357,
+          "playbook": "terran_counter_range",
+          "reason": "Fresh Terran ground force supports funded counters and local range closing",
+          "evidence": [
+            "Observed Terran ground supply >= 4 within 45 seconds"
+          ],
+          "uncertainty": 0.35,
+          "valid_until": 665.3571428571429
+        },
+        {
+          "time_seconds": 675.0,
+          "playbook": "baseline",
+          "reason": "Insufficient positive scouting; retain baseline and gather evidence",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 701.786,
+          "playbook": "terran_counter_range",
+          "reason": "Fresh Terran ground force supports funded counters and local range closing",
+          "evidence": [
+            "Observed Terran ground supply >= 4 within 45 seconds"
+          ],
+          "uncertainty": 0.35,
+          "valid_until": 746.7857142857143
+        },
+        {
+          "time_seconds": 883.929,
+          "playbook": "baseline",
+          "reason": "Insufficient positive scouting; retain baseline and gather evidence",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 894.643,
+          "playbook": "terran_counter_range",
+          "reason": "Fresh Terran ground force supports funded counters and local range closing",
+          "evidence": [
+            "Observed Terran ground supply >= 4 within 45 seconds"
+          ],
+          "uncertainty": 0.35,
+          "valid_until": 939.6428571428572
+        }
+      ]
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-004.json",
+      "trial_id": 4,
+      "race": "Terran",
+      "build": "Timing",
+      "seed": 20261025,
+      "result": "Result.Defeat",
+      "sampled_seconds": 1216.1,
+      "first_selection_seconds": {
+        "baseline": 0.0,
+        "terran_counter_tech": 45.0,
+        "terran_counter_range": 234.643
+      },
+      "selected_seconds": {
+        "baseline": 160.714,
+        "terran_counter_tech": 91.071,
+        "terran_counter_range": 964.286
+      },
+      "time_weighted_selection_uncertainty": 0.45837004405286697,
+      "transitions": [
+        {
+          "time_seconds": 0.0,
+          "playbook": "baseline",
+          "reason": "Insufficient positive scouting; retain baseline and gather evidence",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 45.0,
+          "playbook": "terran_counter_tech",
+          "reason": "Observed Terran ground production supports bounded counter-tech investment",
+          "evidence": [
+            "Observed BARRACKS within 90 seconds"
+          ],
+          "uncertainty": 0.65,
+          "valid_until": 135.0
+        },
+        {
+          "time_seconds": 136.071,
+          "playbook": "baseline",
+          "reason": "Insufficient positive scouting; retain baseline and gather evidence",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 234.643,
+          "playbook": "terran_counter_range",
+          "reason": "Fresh Terran ground force supports funded counters and local range closing",
+          "evidence": [
+            "Observed Terran ground supply >= 4 within 45 seconds"
+          ],
+          "uncertainty": 0.35,
+          "valid_until": 279.64285714285717
+        },
+        {
+          "time_seconds": 345.0,
+          "playbook": "baseline",
+          "reason": "Insufficient positive scouting; retain baseline and gather evidence",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 362.143,
+          "playbook": "terran_counter_range",
+          "reason": "Fresh Terran ground force supports funded counters and local range closing",
+          "evidence": [
+            "Observed Terran ground supply >= 4 within 45 seconds"
+          ],
+          "uncertainty": 0.35,
+          "valid_until": 407.14285714285717
+        }
+      ]
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-005.json",
+      "trial_id": 5,
+      "race": "Terran",
+      "build": "Timing",
+      "seed": 20261025,
+      "result": "Result.Defeat",
+      "sampled_seconds": 1216.1,
+      "first_selection_seconds": {
+        "baseline": 0.0,
+        "terran_counter_tech": 45.0,
+        "terran_counter_range": 234.643
+      },
+      "selected_seconds": {
+        "baseline": 160.714,
+        "terran_counter_tech": 91.071,
+        "terran_counter_range": 964.286
+      },
+      "time_weighted_selection_uncertainty": 0.45837004405286697,
+      "transitions": [
+        {
+          "time_seconds": 0.0,
+          "playbook": "baseline",
+          "reason": "Insufficient positive scouting; retain baseline and gather evidence",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 45.0,
+          "playbook": "terran_counter_tech",
+          "reason": "Observed Terran ground production supports bounded counter-tech investment",
+          "evidence": [
+            "Observed BARRACKS within 90 seconds"
+          ],
+          "uncertainty": 0.65,
+          "valid_until": 135.0
+        },
+        {
+          "time_seconds": 136.071,
+          "playbook": "baseline",
+          "reason": "Insufficient positive scouting; retain baseline and gather evidence",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 234.643,
+          "playbook": "terran_counter_range",
+          "reason": "Fresh Terran ground force supports funded counters and local range closing",
+          "evidence": [
+            "Observed Terran ground supply >= 4 within 45 seconds"
+          ],
+          "uncertainty": 0.35,
+          "valid_until": 279.64285714285717
+        },
+        {
+          "time_seconds": 345.0,
+          "playbook": "baseline",
+          "reason": "Insufficient positive scouting; retain baseline and gather evidence",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 362.143,
+          "playbook": "terran_counter_range",
+          "reason": "Fresh Terran ground force supports funded counters and local range closing",
+          "evidence": [
+            "Observed Terran ground supply >= 4 within 45 seconds"
+          ],
+          "uncertainty": 0.35,
+          "valid_until": 407.14285714285717
+        }
+      ]
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-006.json",
+      "trial_id": 6,
+      "race": "Terran",
+      "build": "Timing",
+      "seed": 20261025,
+      "result": "Result.Defeat",
+      "sampled_seconds": 1216.1,
+      "first_selection_seconds": {
+        "baseline": 0.0,
+        "terran_counter_tech": 45.0,
+        "terran_counter_range": 234.643
+      },
+      "selected_seconds": {
+        "baseline": 160.714,
+        "terran_counter_tech": 91.071,
+        "terran_counter_range": 964.286
+      },
+      "time_weighted_selection_uncertainty": 0.45837004405286697,
+      "transitions": [
+        {
+          "time_seconds": 0.0,
+          "playbook": "baseline",
+          "reason": "Insufficient positive scouting; retain baseline and gather evidence",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 45.0,
+          "playbook": "terran_counter_tech",
+          "reason": "Observed Terran ground production supports bounded counter-tech investment",
+          "evidence": [
+            "Observed BARRACKS within 90 seconds"
+          ],
+          "uncertainty": 0.65,
+          "valid_until": 135.0
+        },
+        {
+          "time_seconds": 136.071,
+          "playbook": "baseline",
+          "reason": "Insufficient positive scouting; retain baseline and gather evidence",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 234.643,
+          "playbook": "terran_counter_range",
+          "reason": "Fresh Terran ground force supports funded counters and local range closing",
+          "evidence": [
+            "Observed Terran ground supply >= 4 within 45 seconds"
+          ],
+          "uncertainty": 0.35,
+          "valid_until": 279.64285714285717
+        },
+        {
+          "time_seconds": 345.0,
+          "playbook": "baseline",
+          "reason": "Insufficient positive scouting; retain baseline and gather evidence",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 362.143,
+          "playbook": "terran_counter_range",
+          "reason": "Fresh Terran ground force supports funded counters and local range closing",
+          "evidence": [
+            "Observed Terran ground supply >= 4 within 45 seconds"
+          ],
+          "uncertainty": 0.35,
+          "valid_until": 407.14285714285717
+        }
+      ]
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-007.json",
+      "trial_id": 7,
+      "race": "Terran",
+      "build": "Power",
+      "seed": 20261025,
+      "result": "Result.Defeat",
+      "sampled_seconds": 753.2,
+      "first_selection_seconds": {
+        "baseline": 0.0,
+        "terran_counter_tech": 45.0,
+        "terran_counter_range": 322.5
+      },
+      "selected_seconds": {
+        "baseline": 233.571,
+        "terran_counter_tech": 116.786,
+        "terran_counter_range": 402.857
+      },
+      "time_weighted_selection_uncertainty": 0.5980796586059768,
+      "transitions": [
+        {
+          "time_seconds": 0.0,
+          "playbook": "baseline",
+          "reason": "Insufficient positive scouting; retain baseline and gather evidence",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 45.0,
+          "playbook": "terran_counter_tech",
+          "reason": "Observed Terran ground production supports bounded counter-tech investment",
+          "evidence": [
+            "Observed BARRACKS within 90 seconds"
+          ],
+          "uncertainty": 0.65,
+          "valid_until": 135.0
+        },
+        {
+          "time_seconds": 136.071,
+          "playbook": "baseline",
+          "reason": "Insufficient positive scouting; retain baseline and gather evidence",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 322.5,
+          "playbook": "terran_counter_range",
+          "reason": "Fresh Terran ground force supports funded counters and local range closing",
+          "evidence": [
+            "Observed Terran ground supply >= 4 within 45 seconds"
+          ],
+          "uncertainty": 0.35,
+          "valid_until": 367.5
+        },
+        {
+          "time_seconds": 376.071,
+          "playbook": "terran_counter_tech",
+          "reason": "Observed Terran ground production supports bounded counter-tech investment",
+          "evidence": [
+            "Observed BARRACKS within 90 seconds",
+            "Observed BARRACKSTECHLAB within 90 seconds",
+            "Observed FACTORY within 90 seconds",
+            "Observed FACTORYTECHLAB within 90 seconds"
+          ],
+          "uncertainty": 0.65,
+          "valid_until": 416.78571428571433
+        },
+        {
+          "time_seconds": 401.786,
+          "playbook": "terran_counter_range",
+          "reason": "Fresh Terran ground force supports funded counters and local range closing",
+          "evidence": [
+            "Observed Terran ground supply >= 4 within 45 seconds"
+          ],
+          "uncertainty": 0.35,
+          "valid_until": 446.78571428571433
+        },
+        {
+          "time_seconds": 463.929,
+          "playbook": "baseline",
+          "reason": "Insufficient positive scouting; retain baseline and gather evidence",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 466.071,
+          "playbook": "terran_counter_range",
+          "reason": "Fresh Terran ground force supports funded counters and local range closing",
+          "evidence": [
+            "Observed Terran ground supply >= 4 within 45 seconds"
+          ],
+          "uncertainty": 0.35,
+          "valid_until": 511.0714285714286
+        }
+      ]
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-008.json",
+      "trial_id": 8,
+      "race": "Terran",
+      "build": "Power",
+      "seed": 20261025,
+      "result": "Result.Defeat",
+      "sampled_seconds": 753.2,
+      "first_selection_seconds": {
+        "baseline": 0.0,
+        "terran_counter_tech": 45.0,
+        "terran_counter_range": 322.5
+      },
+      "selected_seconds": {
+        "baseline": 233.571,
+        "terran_counter_tech": 116.786,
+        "terran_counter_range": 402.857
+      },
+      "time_weighted_selection_uncertainty": 0.5980796586059768,
+      "transitions": [
+        {
+          "time_seconds": 0.0,
+          "playbook": "baseline",
+          "reason": "Insufficient positive scouting; retain baseline and gather evidence",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 45.0,
+          "playbook": "terran_counter_tech",
+          "reason": "Observed Terran ground production supports bounded counter-tech investment",
+          "evidence": [
+            "Observed BARRACKS within 90 seconds"
+          ],
+          "uncertainty": 0.65,
+          "valid_until": 135.0
+        },
+        {
+          "time_seconds": 136.071,
+          "playbook": "baseline",
+          "reason": "Insufficient positive scouting; retain baseline and gather evidence",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 322.5,
+          "playbook": "terran_counter_range",
+          "reason": "Fresh Terran ground force supports funded counters and local range closing",
+          "evidence": [
+            "Observed Terran ground supply >= 4 within 45 seconds"
+          ],
+          "uncertainty": 0.35,
+          "valid_until": 367.5
+        },
+        {
+          "time_seconds": 376.071,
+          "playbook": "terran_counter_tech",
+          "reason": "Observed Terran ground production supports bounded counter-tech investment",
+          "evidence": [
+            "Observed BARRACKS within 90 seconds",
+            "Observed BARRACKSTECHLAB within 90 seconds",
+            "Observed FACTORY within 90 seconds",
+            "Observed FACTORYTECHLAB within 90 seconds"
+          ],
+          "uncertainty": 0.65,
+          "valid_until": 416.78571428571433
+        },
+        {
+          "time_seconds": 401.786,
+          "playbook": "terran_counter_range",
+          "reason": "Fresh Terran ground force supports funded counters and local range closing",
+          "evidence": [
+            "Observed Terran ground supply >= 4 within 45 seconds"
+          ],
+          "uncertainty": 0.35,
+          "valid_until": 446.78571428571433
+        },
+        {
+          "time_seconds": 463.929,
+          "playbook": "baseline",
+          "reason": "Insufficient positive scouting; retain baseline and gather evidence",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 466.071,
+          "playbook": "terran_counter_range",
+          "reason": "Fresh Terran ground force supports funded counters and local range closing",
+          "evidence": [
+            "Observed Terran ground supply >= 4 within 45 seconds"
+          ],
+          "uncertainty": 0.35,
+          "valid_until": 511.0714285714286
+        }
+      ]
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-009.json",
+      "trial_id": 9,
+      "race": "Terran",
+      "build": "Power",
+      "seed": 20261025,
+      "result": "Result.Defeat",
+      "sampled_seconds": 753.2,
+      "first_selection_seconds": {
+        "baseline": 0.0,
+        "terran_counter_tech": 45.0,
+        "terran_counter_range": 322.5
+      },
+      "selected_seconds": {
+        "baseline": 233.571,
+        "terran_counter_tech": 116.786,
+        "terran_counter_range": 402.857
+      },
+      "time_weighted_selection_uncertainty": 0.5980796586059768,
+      "transitions": [
+        {
+          "time_seconds": 0.0,
+          "playbook": "baseline",
+          "reason": "Insufficient positive scouting; retain baseline and gather evidence",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 45.0,
+          "playbook": "terran_counter_tech",
+          "reason": "Observed Terran ground production supports bounded counter-tech investment",
+          "evidence": [
+            "Observed BARRACKS within 90 seconds"
+          ],
+          "uncertainty": 0.65,
+          "valid_until": 135.0
+        },
+        {
+          "time_seconds": 136.071,
+          "playbook": "baseline",
+          "reason": "Insufficient positive scouting; retain baseline and gather evidence",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 322.5,
+          "playbook": "terran_counter_range",
+          "reason": "Fresh Terran ground force supports funded counters and local range closing",
+          "evidence": [
+            "Observed Terran ground supply >= 4 within 45 seconds"
+          ],
+          "uncertainty": 0.35,
+          "valid_until": 367.5
+        },
+        {
+          "time_seconds": 376.071,
+          "playbook": "terran_counter_tech",
+          "reason": "Observed Terran ground production supports bounded counter-tech investment",
+          "evidence": [
+            "Observed BARRACKS within 90 seconds",
+            "Observed BARRACKSTECHLAB within 90 seconds",
+            "Observed FACTORY within 90 seconds",
+            "Observed FACTORYTECHLAB within 90 seconds"
+          ],
+          "uncertainty": 0.65,
+          "valid_until": 416.78571428571433
+        },
+        {
+          "time_seconds": 401.786,
+          "playbook": "terran_counter_range",
+          "reason": "Fresh Terran ground force supports funded counters and local range closing",
+          "evidence": [
+            "Observed Terran ground supply >= 4 within 45 seconds"
+          ],
+          "uncertainty": 0.35,
+          "valid_until": 446.78571428571433
+        },
+        {
+          "time_seconds": 463.929,
+          "playbook": "baseline",
+          "reason": "Insufficient positive scouting; retain baseline and gather evidence",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 466.071,
+          "playbook": "terran_counter_range",
+          "reason": "Fresh Terran ground force supports funded counters and local range closing",
+          "evidence": [
+            "Observed Terran ground supply >= 4 within 45 seconds"
+          ],
+          "uncertainty": 0.35,
+          "valid_until": 511.0714285714286
+        }
+      ]
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-010.json",
+      "trial_id": 10,
+      "race": "Terran",
+      "build": "Macro",
+      "seed": 20261025,
+      "result": "Result.Victory",
+      "sampled_seconds": 1067.1,
+      "first_selection_seconds": {
+        "baseline": 0.0,
+        "terran_counter_tech": 45.0,
+        "terran_counter_range": 325.714
+      },
+      "selected_seconds": {
+        "baseline": 234.643,
+        "terran_counter_tech": 214.286,
+        "terran_counter_range": 618.214
+      },
+      "time_weighted_selection_uncertainty": 0.5531626506024118,
+      "transitions": [
+        {
+          "time_seconds": 0.0,
+          "playbook": "baseline",
+          "reason": "Insufficient positive scouting; retain baseline and gather evidence",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 45.0,
+          "playbook": "terran_counter_tech",
+          "reason": "Observed Terran ground production supports bounded counter-tech investment",
+          "evidence": [
+            "Observed BARRACKS within 90 seconds"
+          ],
+          "uncertainty": 0.65,
+          "valid_until": 135.0
+        },
+        {
+          "time_seconds": 136.071,
+          "playbook": "baseline",
+          "reason": "Insufficient positive scouting; retain baseline and gather evidence",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 325.714,
+          "playbook": "terran_counter_range",
+          "reason": "Fresh Terran ground force supports funded counters and local range closing",
+          "evidence": [
+            "Observed Terran ground supply >= 4 within 45 seconds"
+          ],
+          "uncertainty": 0.35,
+          "valid_until": 370.7142857142857
+        },
+        {
+          "time_seconds": 385.714,
+          "playbook": "terran_counter_tech",
+          "reason": "Observed Terran ground production supports bounded counter-tech investment",
+          "evidence": [
+            "Observed BARRACKS within 90 seconds",
+            "Observed BARRACKSTECHLAB within 90 seconds",
+            "Observed FACTORY within 90 seconds",
+            "Observed FACTORYTECHLAB within 90 seconds"
+          ],
+          "uncertainty": 0.65,
+          "valid_until": 421.0714285714286
+        },
+        {
+          "time_seconds": 407.143,
+          "playbook": "terran_counter_range",
+          "reason": "Fresh Terran ground force supports funded counters and local range closing",
+          "evidence": [
+            "Observed Terran ground supply >= 4 within 45 seconds"
+          ],
+          "uncertainty": 0.35,
+          "valid_until": 452.14285714285717
+        },
+        {
+          "time_seconds": 746.786,
+          "playbook": "terran_counter_tech",
+          "reason": "Observed Terran ground production supports bounded counter-tech investment",
+          "evidence": [
+            "Observed BARRACKS within 90 seconds",
+            "Observed BARRACKSTECHLAB within 90 seconds",
+            "Observed FACTORY within 90 seconds",
+            "Observed FACTORYTECHLAB within 90 seconds"
+          ],
+          "uncertainty": 0.65,
+          "valid_until": 787.5
+        },
+        {
+          "time_seconds": 784.286,
+          "playbook": "terran_counter_range",
+          "reason": "Fresh Terran ground force supports funded counters and local range closing",
+          "evidence": [
+            "Observed Terran ground supply >= 4 within 45 seconds"
+          ],
+          "uncertainty": 0.35,
+          "valid_until": 829.2857142857143
+        },
+        {
+          "time_seconds": 1002.857,
+          "playbook": "terran_counter_tech",
+          "reason": "Observed Terran ground production supports bounded counter-tech investment",
+          "evidence": [
+            "Observed BARRACKS within 90 seconds",
+            "Observed BARRACKSTECHLAB within 90 seconds",
+            "Observed FACTORY within 90 seconds",
+            "Observed FACTORYTECHLAB within 90 seconds"
+          ],
+          "uncertainty": 0.65,
+          "valid_until": 1056.4285714285716
+        }
+      ]
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-011.json",
+      "trial_id": 11,
+      "race": "Terran",
+      "build": "Macro",
+      "seed": 20261025,
+      "result": "Result.Victory",
+      "sampled_seconds": 1067.1,
+      "first_selection_seconds": {
+        "baseline": 0.0,
+        "terran_counter_tech": 45.0,
+        "terran_counter_range": 325.714
+      },
+      "selected_seconds": {
+        "baseline": 234.643,
+        "terran_counter_tech": 214.286,
+        "terran_counter_range": 618.214
+      },
+      "time_weighted_selection_uncertainty": 0.5531626506024118,
+      "transitions": [
+        {
+          "time_seconds": 0.0,
+          "playbook": "baseline",
+          "reason": "Insufficient positive scouting; retain baseline and gather evidence",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 45.0,
+          "playbook": "terran_counter_tech",
+          "reason": "Observed Terran ground production supports bounded counter-tech investment",
+          "evidence": [
+            "Observed BARRACKS within 90 seconds"
+          ],
+          "uncertainty": 0.65,
+          "valid_until": 135.0
+        },
+        {
+          "time_seconds": 136.071,
+          "playbook": "baseline",
+          "reason": "Insufficient positive scouting; retain baseline and gather evidence",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 325.714,
+          "playbook": "terran_counter_range",
+          "reason": "Fresh Terran ground force supports funded counters and local range closing",
+          "evidence": [
+            "Observed Terran ground supply >= 4 within 45 seconds"
+          ],
+          "uncertainty": 0.35,
+          "valid_until": 370.7142857142857
+        },
+        {
+          "time_seconds": 385.714,
+          "playbook": "terran_counter_tech",
+          "reason": "Observed Terran ground production supports bounded counter-tech investment",
+          "evidence": [
+            "Observed BARRACKS within 90 seconds",
+            "Observed BARRACKSTECHLAB within 90 seconds",
+            "Observed FACTORY within 90 seconds",
+            "Observed FACTORYTECHLAB within 90 seconds"
+          ],
+          "uncertainty": 0.65,
+          "valid_until": 421.0714285714286
+        },
+        {
+          "time_seconds": 407.143,
+          "playbook": "terran_counter_range",
+          "reason": "Fresh Terran ground force supports funded counters and local range closing",
+          "evidence": [
+            "Observed Terran ground supply >= 4 within 45 seconds"
+          ],
+          "uncertainty": 0.35,
+          "valid_until": 452.14285714285717
+        },
+        {
+          "time_seconds": 746.786,
+          "playbook": "terran_counter_tech",
+          "reason": "Observed Terran ground production supports bounded counter-tech investment",
+          "evidence": [
+            "Observed BARRACKS within 90 seconds",
+            "Observed BARRACKSTECHLAB within 90 seconds",
+            "Observed FACTORY within 90 seconds",
+            "Observed FACTORYTECHLAB within 90 seconds"
+          ],
+          "uncertainty": 0.65,
+          "valid_until": 787.5
+        },
+        {
+          "time_seconds": 784.286,
+          "playbook": "terran_counter_range",
+          "reason": "Fresh Terran ground force supports funded counters and local range closing",
+          "evidence": [
+            "Observed Terran ground supply >= 4 within 45 seconds"
+          ],
+          "uncertainty": 0.35,
+          "valid_until": 829.2857142857143
+        },
+        {
+          "time_seconds": 1002.857,
+          "playbook": "terran_counter_tech",
+          "reason": "Observed Terran ground production supports bounded counter-tech investment",
+          "evidence": [
+            "Observed BARRACKS within 90 seconds",
+            "Observed BARRACKSTECHLAB within 90 seconds",
+            "Observed FACTORY within 90 seconds",
+            "Observed FACTORYTECHLAB within 90 seconds"
+          ],
+          "uncertainty": 0.65,
+          "valid_until": 1056.4285714285716
+        }
+      ]
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-012.json",
+      "trial_id": 12,
+      "race": "Terran",
+      "build": "Macro",
+      "seed": 20261025,
+      "result": "Result.Victory",
+      "sampled_seconds": 1067.1,
+      "first_selection_seconds": {
+        "baseline": 0.0,
+        "terran_counter_tech": 45.0,
+        "terran_counter_range": 325.714
+      },
+      "selected_seconds": {
+        "baseline": 234.643,
+        "terran_counter_tech": 214.286,
+        "terran_counter_range": 618.214
+      },
+      "time_weighted_selection_uncertainty": 0.5531626506024118,
+      "transitions": [
+        {
+          "time_seconds": 0.0,
+          "playbook": "baseline",
+          "reason": "Insufficient positive scouting; retain baseline and gather evidence",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 45.0,
+          "playbook": "terran_counter_tech",
+          "reason": "Observed Terran ground production supports bounded counter-tech investment",
+          "evidence": [
+            "Observed BARRACKS within 90 seconds"
+          ],
+          "uncertainty": 0.65,
+          "valid_until": 135.0
+        },
+        {
+          "time_seconds": 136.071,
+          "playbook": "baseline",
+          "reason": "Insufficient positive scouting; retain baseline and gather evidence",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 325.714,
+          "playbook": "terran_counter_range",
+          "reason": "Fresh Terran ground force supports funded counters and local range closing",
+          "evidence": [
+            "Observed Terran ground supply >= 4 within 45 seconds"
+          ],
+          "uncertainty": 0.35,
+          "valid_until": 370.7142857142857
+        },
+        {
+          "time_seconds": 385.714,
+          "playbook": "terran_counter_tech",
+          "reason": "Observed Terran ground production supports bounded counter-tech investment",
+          "evidence": [
+            "Observed BARRACKS within 90 seconds",
+            "Observed BARRACKSTECHLAB within 90 seconds",
+            "Observed FACTORY within 90 seconds",
+            "Observed FACTORYTECHLAB within 90 seconds"
+          ],
+          "uncertainty": 0.65,
+          "valid_until": 421.0714285714286
+        },
+        {
+          "time_seconds": 407.143,
+          "playbook": "terran_counter_range",
+          "reason": "Fresh Terran ground force supports funded counters and local range closing",
+          "evidence": [
+            "Observed Terran ground supply >= 4 within 45 seconds"
+          ],
+          "uncertainty": 0.35,
+          "valid_until": 452.14285714285717
+        },
+        {
+          "time_seconds": 746.786,
+          "playbook": "terran_counter_tech",
+          "reason": "Observed Terran ground production supports bounded counter-tech investment",
+          "evidence": [
+            "Observed BARRACKS within 90 seconds",
+            "Observed BARRACKSTECHLAB within 90 seconds",
+            "Observed FACTORY within 90 seconds",
+            "Observed FACTORYTECHLAB within 90 seconds"
+          ],
+          "uncertainty": 0.65,
+          "valid_until": 787.5
+        },
+        {
+          "time_seconds": 784.286,
+          "playbook": "terran_counter_range",
+          "reason": "Fresh Terran ground force supports funded counters and local range closing",
+          "evidence": [
+            "Observed Terran ground supply >= 4 within 45 seconds"
+          ],
+          "uncertainty": 0.35,
+          "valid_until": 829.2857142857143
+        },
+        {
+          "time_seconds": 1002.857,
+          "playbook": "terran_counter_tech",
+          "reason": "Observed Terran ground production supports bounded counter-tech investment",
+          "evidence": [
+            "Observed BARRACKS within 90 seconds",
+            "Observed BARRACKSTECHLAB within 90 seconds",
+            "Observed FACTORY within 90 seconds",
+            "Observed FACTORYTECHLAB within 90 seconds"
+          ],
+          "uncertainty": 0.65,
+          "valid_until": 1056.4285714285716
+        }
+      ]
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-013.json",
+      "trial_id": 13,
+      "race": "Terran",
+      "build": "Air",
+      "seed": 20261025,
+      "result": "Result.Victory",
+      "sampled_seconds": 752.1,
+      "first_selection_seconds": {
+        "baseline": 0.0,
+        "terran_counter_range": 352.5,
+        "terran_counter_tech": 360.0
+      },
+      "selected_seconds": {
+        "baseline": 402.857,
+        "terran_counter_range": 230.357,
+        "terran_counter_tech": 118.929
+      },
+      "time_weighted_selection_uncertainty": 0.7455840455840465,
+      "transitions": [
+        {
+          "time_seconds": 0.0,
+          "playbook": "baseline",
+          "reason": "Insufficient positive scouting; retain baseline and gather evidence",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 352.5,
+          "playbook": "terran_counter_range",
+          "reason": "Fresh Terran ground force supports funded counters and local range closing",
+          "evidence": [
+            "Observed Terran ground supply >= 4 within 45 seconds"
+          ],
+          "uncertainty": 0.35,
+          "valid_until": 397.5
+        },
+        {
+          "time_seconds": 355.714,
+          "playbook": "baseline",
+          "reason": "Insufficient positive scouting; retain baseline and gather evidence",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 360.0,
+          "playbook": "terran_counter_tech",
+          "reason": "Observed Terran ground production supports bounded counter-tech investment",
+          "evidence": [
+            "Observed BARRACKS within 90 seconds"
+          ],
+          "uncertainty": 0.65,
+          "valid_until": 450.0
+        },
+        {
+          "time_seconds": 372.857,
+          "playbook": "terran_counter_range",
+          "reason": "Fresh Terran ground force supports funded counters and local range closing",
+          "evidence": [
+            "Observed Terran ground supply >= 4 within 45 seconds"
+          ],
+          "uncertainty": 0.35,
+          "valid_until": 417.8571428571429
+        },
+        {
+          "time_seconds": 399.643,
+          "playbook": "terran_counter_tech",
+          "reason": "Observed Terran ground production supports bounded counter-tech investment",
+          "evidence": [
+            "Observed BARRACKS within 90 seconds",
+            "Observed BARRACKSTECHLAB within 90 seconds",
+            "Observed FACTORY within 90 seconds"
+          ],
+          "uncertainty": 0.65,
+          "valid_until": 465.0
+        },
+        {
+          "time_seconds": 441.429,
+          "playbook": "terran_counter_range",
+          "reason": "Fresh Terran ground force supports funded counters and local range closing",
+          "evidence": [
+            "Observed Terran ground supply >= 4 within 45 seconds"
+          ],
+          "uncertainty": 0.35,
+          "valid_until": 486.42857142857144
+        },
+        {
+          "time_seconds": 493.929,
+          "playbook": "baseline",
+          "reason": "Insufficient positive scouting; retain baseline and gather evidence",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 538.929,
+          "playbook": "terran_counter_range",
+          "reason": "Fresh Terran ground force supports funded counters and local range closing",
+          "evidence": [
+            "Observed Terran ground supply >= 4 within 45 seconds"
+          ],
+          "uncertainty": 0.35,
+          "valid_until": 583.9285714285714
+        },
+        {
+          "time_seconds": 570.0,
+          "playbook": "terran_counter_tech",
+          "reason": "Observed Terran ground production supports bounded counter-tech investment",
+          "evidence": [
+            "Observed BARRACKS within 90 seconds",
+            "Observed BARRACKSTECHLAB within 90 seconds",
+            "Observed FACTORY within 90 seconds"
+          ],
+          "uncertainty": 0.65,
+          "valid_until": 660.0
+        },
+        {
+          "time_seconds": 572.143,
+          "playbook": "terran_counter_range",
+          "reason": "Fresh Terran ground force supports funded counters and local range closing",
+          "evidence": [
+            "Observed Terran ground supply >= 4 within 45 seconds"
+          ],
+          "uncertainty": 0.35,
+          "valid_until": 617.1428571428572
+        },
+        {
+          "time_seconds": 634.286,
+          "playbook": "terran_counter_tech",
+          "reason": "Observed Terran ground production supports bounded counter-tech investment",
+          "evidence": [
+            "Observed BARRACKS within 90 seconds",
+            "Observed BARRACKSTECHLAB within 90 seconds",
+            "Observed FACTORY within 90 seconds"
+          ],
+          "uncertainty": 0.65,
+          "valid_until": 693.2142857142858
+        },
+        {
+          "time_seconds": 693.214,
+          "playbook": "baseline",
+          "reason": "Insufficient positive scouting; retain baseline and gather evidence",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 694.286,
+          "playbook": "terran_counter_tech",
+          "reason": "Observed Terran ground production supports bounded counter-tech investment",
+          "evidence": [
+            "Observed BARRACKS within 90 seconds"
+          ],
+          "uncertainty": 0.65,
+          "valid_until": 784.2857142857143
+        },
+        {
+          "time_seconds": 695.357,
+          "playbook": "terran_counter_range",
+          "reason": "Fresh Terran ground force supports funded counters and local range closing",
+          "evidence": [
+            "Observed Terran ground supply >= 4 within 45 seconds"
+          ],
+          "uncertainty": 0.35,
+          "valid_until": 740.3571428571429
+        },
+        {
+          "time_seconds": 750.0,
+          "playbook": "terran_counter_tech",
+          "reason": "Observed Terran ground production supports bounded counter-tech investment",
+          "evidence": [
+            "Observed BARRACKS within 90 seconds",
+            "Observed FACTORY within 90 seconds"
+          ],
+          "uncertainty": 0.65,
+          "valid_until": 838.9285714285714
+        }
+      ]
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-014.json",
+      "trial_id": 14,
+      "race": "Terran",
+      "build": "Air",
+      "seed": 20261025,
+      "result": "Result.Victory",
+      "sampled_seconds": 752.1,
+      "first_selection_seconds": {
+        "baseline": 0.0,
+        "terran_counter_range": 352.5,
+        "terran_counter_tech": 360.0
+      },
+      "selected_seconds": {
+        "baseline": 402.857,
+        "terran_counter_range": 230.357,
+        "terran_counter_tech": 118.929
+      },
+      "time_weighted_selection_uncertainty": 0.7455840455840465,
+      "transitions": [
+        {
+          "time_seconds": 0.0,
+          "playbook": "baseline",
+          "reason": "Insufficient positive scouting; retain baseline and gather evidence",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 352.5,
+          "playbook": "terran_counter_range",
+          "reason": "Fresh Terran ground force supports funded counters and local range closing",
+          "evidence": [
+            "Observed Terran ground supply >= 4 within 45 seconds"
+          ],
+          "uncertainty": 0.35,
+          "valid_until": 397.5
+        },
+        {
+          "time_seconds": 355.714,
+          "playbook": "baseline",
+          "reason": "Insufficient positive scouting; retain baseline and gather evidence",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 360.0,
+          "playbook": "terran_counter_tech",
+          "reason": "Observed Terran ground production supports bounded counter-tech investment",
+          "evidence": [
+            "Observed BARRACKS within 90 seconds"
+          ],
+          "uncertainty": 0.65,
+          "valid_until": 450.0
+        },
+        {
+          "time_seconds": 372.857,
+          "playbook": "terran_counter_range",
+          "reason": "Fresh Terran ground force supports funded counters and local range closing",
+          "evidence": [
+            "Observed Terran ground supply >= 4 within 45 seconds"
+          ],
+          "uncertainty": 0.35,
+          "valid_until": 417.8571428571429
+        },
+        {
+          "time_seconds": 399.643,
+          "playbook": "terran_counter_tech",
+          "reason": "Observed Terran ground production supports bounded counter-tech investment",
+          "evidence": [
+            "Observed BARRACKS within 90 seconds",
+            "Observed BARRACKSTECHLAB within 90 seconds",
+            "Observed FACTORY within 90 seconds"
+          ],
+          "uncertainty": 0.65,
+          "valid_until": 465.0
+        },
+        {
+          "time_seconds": 441.429,
+          "playbook": "terran_counter_range",
+          "reason": "Fresh Terran ground force supports funded counters and local range closing",
+          "evidence": [
+            "Observed Terran ground supply >= 4 within 45 seconds"
+          ],
+          "uncertainty": 0.35,
+          "valid_until": 486.42857142857144
+        },
+        {
+          "time_seconds": 493.929,
+          "playbook": "baseline",
+          "reason": "Insufficient positive scouting; retain baseline and gather evidence",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 538.929,
+          "playbook": "terran_counter_range",
+          "reason": "Fresh Terran ground force supports funded counters and local range closing",
+          "evidence": [
+            "Observed Terran ground supply >= 4 within 45 seconds"
+          ],
+          "uncertainty": 0.35,
+          "valid_until": 583.9285714285714
+        },
+        {
+          "time_seconds": 570.0,
+          "playbook": "terran_counter_tech",
+          "reason": "Observed Terran ground production supports bounded counter-tech investment",
+          "evidence": [
+            "Observed BARRACKS within 90 seconds",
+            "Observed BARRACKSTECHLAB within 90 seconds",
+            "Observed FACTORY within 90 seconds"
+          ],
+          "uncertainty": 0.65,
+          "valid_until": 660.0
+        },
+        {
+          "time_seconds": 572.143,
+          "playbook": "terran_counter_range",
+          "reason": "Fresh Terran ground force supports funded counters and local range closing",
+          "evidence": [
+            "Observed Terran ground supply >= 4 within 45 seconds"
+          ],
+          "uncertainty": 0.35,
+          "valid_until": 617.1428571428572
+        },
+        {
+          "time_seconds": 634.286,
+          "playbook": "terran_counter_tech",
+          "reason": "Observed Terran ground production supports bounded counter-tech investment",
+          "evidence": [
+            "Observed BARRACKS within 90 seconds",
+            "Observed BARRACKSTECHLAB within 90 seconds",
+            "Observed FACTORY within 90 seconds"
+          ],
+          "uncertainty": 0.65,
+          "valid_until": 693.2142857142858
+        },
+        {
+          "time_seconds": 693.214,
+          "playbook": "baseline",
+          "reason": "Insufficient positive scouting; retain baseline and gather evidence",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 694.286,
+          "playbook": "terran_counter_tech",
+          "reason": "Observed Terran ground production supports bounded counter-tech investment",
+          "evidence": [
+            "Observed BARRACKS within 90 seconds"
+          ],
+          "uncertainty": 0.65,
+          "valid_until": 784.2857142857143
+        },
+        {
+          "time_seconds": 695.357,
+          "playbook": "terran_counter_range",
+          "reason": "Fresh Terran ground force supports funded counters and local range closing",
+          "evidence": [
+            "Observed Terran ground supply >= 4 within 45 seconds"
+          ],
+          "uncertainty": 0.35,
+          "valid_until": 740.3571428571429
+        },
+        {
+          "time_seconds": 750.0,
+          "playbook": "terran_counter_tech",
+          "reason": "Observed Terran ground production supports bounded counter-tech investment",
+          "evidence": [
+            "Observed BARRACKS within 90 seconds",
+            "Observed FACTORY within 90 seconds"
+          ],
+          "uncertainty": 0.65,
+          "valid_until": 838.9285714285714
+        }
+      ]
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-015.json",
+      "trial_id": 15,
+      "race": "Terran",
+      "build": "Air",
+      "seed": 20261025,
+      "result": "Result.Victory",
+      "sampled_seconds": 752.1,
+      "first_selection_seconds": {
+        "baseline": 0.0,
+        "terran_counter_range": 352.5,
+        "terran_counter_tech": 360.0
+      },
+      "selected_seconds": {
+        "baseline": 402.857,
+        "terran_counter_range": 230.357,
+        "terran_counter_tech": 118.929
+      },
+      "time_weighted_selection_uncertainty": 0.7455840455840465,
+      "transitions": [
+        {
+          "time_seconds": 0.0,
+          "playbook": "baseline",
+          "reason": "Insufficient positive scouting; retain baseline and gather evidence",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 352.5,
+          "playbook": "terran_counter_range",
+          "reason": "Fresh Terran ground force supports funded counters and local range closing",
+          "evidence": [
+            "Observed Terran ground supply >= 4 within 45 seconds"
+          ],
+          "uncertainty": 0.35,
+          "valid_until": 397.5
+        },
+        {
+          "time_seconds": 355.714,
+          "playbook": "baseline",
+          "reason": "Insufficient positive scouting; retain baseline and gather evidence",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 360.0,
+          "playbook": "terran_counter_tech",
+          "reason": "Observed Terran ground production supports bounded counter-tech investment",
+          "evidence": [
+            "Observed BARRACKS within 90 seconds"
+          ],
+          "uncertainty": 0.65,
+          "valid_until": 450.0
+        },
+        {
+          "time_seconds": 372.857,
+          "playbook": "terran_counter_range",
+          "reason": "Fresh Terran ground force supports funded counters and local range closing",
+          "evidence": [
+            "Observed Terran ground supply >= 4 within 45 seconds"
+          ],
+          "uncertainty": 0.35,
+          "valid_until": 417.8571428571429
+        },
+        {
+          "time_seconds": 399.643,
+          "playbook": "terran_counter_tech",
+          "reason": "Observed Terran ground production supports bounded counter-tech investment",
+          "evidence": [
+            "Observed BARRACKS within 90 seconds",
+            "Observed BARRACKSTECHLAB within 90 seconds",
+            "Observed FACTORY within 90 seconds"
+          ],
+          "uncertainty": 0.65,
+          "valid_until": 465.0
+        },
+        {
+          "time_seconds": 441.429,
+          "playbook": "terran_counter_range",
+          "reason": "Fresh Terran ground force supports funded counters and local range closing",
+          "evidence": [
+            "Observed Terran ground supply >= 4 within 45 seconds"
+          ],
+          "uncertainty": 0.35,
+          "valid_until": 486.42857142857144
+        },
+        {
+          "time_seconds": 493.929,
+          "playbook": "baseline",
+          "reason": "Insufficient positive scouting; retain baseline and gather evidence",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 538.929,
+          "playbook": "terran_counter_range",
+          "reason": "Fresh Terran ground force supports funded counters and local range closing",
+          "evidence": [
+            "Observed Terran ground supply >= 4 within 45 seconds"
+          ],
+          "uncertainty": 0.35,
+          "valid_until": 583.9285714285714
+        },
+        {
+          "time_seconds": 570.0,
+          "playbook": "terran_counter_tech",
+          "reason": "Observed Terran ground production supports bounded counter-tech investment",
+          "evidence": [
+            "Observed BARRACKS within 90 seconds",
+            "Observed BARRACKSTECHLAB within 90 seconds",
+            "Observed FACTORY within 90 seconds"
+          ],
+          "uncertainty": 0.65,
+          "valid_until": 660.0
+        },
+        {
+          "time_seconds": 572.143,
+          "playbook": "terran_counter_range",
+          "reason": "Fresh Terran ground force supports funded counters and local range closing",
+          "evidence": [
+            "Observed Terran ground supply >= 4 within 45 seconds"
+          ],
+          "uncertainty": 0.35,
+          "valid_until": 617.1428571428572
+        },
+        {
+          "time_seconds": 634.286,
+          "playbook": "terran_counter_tech",
+          "reason": "Observed Terran ground production supports bounded counter-tech investment",
+          "evidence": [
+            "Observed BARRACKS within 90 seconds",
+            "Observed BARRACKSTECHLAB within 90 seconds",
+            "Observed FACTORY within 90 seconds"
+          ],
+          "uncertainty": 0.65,
+          "valid_until": 693.2142857142858
+        },
+        {
+          "time_seconds": 693.214,
+          "playbook": "baseline",
+          "reason": "Insufficient positive scouting; retain baseline and gather evidence",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 694.286,
+          "playbook": "terran_counter_tech",
+          "reason": "Observed Terran ground production supports bounded counter-tech investment",
+          "evidence": [
+            "Observed BARRACKS within 90 seconds"
+          ],
+          "uncertainty": 0.65,
+          "valid_until": 784.2857142857143
+        },
+        {
+          "time_seconds": 695.357,
+          "playbook": "terran_counter_range",
+          "reason": "Fresh Terran ground force supports funded counters and local range closing",
+          "evidence": [
+            "Observed Terran ground supply >= 4 within 45 seconds"
+          ],
+          "uncertainty": 0.35,
+          "valid_until": 740.3571428571429
+        },
+        {
+          "time_seconds": 750.0,
+          "playbook": "terran_counter_tech",
+          "reason": "Observed Terran ground production supports bounded counter-tech investment",
+          "evidence": [
+            "Observed BARRACKS within 90 seconds",
+            "Observed FACTORY within 90 seconds"
+          ],
+          "uncertainty": 0.65,
+          "valid_until": 838.9285714285714
+        }
+      ]
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-016.json",
+      "trial_id": 16,
+      "race": "Zerg",
+      "build": "Rush",
+      "seed": 20261025,
+      "result": "Result.Victory",
+      "sampled_seconds": 751.1,
+      "first_selection_seconds": {
+        "baseline": 0.0,
+        "zerg_counter_completion": 502.5
+      },
+      "selected_seconds": {
+        "baseline": 522.857,
+        "zerg_counter_completion": 228.214
+      },
+      "time_weighted_selection_uncertainty": 0.8176890156918734,
+      "transitions": [
+        {
+          "time_seconds": 0.0,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 502.5,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 523.9285714285714
+        },
+        {
+          "time_seconds": 508.929,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 510.0,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 555.0
+        },
+        {
+          "time_seconds": 685.714,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 705.0,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 750.0
+        }
+      ]
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-017.json",
+      "trial_id": 17,
+      "race": "Zerg",
+      "build": "Rush",
+      "seed": 20261025,
+      "result": "Result.Victory",
+      "sampled_seconds": 751.1,
+      "first_selection_seconds": {
+        "baseline": 0.0,
+        "zerg_counter_completion": 502.5
+      },
+      "selected_seconds": {
+        "baseline": 522.857,
+        "zerg_counter_completion": 228.214
+      },
+      "time_weighted_selection_uncertainty": 0.8176890156918734,
+      "transitions": [
+        {
+          "time_seconds": 0.0,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 502.5,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 523.9285714285714
+        },
+        {
+          "time_seconds": 508.929,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 510.0,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 555.0
+        },
+        {
+          "time_seconds": 685.714,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 705.0,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 750.0
+        }
+      ]
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-018.json",
+      "trial_id": 18,
+      "race": "Zerg",
+      "build": "Rush",
+      "seed": 20261025,
+      "result": "Result.Victory",
+      "sampled_seconds": 751.1,
+      "first_selection_seconds": {
+        "baseline": 0.0,
+        "zerg_counter_completion": 502.5
+      },
+      "selected_seconds": {
+        "baseline": 522.857,
+        "zerg_counter_completion": 228.214
+      },
+      "time_weighted_selection_uncertainty": 0.8176890156918734,
+      "transitions": [
+        {
+          "time_seconds": 0.0,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 502.5,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 523.9285714285714
+        },
+        {
+          "time_seconds": 508.929,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 510.0,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 555.0
+        },
+        {
+          "time_seconds": 685.714,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 705.0,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 750.0
+        }
+      ]
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-019.json",
+      "trial_id": 19,
+      "race": "Zerg",
+      "build": "Timing",
+      "seed": 20261025,
+      "result": "Result.Victory",
+      "sampled_seconds": 1002.9,
+      "first_selection_seconds": {
+        "baseline": 0.0,
+        "zerg_early_robotics": 45.0
+      },
+      "selected_seconds": {
+        "baseline": 725.357,
+        "zerg_early_robotics": 277.5
+      },
+      "time_weighted_selection_uncertainty": 0.8659722222222221,
+      "transitions": [
+        {
+          "time_seconds": 0.0,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 45.0,
+          "playbook": "zerg_early_robotics",
+          "reason": "Early observed Pool supports a bounded ground-counter investment",
+          "evidence": [
+            "Spawning Pool observed by 90 seconds"
+          ],
+          "uncertainty": 0.65,
+          "valid_until": 225.0
+        },
+        {
+          "time_seconds": 229.286,
+          "playbook": "baseline",
+          "reason": "Early observed Pool supports a bounded ground-counter investment",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 250.714,
+          "playbook": "zerg_early_robotics",
+          "reason": "Fresh Roach/Ravager force supports a Robotics ground response",
+          "evidence": [
+            "Fresh observed Roach/Ravager supply >= 4"
+          ],
+          "uncertainty": 0.25,
+          "valid_until": 295.7142857142857
+        },
+        {
+          "time_seconds": 343.929,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        }
+      ]
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-020.json",
+      "trial_id": 20,
+      "race": "Zerg",
+      "build": "Timing",
+      "seed": 20261025,
+      "result": "Result.Victory",
+      "sampled_seconds": 1002.9,
+      "first_selection_seconds": {
+        "baseline": 0.0,
+        "zerg_early_robotics": 45.0
+      },
+      "selected_seconds": {
+        "baseline": 725.357,
+        "zerg_early_robotics": 277.5
+      },
+      "time_weighted_selection_uncertainty": 0.8659722222222221,
+      "transitions": [
+        {
+          "time_seconds": 0.0,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 45.0,
+          "playbook": "zerg_early_robotics",
+          "reason": "Early observed Pool supports a bounded ground-counter investment",
+          "evidence": [
+            "Spawning Pool observed by 90 seconds"
+          ],
+          "uncertainty": 0.65,
+          "valid_until": 225.0
+        },
+        {
+          "time_seconds": 229.286,
+          "playbook": "baseline",
+          "reason": "Early observed Pool supports a bounded ground-counter investment",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 250.714,
+          "playbook": "zerg_early_robotics",
+          "reason": "Fresh Roach/Ravager force supports a Robotics ground response",
+          "evidence": [
+            "Fresh observed Roach/Ravager supply >= 4"
+          ],
+          "uncertainty": 0.25,
+          "valid_until": 295.7142857142857
+        },
+        {
+          "time_seconds": 343.929,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        }
+      ]
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-021.json",
+      "trial_id": 21,
+      "race": "Zerg",
+      "build": "Timing",
+      "seed": 20261025,
+      "result": "Result.Victory",
+      "sampled_seconds": 1002.9,
+      "first_selection_seconds": {
+        "baseline": 0.0,
+        "zerg_early_robotics": 45.0
+      },
+      "selected_seconds": {
+        "baseline": 725.357,
+        "zerg_early_robotics": 277.5
+      },
+      "time_weighted_selection_uncertainty": 0.8659722222222221,
+      "transitions": [
+        {
+          "time_seconds": 0.0,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 45.0,
+          "playbook": "zerg_early_robotics",
+          "reason": "Early observed Pool supports a bounded ground-counter investment",
+          "evidence": [
+            "Spawning Pool observed by 90 seconds"
+          ],
+          "uncertainty": 0.65,
+          "valid_until": 225.0
+        },
+        {
+          "time_seconds": 229.286,
+          "playbook": "baseline",
+          "reason": "Early observed Pool supports a bounded ground-counter investment",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 250.714,
+          "playbook": "zerg_early_robotics",
+          "reason": "Fresh Roach/Ravager force supports a Robotics ground response",
+          "evidence": [
+            "Fresh observed Roach/Ravager supply >= 4"
+          ],
+          "uncertainty": 0.25,
+          "valid_until": 295.7142857142857
+        },
+        {
+          "time_seconds": 343.929,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        }
+      ]
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-022.json",
+      "trial_id": 22,
+      "race": "Zerg",
+      "build": "Power",
+      "seed": 20261025,
+      "result": "Result.Defeat",
+      "sampled_seconds": 1225.7,
+      "first_selection_seconds": {
+        "baseline": 0.0,
+        "zerg_early_robotics": 300.0,
+        "zerg_counter_completion": 491.786
+      },
+      "selected_seconds": {
+        "baseline": 493.929,
+        "zerg_early_robotics": 60.0,
+        "zerg_counter_completion": 671.786
+      },
+      "time_weighted_selection_uncertainty": 0.6344405594405621,
+      "transitions": [
+        {
+          "time_seconds": 0.0,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 300.0,
+          "playbook": "zerg_early_robotics",
+          "reason": "Fresh Roach/Ravager force supports a Robotics ground response",
+          "evidence": [
+            "Fresh observed Roach/Ravager supply >= 4"
+          ],
+          "uncertainty": 0.25,
+          "valid_until": 345.0
+        },
+        {
+          "time_seconds": 360.0,
+          "playbook": "baseline",
+          "reason": "Fresh Roach/Ravager force supports a Robotics ground response",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 491.786,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 535.7142857142858
+        },
+        {
+          "time_seconds": 589.286,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 592.5,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 637.5
+        },
+        {
+          "time_seconds": 733.929,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 738.214,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 783.2142857142858
+        },
+        {
+          "time_seconds": 860.357,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 865.714,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 910.7142857142858
+        },
+        {
+          "time_seconds": 1176.429,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        }
+      ]
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-023.json",
+      "trial_id": 23,
+      "race": "Zerg",
+      "build": "Power",
+      "seed": 20261025,
+      "result": "Result.Defeat",
+      "sampled_seconds": 1225.7,
+      "first_selection_seconds": {
+        "baseline": 0.0,
+        "zerg_early_robotics": 300.0,
+        "zerg_counter_completion": 491.786
+      },
+      "selected_seconds": {
+        "baseline": 493.929,
+        "zerg_early_robotics": 60.0,
+        "zerg_counter_completion": 671.786
+      },
+      "time_weighted_selection_uncertainty": 0.6344405594405621,
+      "transitions": [
+        {
+          "time_seconds": 0.0,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 300.0,
+          "playbook": "zerg_early_robotics",
+          "reason": "Fresh Roach/Ravager force supports a Robotics ground response",
+          "evidence": [
+            "Fresh observed Roach/Ravager supply >= 4"
+          ],
+          "uncertainty": 0.25,
+          "valid_until": 345.0
+        },
+        {
+          "time_seconds": 360.0,
+          "playbook": "baseline",
+          "reason": "Fresh Roach/Ravager force supports a Robotics ground response",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 491.786,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 535.7142857142858
+        },
+        {
+          "time_seconds": 589.286,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 592.5,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 637.5
+        },
+        {
+          "time_seconds": 733.929,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 738.214,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 783.2142857142858
+        },
+        {
+          "time_seconds": 860.357,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 865.714,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 910.7142857142858
+        },
+        {
+          "time_seconds": 1176.429,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        }
+      ]
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-024.json",
+      "trial_id": 24,
+      "race": "Zerg",
+      "build": "Power",
+      "seed": 20261025,
+      "result": "Result.Defeat",
+      "sampled_seconds": 1225.7,
+      "first_selection_seconds": {
+        "baseline": 0.0,
+        "zerg_early_robotics": 300.0,
+        "zerg_counter_completion": 491.786
+      },
+      "selected_seconds": {
+        "baseline": 493.929,
+        "zerg_early_robotics": 60.0,
+        "zerg_counter_completion": 671.786
+      },
+      "time_weighted_selection_uncertainty": 0.6344405594405621,
+      "transitions": [
+        {
+          "time_seconds": 0.0,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 300.0,
+          "playbook": "zerg_early_robotics",
+          "reason": "Fresh Roach/Ravager force supports a Robotics ground response",
+          "evidence": [
+            "Fresh observed Roach/Ravager supply >= 4"
+          ],
+          "uncertainty": 0.25,
+          "valid_until": 345.0
+        },
+        {
+          "time_seconds": 360.0,
+          "playbook": "baseline",
+          "reason": "Fresh Roach/Ravager force supports a Robotics ground response",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 491.786,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 535.7142857142858
+        },
+        {
+          "time_seconds": 589.286,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 592.5,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 637.5
+        },
+        {
+          "time_seconds": 733.929,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 738.214,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 783.2142857142858
+        },
+        {
+          "time_seconds": 860.357,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 865.714,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 910.7142857142858
+        },
+        {
+          "time_seconds": 1176.429,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        }
+      ]
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-025.json",
+      "trial_id": 25,
+      "race": "Zerg",
+      "build": "Macro",
+      "seed": 20261025,
+      "result": "Result.Victory",
+      "sampled_seconds": 979.3,
+      "first_selection_seconds": {
+        "baseline": 0.0,
+        "zerg_early_robotics": 298.929,
+        "zerg_counter_completion": 492.857
+      },
+      "selected_seconds": {
+        "baseline": 485.357,
+        "zerg_early_robotics": 61.071,
+        "zerg_counter_completion": 432.857
+      },
+      "time_weighted_selection_uncertainty": 0.6880196936542736,
+      "transitions": [
+        {
+          "time_seconds": 0.0,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 298.929,
+          "playbook": "zerg_early_robotics",
+          "reason": "Fresh Roach/Ravager force supports a Robotics ground response",
+          "evidence": [
+            "Fresh observed Roach/Ravager supply >= 4"
+          ],
+          "uncertainty": 0.25,
+          "valid_until": 343.92857142857144
+        },
+        {
+          "time_seconds": 360.0,
+          "playbook": "baseline",
+          "reason": "Fresh Roach/Ravager force supports a Robotics ground response",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 492.857,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 537.8571428571429
+        },
+        {
+          "time_seconds": 501.429,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 529.286,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 574.2857142857143
+        },
+        {
+          "time_seconds": 731.786,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 748.929,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 793.9285714285714
+        },
+        {
+          "time_seconds": 798.214,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 806.786,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 851.7857142857143
+        }
+      ]
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-026.json",
+      "trial_id": 26,
+      "race": "Zerg",
+      "build": "Macro",
+      "seed": 20261025,
+      "result": "Result.Victory",
+      "sampled_seconds": 979.3,
+      "first_selection_seconds": {
+        "baseline": 0.0,
+        "zerg_early_robotics": 298.929,
+        "zerg_counter_completion": 492.857
+      },
+      "selected_seconds": {
+        "baseline": 485.357,
+        "zerg_early_robotics": 61.071,
+        "zerg_counter_completion": 432.857
+      },
+      "time_weighted_selection_uncertainty": 0.6880196936542736,
+      "transitions": [
+        {
+          "time_seconds": 0.0,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 298.929,
+          "playbook": "zerg_early_robotics",
+          "reason": "Fresh Roach/Ravager force supports a Robotics ground response",
+          "evidence": [
+            "Fresh observed Roach/Ravager supply >= 4"
+          ],
+          "uncertainty": 0.25,
+          "valid_until": 343.92857142857144
+        },
+        {
+          "time_seconds": 360.0,
+          "playbook": "baseline",
+          "reason": "Fresh Roach/Ravager force supports a Robotics ground response",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 492.857,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 537.8571428571429
+        },
+        {
+          "time_seconds": 501.429,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 529.286,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 574.2857142857143
+        },
+        {
+          "time_seconds": 731.786,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 748.929,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 793.9285714285714
+        },
+        {
+          "time_seconds": 798.214,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 806.786,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 851.7857142857143
+        }
+      ]
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-027.json",
+      "trial_id": 27,
+      "race": "Zerg",
+      "build": "Macro",
+      "seed": 20261025,
+      "result": "Result.Victory",
+      "sampled_seconds": 979.3,
+      "first_selection_seconds": {
+        "baseline": 0.0,
+        "zerg_early_robotics": 298.929,
+        "zerg_counter_completion": 492.857
+      },
+      "selected_seconds": {
+        "baseline": 485.357,
+        "zerg_early_robotics": 61.071,
+        "zerg_counter_completion": 432.857
+      },
+      "time_weighted_selection_uncertainty": 0.6880196936542736,
+      "transitions": [
+        {
+          "time_seconds": 0.0,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 298.929,
+          "playbook": "zerg_early_robotics",
+          "reason": "Fresh Roach/Ravager force supports a Robotics ground response",
+          "evidence": [
+            "Fresh observed Roach/Ravager supply >= 4"
+          ],
+          "uncertainty": 0.25,
+          "valid_until": 343.92857142857144
+        },
+        {
+          "time_seconds": 360.0,
+          "playbook": "baseline",
+          "reason": "Fresh Roach/Ravager force supports a Robotics ground response",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 492.857,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 537.8571428571429
+        },
+        {
+          "time_seconds": 501.429,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 529.286,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 574.2857142857143
+        },
+        {
+          "time_seconds": 731.786,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 748.929,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 793.9285714285714
+        },
+        {
+          "time_seconds": 798.214,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 806.786,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 851.7857142857143
+        }
+      ]
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-028.json",
+      "trial_id": 28,
+      "race": "Zerg",
+      "build": "Air",
+      "seed": 20261025,
+      "result": "Result.Victory",
+      "sampled_seconds": 627.9,
+      "first_selection_seconds": {
+        "baseline": 0.0,
+        "zerg_counter_completion": 581.786
+      },
+      "selected_seconds": {
+        "baseline": 581.786,
+        "zerg_counter_completion": 46.071
+      },
+      "time_weighted_selection_uncertainty": 0.9559726962457349,
+      "transitions": [
+        {
+          "time_seconds": 0.0,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 581.786,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 624.6428571428572
+        }
+      ]
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-029.json",
+      "trial_id": 29,
+      "race": "Zerg",
+      "build": "Air",
+      "seed": 20261025,
+      "result": "Result.Victory",
+      "sampled_seconds": 627.9,
+      "first_selection_seconds": {
+        "baseline": 0.0,
+        "zerg_counter_completion": 581.786
+      },
+      "selected_seconds": {
+        "baseline": 581.786,
+        "zerg_counter_completion": 46.071
+      },
+      "time_weighted_selection_uncertainty": 0.9559726962457349,
+      "transitions": [
+        {
+          "time_seconds": 0.0,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 581.786,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 624.6428571428572
+        }
+      ]
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-030.json",
+      "trial_id": 30,
+      "race": "Zerg",
+      "build": "Air",
+      "seed": 20261025,
+      "result": "Result.Victory",
+      "sampled_seconds": 627.9,
+      "first_selection_seconds": {
+        "baseline": 0.0,
+        "zerg_counter_completion": 581.786
+      },
+      "selected_seconds": {
+        "baseline": 581.786,
+        "zerg_counter_completion": 46.071
+      },
+      "time_weighted_selection_uncertainty": 0.9559726962457349,
+      "transitions": [
+        {
+          "time_seconds": 0.0,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 581.786,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 624.6428571428572
+        }
+      ]
+    },
+    {
+      "matrix": "portfolio-final-known-failures",
+      "recording": "runtime-20261031-164446-850599-f72bf454e4c6417d8c9195073b5912c0-001.json",
+      "trial_id": 1,
+      "race": "Zerg",
+      "build": "Power",
+      "seed": 2026103102,
+      "result": "Result.Victory",
+      "sampled_seconds": 1954.3,
+      "first_selection_seconds": {
+        "baseline": 0.0,
+        "zerg_early_robotics": 295.714,
+        "zerg_counter_completion": 529.286
+      },
+      "selected_seconds": {
+        "baseline": 660.0,
+        "zerg_early_robotics": 64.286,
+        "zerg_counter_completion": 1230.0
+      },
+      "time_weighted_selection_uncertainty": 0.5976973684210485,
+      "transitions": [
+        {
+          "time_seconds": 0.0,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 295.714,
+          "playbook": "zerg_early_robotics",
+          "reason": "Fresh Roach/Ravager force supports a Robotics ground response",
+          "evidence": [
+            "Fresh observed Roach/Ravager supply >= 4"
+          ],
+          "uncertainty": 0.25,
+          "valid_until": 340.7142857142857
+        },
+        {
+          "time_seconds": 360.0,
+          "playbook": "baseline",
+          "reason": "Fresh Roach/Ravager force supports a Robotics ground response",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 529.286,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 574.2857142857143
+        },
+        {
+          "time_seconds": 661.071,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 665.357,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 710.3571428571429
+        },
+        {
+          "time_seconds": 724.286,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 728.571,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 773.5714285714287
+        },
+        {
+          "time_seconds": 793.929,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 810.0,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 855.0
+        },
+        {
+          "time_seconds": 870.0,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 875.357,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 920.3571428571429
+        },
+        {
+          "time_seconds": 947.143,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 948.214,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 993.2142857142858
+        },
+        {
+          "time_seconds": 1011.429,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 1017.857,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 1062.857142857143
+        },
+        {
+          "time_seconds": 1266.429,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 1280.357,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 1325.357142857143
+        },
+        {
+          "time_seconds": 1517.143,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 1541.786,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 1586.7857142857144
+        },
+        {
+          "time_seconds": 1543.929,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 1554.643,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 1599.6428571428573
+        },
+        {
+          "time_seconds": 1661.786,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 1667.143,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 1712.1428571428573
+        },
+        {
+          "time_seconds": 1712.143,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 1745.357,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 1790.357142857143
+        },
+        {
+          "time_seconds": 1757.143,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 1759.286,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 1804.2857142857144
+        },
+        {
+          "time_seconds": 1766.786,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 1787.143,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 1832.1428571428573
+        },
+        {
+          "time_seconds": 1788.214,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 1795.714,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 1840.7142857142858
+        },
+        {
+          "time_seconds": 1914.643,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        }
+      ]
+    },
+    {
+      "matrix": "portfolio-final-known-failures",
+      "recording": "runtime-20261031-164446-850599-f72bf454e4c6417d8c9195073b5912c0-002.json",
+      "trial_id": 2,
+      "race": "Zerg",
+      "build": "Power",
+      "seed": 2026103102,
+      "result": "Result.Victory",
+      "sampled_seconds": 1954.3,
+      "first_selection_seconds": {
+        "baseline": 0.0,
+        "zerg_early_robotics": 295.714,
+        "zerg_counter_completion": 529.286
+      },
+      "selected_seconds": {
+        "baseline": 660.0,
+        "zerg_early_robotics": 64.286,
+        "zerg_counter_completion": 1230.0
+      },
+      "time_weighted_selection_uncertainty": 0.5976973684210485,
+      "transitions": [
+        {
+          "time_seconds": 0.0,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 295.714,
+          "playbook": "zerg_early_robotics",
+          "reason": "Fresh Roach/Ravager force supports a Robotics ground response",
+          "evidence": [
+            "Fresh observed Roach/Ravager supply >= 4"
+          ],
+          "uncertainty": 0.25,
+          "valid_until": 340.7142857142857
+        },
+        {
+          "time_seconds": 360.0,
+          "playbook": "baseline",
+          "reason": "Fresh Roach/Ravager force supports a Robotics ground response",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 529.286,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 574.2857142857143
+        },
+        {
+          "time_seconds": 661.071,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 665.357,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 710.3571428571429
+        },
+        {
+          "time_seconds": 724.286,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 728.571,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 773.5714285714287
+        },
+        {
+          "time_seconds": 793.929,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 810.0,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 855.0
+        },
+        {
+          "time_seconds": 870.0,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 875.357,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 920.3571428571429
+        },
+        {
+          "time_seconds": 947.143,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 948.214,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 993.2142857142858
+        },
+        {
+          "time_seconds": 1011.429,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 1017.857,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 1062.857142857143
+        },
+        {
+          "time_seconds": 1266.429,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 1280.357,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 1325.357142857143
+        },
+        {
+          "time_seconds": 1517.143,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 1541.786,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 1586.7857142857144
+        },
+        {
+          "time_seconds": 1543.929,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 1554.643,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 1599.6428571428573
+        },
+        {
+          "time_seconds": 1661.786,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 1667.143,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 1712.1428571428573
+        },
+        {
+          "time_seconds": 1712.143,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 1745.357,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 1790.357142857143
+        },
+        {
+          "time_seconds": 1757.143,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 1759.286,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 1804.2857142857144
+        },
+        {
+          "time_seconds": 1766.786,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 1787.143,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 1832.1428571428573
+        },
+        {
+          "time_seconds": 1788.214,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 1795.714,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 1840.7142857142858
+        },
+        {
+          "time_seconds": 1914.643,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        }
+      ]
+    },
+    {
+      "matrix": "portfolio-final-known-failures",
+      "recording": "runtime-20261031-164446-850599-f72bf454e4c6417d8c9195073b5912c0-003.json",
+      "trial_id": 3,
+      "race": "Zerg",
+      "build": "Power",
+      "seed": 2026103102,
+      "result": "Result.Victory",
+      "sampled_seconds": 1954.3,
+      "first_selection_seconds": {
+        "baseline": 0.0,
+        "zerg_early_robotics": 295.714,
+        "zerg_counter_completion": 529.286
+      },
+      "selected_seconds": {
+        "baseline": 660.0,
+        "zerg_early_robotics": 64.286,
+        "zerg_counter_completion": 1230.0
+      },
+      "time_weighted_selection_uncertainty": 0.5976973684210485,
+      "transitions": [
+        {
+          "time_seconds": 0.0,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 295.714,
+          "playbook": "zerg_early_robotics",
+          "reason": "Fresh Roach/Ravager force supports a Robotics ground response",
+          "evidence": [
+            "Fresh observed Roach/Ravager supply >= 4"
+          ],
+          "uncertainty": 0.25,
+          "valid_until": 340.7142857142857
+        },
+        {
+          "time_seconds": 360.0,
+          "playbook": "baseline",
+          "reason": "Fresh Roach/Ravager force supports a Robotics ground response",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 529.286,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 574.2857142857143
+        },
+        {
+          "time_seconds": 661.071,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 665.357,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 710.3571428571429
+        },
+        {
+          "time_seconds": 724.286,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 728.571,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 773.5714285714287
+        },
+        {
+          "time_seconds": 793.929,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 810.0,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 855.0
+        },
+        {
+          "time_seconds": 870.0,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 875.357,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 920.3571428571429
+        },
+        {
+          "time_seconds": 947.143,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 948.214,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 993.2142857142858
+        },
+        {
+          "time_seconds": 1011.429,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 1017.857,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 1062.857142857143
+        },
+        {
+          "time_seconds": 1266.429,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 1280.357,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 1325.357142857143
+        },
+        {
+          "time_seconds": 1517.143,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 1541.786,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 1586.7857142857144
+        },
+        {
+          "time_seconds": 1543.929,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 1554.643,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 1599.6428571428573
+        },
+        {
+          "time_seconds": 1661.786,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 1667.143,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 1712.1428571428573
+        },
+        {
+          "time_seconds": 1712.143,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 1745.357,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 1790.357142857143
+        },
+        {
+          "time_seconds": 1757.143,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 1759.286,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 1804.2857142857144
+        },
+        {
+          "time_seconds": 1766.786,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 1787.143,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 1832.1428571428573
+        },
+        {
+          "time_seconds": 1788.214,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 1795.714,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 1840.7142857142858
+        },
+        {
+          "time_seconds": 1914.643,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        }
+      ]
+    },
+    {
+      "matrix": "portfolio-final-known-failures",
+      "recording": "runtime-20261031-164446-850599-f72bf454e4c6417d8c9195073b5912c0-004.json",
+      "trial_id": 4,
+      "race": "Zerg",
+      "build": "Macro",
+      "seed": 2026103102,
+      "result": "Result.Victory",
+      "sampled_seconds": 911.8,
+      "first_selection_seconds": {
+        "baseline": 0.0,
+        "zerg_early_robotics": 307.5,
+        "zerg_counter_completion": 664.286
+      },
+      "selected_seconds": {
+        "baseline": 646.071,
+        "zerg_early_robotics": 52.5,
+        "zerg_counter_completion": 213.214
+      },
+      "time_weighted_selection_uncertainty": 0.8165099882491222,
+      "transitions": [
+        {
+          "time_seconds": 0.0,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 307.5,
+          "playbook": "zerg_early_robotics",
+          "reason": "Fresh Roach/Ravager force supports a Robotics ground response",
+          "evidence": [
+            "Fresh observed Roach/Ravager supply >= 4"
+          ],
+          "uncertainty": 0.25,
+          "valid_until": 352.5
+        },
+        {
+          "time_seconds": 360.0,
+          "playbook": "baseline",
+          "reason": "Fresh Roach/Ravager force supports a Robotics ground response",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 664.286,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 709.2857142857143
+        },
+        {
+          "time_seconds": 877.5,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        }
+      ]
+    },
+    {
+      "matrix": "portfolio-final-known-failures",
+      "recording": "runtime-20261031-164446-850599-f72bf454e4c6417d8c9195073b5912c0-005.json",
+      "trial_id": 5,
+      "race": "Zerg",
+      "build": "Macro",
+      "seed": 2026103102,
+      "result": "Result.Victory",
+      "sampled_seconds": 911.8,
+      "first_selection_seconds": {
+        "baseline": 0.0,
+        "zerg_early_robotics": 307.5,
+        "zerg_counter_completion": 664.286
+      },
+      "selected_seconds": {
+        "baseline": 646.071,
+        "zerg_early_robotics": 52.5,
+        "zerg_counter_completion": 213.214
+      },
+      "time_weighted_selection_uncertainty": 0.8165099882491222,
+      "transitions": [
+        {
+          "time_seconds": 0.0,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 307.5,
+          "playbook": "zerg_early_robotics",
+          "reason": "Fresh Roach/Ravager force supports a Robotics ground response",
+          "evidence": [
+            "Fresh observed Roach/Ravager supply >= 4"
+          ],
+          "uncertainty": 0.25,
+          "valid_until": 352.5
+        },
+        {
+          "time_seconds": 360.0,
+          "playbook": "baseline",
+          "reason": "Fresh Roach/Ravager force supports a Robotics ground response",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 664.286,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 709.2857142857143
+        },
+        {
+          "time_seconds": 877.5,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        }
+      ]
+    },
+    {
+      "matrix": "portfolio-final-known-failures",
+      "recording": "runtime-20261031-164446-850599-f72bf454e4c6417d8c9195073b5912c0-006.json",
+      "trial_id": 6,
+      "race": "Zerg",
+      "build": "Macro",
+      "seed": 2026103102,
+      "result": "Result.Victory",
+      "sampled_seconds": 911.8,
+      "first_selection_seconds": {
+        "baseline": 0.0,
+        "zerg_early_robotics": 307.5,
+        "zerg_counter_completion": 664.286
+      },
+      "selected_seconds": {
+        "baseline": 646.071,
+        "zerg_early_robotics": 52.5,
+        "zerg_counter_completion": 213.214
+      },
+      "time_weighted_selection_uncertainty": 0.8165099882491222,
+      "transitions": [
+        {
+          "time_seconds": 0.0,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 307.5,
+          "playbook": "zerg_early_robotics",
+          "reason": "Fresh Roach/Ravager force supports a Robotics ground response",
+          "evidence": [
+            "Fresh observed Roach/Ravager supply >= 4"
+          ],
+          "uncertainty": 0.25,
+          "valid_until": 352.5
+        },
+        {
+          "time_seconds": 360.0,
+          "playbook": "baseline",
+          "reason": "Fresh Roach/Ravager force supports a Robotics ground response",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        },
+        {
+          "time_seconds": 664.286,
+          "playbook": "zerg_counter_completion",
+          "reason": "Fresh light ground force and ready Bay support completing requested splash counter",
+          "evidence": [
+            "Observed light ground contacts >= 8 within 45 seconds",
+            "Own Robotics Bay ready"
+          ],
+          "uncertainty": 0.4,
+          "valid_until": 709.2857142857143
+        },
+        {
+          "time_seconds": 877.5,
+          "playbook": "baseline",
+          "reason": "No sufficiently fresh positive opening evidence; retain R2 baseline",
+          "evidence": [],
+          "uncertainty": 1,
+          "valid_until": 0
+        }
+      ]
+    }
+  ]
+}

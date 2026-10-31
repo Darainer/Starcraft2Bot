@@ -1,0 +1,507 @@
+--- a/source/economy_assistant.py
++++ b/source/economy_assistant.py
+@@ -6,0 +7 @@
++from sc2.data import Race
+@@ -16,0 +18 @@
++from source.strategy_profiles import PROFILES
+@@ -124,0 +127,7 @@
++        investment = getattr(self, "_first_tech_reservation", None)
++        if (
++            investment is not None
++            and item != investment[0]
++            and self.vespene - cost.vespene < self.settings.reserve_gas + investment[1]
++        ):
++            return False
+@@ -208 +217 @@
+-    async def safe_expansion_location(self, reference):
++    async def safe_expansion_location(self, reference, require_minerals=False):
+@@ -213,0 +223,4 @@
++            if require_minerals and not self.mineral_field.closer_than(10, location).filter(
++                lambda patch: patch.mineral_contents > 0
++            ):
++                continue
+@@ -324,0 +338 @@
++        self._first_tech_reservation = None
+@@ -325,0 +340,28 @@
++        contacts = visible_threats(self)
++        early_contact = self.time < 180 and any(
++            any(enemy.distance_to(base) < 32 for base in bases) for enemy in contacts
++        )
++        completed_supply = sum(
++            self.calculate_supply_cost(unit.type_id)
++            for unit in self.units.of_type(set(ARMY_TARGETS)).ready
++            if unit.can_attack
++        )
++        requested_supply = sum(
++            production_target(self, name) * self.calculate_supply_cost(kind)
++            for kind, name in ARMY_TARGETS.items()
++            if kind in {U.ZEALOT, U.STALKER}
++        )
++        first_defender = (
++            self.enemy_race == Race.Zerg
++            and s.attack
++            and s.production
++            and self.time < 180
++            and requested_supply > 0
++            and (completed_supply < min(6, requested_supply) or early_contact)
++        )
++        self.opening_phase = (
++            "defend" if first_defender and early_contact else "first_force" if first_defender else "complete"
++        )
++        self._opening_reserve = 0
++        if not first_defender:
++            self.opening_defense_anchor = None
+@@ -338,0 +381,10 @@
++        core_priority = (
++            first_defender
++            and not early_contact
++            and s.construction
++            and self.units(U.ZEALOT).amount + self.already_pending(U.ZEALOT) >= 2
++            and not self.structures(U.CYBERNETICSCORE)
++            and not self.already_pending(U.CYBERNETICSCORE)
++        )
++        if first_defender and not core_priority and self.produce_opening_defender():
++            return
+@@ -339,0 +392,2 @@
++            if first_defender and s.construction and await self.opening_battery(home, contacts):
++                return
+@@ -346 +400 @@
+-            if self.economic_emergency and s.production and self.produce(0):
++            if not first_defender and self.economic_emergency and s.production and self.produce(0):
+@@ -353,0 +408 @@
++                and not first_defender
+@@ -364,0 +420,25 @@
++        # Saturation falls as mineral patches disappear. Saving for a replacement
++        # mineral line must not require training up to the normal expansion gate:
++        # that same depleted saturation also prevents producing more workers.
++        depleted_income = (
++            self.time >= 360
++            and any(base.ideal_harvesters < 8 for base in safe_bases)
++            and sum(base.ideal_harvesters for base in safe_bases) < max(8, self.supply_workers * 0.6)
++        )
++        if (
++            depleted_income
++            and s.expansion
++            and self.townhalls.amount < base_target
++            and not self.already_pending(U.NEXUS)
++            and self.supply_workers >= 14
++            and not self.economic_emergency
++            and (self.strategic_plan is None or self.strategic_plan.expand)
++            and (not s.attack or self.supply_army >= 12)
++        ):
++            location = await self.safe_expansion_location(home.position, require_minerals=True)
++            if location and self.builder(location):
++                self._macro_reserve = 400
++                if not self.affordable(U.NEXUS):
++                    return  # Retain the remaining bank instead of spending the recovery fund.
++                if await self.build_structure(U.NEXUS, location, max_distance=2):
++                    return
+@@ -380,0 +461,15 @@
++        if first_defender and s.construction:
++            gateways = self.structures(U.GATEWAY) | self.structures(U.WARPGATE)
++            count = len(gateways) + sum(
++                kind == U.GATEWAY and expiry > self.time and not gateways.closer_than(2, point)
++                for kind, point, expiry in self.construction_reservations.values()
++            )
++            if count == 1 and self.structures(U.PYLON).ready:
++                self._macro_reserve = 150
++                if self.affordable(U.GATEWAY):
++                    pylons = self.structures(U.PYLON).ready.filter(lambda p: self.safe_at(p.position))
++                    if pylons:
++                        await self.build_structure(
++                            U.GATEWAY, pylons.closest_to(home).position, allow_pending=True
++                        )
++                return  # Complete parallel capacity before Core/worker/natural investment.
+@@ -395 +490,10 @@
+-        if self.economic_emergency:
++        # A legal first tech counter is an explicit investment, not an
++        # affordability fallback. Urgent supply and depleted-income recovery
++        # above retain priority; powerless/human-owned/blocked tech never locks
++        # this budget. Very low worker counts retain their recovery economy.
++        investment = self.first_tech_combat()
++        if investment is not None and not (early_contact and completed_supply < 6):
++            self._macro_reserve = self.calculate_cost(investment[1]).minerals
++            self.produce(0)
++            return
++        if self.economic_emergency and not first_defender:
+@@ -409 +513 @@
+-                    and self.affordable(U.PROBE)
++                    and self.affordable(U.PROBE, self._opening_reserve)
+@@ -413,0 +518 @@
++        active_gases = self.gas_buildings.filter(lambda gas: not gas.is_ready or gas.vespene_contents > 0)
+@@ -417,2 +522,2 @@
+-            and len(self.gas_buildings) < gas_limit
+-            and (not self.gas_buildings or self.vespene < max(300, self.minerals))
++            and len(active_gases) < gas_limit
++            and (not active_gases or self.vespene < max(300, self.minerals))
+@@ -431,0 +537,14 @@
++        if first_defender:
++            if s.construction and await self.opening_battery(home, contacts):
++                return
++            if (
++                early_contact
++                and s.construction
++                and len(self.structures(U.GATEWAY) | self.structures(U.WARPGATE)) < 2
++                and not self.already_pending(U.GATEWAY)
++                and self.affordable(U.GATEWAY, self._opening_reserve)
++            ):
++                pylons = self.structures(U.PYLON).ready.filter(lambda p: self.safe_at(p.position))
++                if pylons:
++                    await self.build_structure(U.GATEWAY, pylons.closest_to(home).position)
++            return  # Retain the defense fund; do not buy technology or a natural.
+@@ -444,0 +564 @@
++            and not first_defender
+@@ -473,0 +594,65 @@
++
++    def produce_opening_defender(self):
++        """A legal first force; avoid spending its Stalker gas on support units."""
++        gateways = self.structures(U.GATEWAY).ready.idle.filter(
++            lambda gateway: (
++                gateway.is_powered
++                and self.available(gateway)
++                and self._blocked_producers.get(gateway.tag, 0) <= self.time
++            )
++        )
++        if not gateways:
++            return False
++        kinds = [U.STALKER, U.ZEALOT] if self.structures(U.CYBERNETICSCORE).ready else [U.ZEALOT]
++        for kind in kinds:
++            target = production_target(self, ARMY_TARGETS[kind])
++            if target <= self.units(kind).amount + self.already_pending(kind):
++                continue
++            if self.tech_requirement_progress(kind) < 1:
++                continue
++            self._opening_reserve = self.calculate_cost(kind).minerals
++            if self.affordable(kind) and self.issue(gateways.first.train(kind), paid=True, supply=True):
++                self._last_production = self.time
++                return True
++            return False  # Preserve this legal defender's budget instead of buying a Sentry.
++        return False
++
++    async def opening_battery(self, home, contacts):
++        """Protected powered placements; the front Pylon need not hug the Nexus."""
++        batteries = self.structures(U.SHIELDBATTERY).closer_than(14, home)
++        ready = batteries.ready.filter(lambda battery: battery.is_powered)
++        if ready:
++            battery = ready.closest_to(home)
++            if battery.distance_to(home) <= 6 + home.radius:
++                anchor = battery.position.towards(home.position, min(3, battery.distance_to(home)))
++                if self.in_pathing_grid(anchor) and self.is_visible(anchor):
++                    self.opening_defense_anchor = tuple(anchor)
++        if batteries or self.already_pending(U.SHIELDBATTERY):
++            return False
++        direction = contacts.closest_to(home).position if contacts else self.game_info.map_center
++        hold = home.position.towards(
++            self.game_info.map_center, max(8, PROFILES[self.settings.profile]["rally_distance"])
++        )
++        forward = self.structures(U.PYLON).ready.closest_to(hold) if self.structures(U.PYLON).ready else None
++        anchors = [home.position.towards(forward.position, 3.5)] if forward else []
++        anchors += [home.position.offset(offset) for offset in ((6, 0), (-6, 0), (0, 6), (0, -6))]
++        anchors.sort(key=lambda point: max(point.distance_to(home), point.distance_to(hold)))
++        if self.structures(U.CYBERNETICSCORE).ready and self.affordable(
++            U.SHIELDBATTERY, self._opening_reserve
++        ):
++            for anchor in anchors:
++                point = await find_spaced_placement(self, U.SHIELDBATTERY, anchor, 4)
++                if (
++                    point is not None
++                    and self.state.psionic_matrix.covers(point)
++                    and point.distance_to(home) <= 6 + home.radius
++                    and self.safe_at(point)
++                    and await self.build_structure(U.SHIELDBATTERY, point, max_distance=0)
++                ):
++                    return True
++        # Protect a location before contact makes the exposed front power unusable.
++        if self.settings.supply and not self.already_pending(U.PYLON):
++            rear = home.position.towards(direction, -8)
++            if not self.state.psionic_matrix.covers(rear) and self.affordable(U.PYLON, self._opening_reserve):
++                return await self.build_structure(U.PYLON, rear, max_distance=4)
++        return False
+@@ -561,0 +747,63 @@
++    def first_tech_combat(self):
++        """Choose an attainable first combat milestone; queued orders are not effects."""
++        self._first_tech_reservation = None
++        if not (self.settings.enabled and self.settings.attack and self.settings.production):
++            return None
++        seen = getattr(self, "_first_tech_combat_seen", set())
++        for kind in (U.STALKER, U.IMMORTAL, U.OBSERVER):
++            if self.units(kind):
++                seen.add(kind)
++        self._first_tech_combat_seen = seen
++        if self.supply_workers < 12:
++            return None
++        if (
++            self.economic_emergency
++            and sum(
++                self.calculate_supply_cost(u.type_id)
++                for u in self.units.of_type(set(ARMY_TARGETS)).ready
++                if u.can_attack
++            )
++            < 6
++        ):
++            return None
++        choices = [(U.GATEWAY, U.STALKER)]
++        if self.settings.scouting and production_target(self, "observers") > 0 and U.OBSERVER not in seen:
++            choices.append((U.ROBOTICSFACILITY, U.OBSERVER))
++        choices.append((U.ROBOTICSFACILITY, U.IMMORTAL))
++        for producer, kind in choices:
++            if (
++                kind in seen
++                or self.already_pending(kind)
++                or production_target(self, PRODUCTION_TARGETS[kind]) <= 0
++            ):
++                continue
++            prerequisite = U.CYBERNETICSCORE if kind == U.STALKER else U.ROBOTICSFACILITY
++            if not self.structures(prerequisite).ready or self.tech_requirement_progress(kind) < 1:
++                continue
++            buildings = self.structures(producer).ready.idle.filter(
++                lambda b: (
++                    b.is_powered and self.available(b) and self._blocked_producers.get(b.tag, 0) <= self.time
++                )
++            )
++            if not buildings or self.supply_left < self.calculate_supply_cost(kind):
++                continue
++            cost = self.calculate_cost(kind)
++            # Do not mortgage minerals/gas that cannot currently be earned.
++            # Allocation and replacement gas must be allowed to establish income.
++            mineral_need = cost.minerals + self.settings.reserve_minerals
++            gas_need = cost.vespene + self.settings.reserve_gas
++            if self.minerals < mineral_need and not any(
++                b.ideal_harvesters > 0 and b.assigned_harvesters > 0 for b in self.townhalls.ready
++            ):
++                continue
++            if self.vespene < gas_need and not (
++                self.settings.gas
++                and any(
++                    g.vespene_contents > 0 and g.assigned_harvesters > 0 for g in self.gas_buildings.ready
++                )
++            ):
++                continue
++            self._first_tech_reservation = (kind, cost.vespene)
++            return buildings.first, kind
++        return None
++
+@@ -562,0 +811,8 @@
++        investment = self.first_tech_combat()
++        if investment is not None:
++            building, kind = investment
++            self._macro_reserve = max(getattr(self, "_macro_reserve", 0), self.calculate_cost(kind).minerals)
++            if self.affordable(kind, reserve) and self.issue(building.train(kind), paid=True, supply=True):
++                self._last_production = self.time
++                return True
++            return False
+--- /dev/null
++++ b/tests/test_first_tech_investment.py
+@@ -0,0 +1,212 @@
++import asyncio
++
++import pytest
++from sc2.data import Race
++from sc2.ids.ability_id import AbilityId as A
++from sc2.ids.unit_typeid import UnitTypeId as U
++
++
++def economy(bot, make_unit, populate, *, robo=False):
++    bot.control.command("!assist economy off")
++    bot.settings.attack = bot.settings.production = True
++    bot.enemy_race = Race.Terran
++    bot.supply_workers = 20
++    bot.supply_army = 12
++    bot.state.game_loop = 5600
++    bot.minerals, bot.vespene = 115, 54
++    units = [
++        make_unit(U.NEXUS, ideal_harvesters=16, assigned_harvesters=16),
++        make_unit(U.PROBE),
++        make_unit(U.PYLON),
++        make_unit(U.CYBERNETICSCORE),
++        make_unit(U.ROBOTICSFACILITY if robo else U.GATEWAY),
++    ]
++    if robo:
++        bot.settings.scouting = False
++        bot.game_data.units[U.IMMORTAL.value]._proto.mineral_cost = 275
++        bot.game_data.units[U.IMMORTAL.value]._proto.vespene_cost = 100
++        bot.game_data.units[U.WARPPRISM.value]._proto.mineral_cost = 250
++        bot.game_data.units[U.WARPPRISM.value]._proto.vespene_cost = 0
++    populate(*units)
++
++
++def test_captured_115_minerals_54_gas_saves_for_stalker_instead_of_cheap_fallback(bot, make_unit, populate):
++    economy(bot, make_unit, populate)
++    assert not bot.produce(0)
++    assert not bot.actions and bot.minerals == 115
++    assert bot._macro_reserve == 125
++    bot.minerals = 125
++    assert bot.produce(0)
++    assert bot.actions[0].ability == A.GATEWAYTRAIN_STALKER
++
++
++def test_first_stalker_reservation_precedes_discretionary_worker_spending(bot, make_unit, populate):
++    economy(bot, make_unit, populate)
++    bot.settings.workers = True
++    bot.townhalls.first._proto.ideal_harvesters = 24
++    asyncio.run(bot.macro())
++    assert not bot.actions and bot.minerals == 115
++
++
++def test_affordable_first_immortal_precedes_prism_and_third_nexus(bot, make_unit, populate):
++    economy(bot, make_unit, populate, robo=True)
++    populate(*bot.all_own_units, make_unit(U.NEXUS, (0, 30), ideal_harvesters=16))
++    bot.settings.expansion = True
++    bot.supply_workers = 40
++    bot.minerals, bot.vespene = 400, 200
++    expected_cost = bot.calculate_cost(U.IMMORTAL).minerals
++    asyncio.run(bot.macro())
++    assert [a.ability for a in bot.actions] == [A.ROBOTICSFACILITYTRAIN_IMMORTAL]
++    assert bot.minerals == 400 - expected_cost
++
++
++def test_one_requested_observer_can_precede_first_immortal(bot, make_unit, populate):
++    economy(bot, make_unit, populate, robo=True)
++    bot.settings.scouting = True
++    bot.minerals, bot.vespene = 400, 200
++    assert bot.produce(0)
++    assert bot.actions[0].ability == A.ROBOTICSFACILITYTRAIN_OBSERVER
++    bot.actions.clear()
++    bot._used.clear()
++    bot.already_pending.side_effect = lambda kind: int(kind == U.OBSERVER)
++    assert bot.produce(0)
++    assert bot.actions[0].ability == A.ROBOTICSFACILITYTRAIN_IMMORTAL
++
++
++@pytest.mark.parametrize(
++    "blocked",
++    ["selected", "released", "blocked", "unpowered", "busy", "tech", "target", "supply", "gas_off", "income"],
++)
++def test_unattainable_or_user_disabled_milestones_do_not_lock_budget(bot, make_unit, populate, blocked):
++    economy(bot, make_unit, populate)
++    gateway = bot.structures(U.GATEWAY).first
++    if blocked == "selected":
++        gateway._proto.is_selected = True
++    elif blocked == "released":
++        bot.control.released.add(gateway.tag)
++    elif blocked == "blocked":
++        bot._blocked_producers[gateway.tag] = bot.time + 5
++    elif blocked == "unpowered":
++        gateway._proto.is_powered = False
++    elif blocked == "busy":
++        from s2clientprotocol import raw_pb2
++
++        gateway._proto.orders.append(raw_pb2.UnitOrder(ability_id=A.GATEWAYTRAIN_ZEALOT.value))
++    elif blocked == "tech":
++        bot.tech_requirement_progress.return_value = 0
++    elif blocked == "target":
++        bot.settings.stalkers = 0
++    elif blocked == "supply":
++        bot.supply_left = 0
++    elif blocked == "gas_off":
++        bot.vespene = 0
++    else:
++        bot.townhalls.first._proto.assigned_harvesters = 0
++    assert bot.first_tech_combat() is None
++
++
++def test_reservation_does_not_train_through_user_reserve_and_releases_after_first_exists(
++    bot, make_unit, populate
++):
++    economy(bot, make_unit, populate)
++    bot.settings.reserve_minerals = 100
++    bot.minerals = 200
++    assert not bot.produce(0) and not bot.actions
++    bot.minerals = 225
++    assert bot.produce(0) and bot.minerals == 100
++    bot._used.clear()
++    populate(*bot.all_own_units, make_unit(U.STALKER))
++    assert bot.first_tech_combat() is None
++
++
++def test_urgent_supply_and_low_worker_recovery_precede_reservation(bot, make_unit, populate):
++    economy(bot, make_unit, populate)
++    bot.settings.supply = True
++    bot.supply_left = 0
++    asyncio.run(bot.macro())
++    assert bot.actions[0].ability == A.PROTOSSBUILD_PYLON
++    bot.actions.clear()
++    bot._used.clear()
++    bot.settings.supply = False
++    bot.settings.workers = True
++    bot.supply_left, bot.supply_workers, bot.minerals = 20, 8, 115
++    asyncio.run(bot.macro())
++    assert bot.actions[0].ability == A.NEXUSTRAIN_PROBE
++
++
++def test_core_precedes_more_zealots_after_two_queued_without_contact(bot, make_unit, populate):
++    economy(bot, make_unit, populate)
++    bot.enemy_race = Race.Zerg
++    bot.state.game_loop = 2240
++    bot.settings.construction = True
++    bot.minerals = 300
++    populate(
++        make_unit(U.NEXUS),
++        make_unit(U.PROBE),
++        make_unit(U.PYLON),
++        make_unit(U.GATEWAY),
++        make_unit(U.GATEWAY, (8, 8)),
++    )
++    bot.already_pending.side_effect = lambda kind: 2 if kind == U.ZEALOT else 0
++    asyncio.run(bot.macro())
++    assert bot.actions[0].ability == A.PROTOSSBUILD_CYBERNETICSCORE
++
++
++def test_early_contact_preserves_two_gateway_defender_production(bot, make_unit, populate):
++    economy(bot, make_unit, populate)
++    bot.enemy_race = Race.Zerg
++    bot.state.game_loop = 2240
++    bot.settings.construction = True
++    bot.minerals = 300
++    populate(
++        make_unit(U.NEXUS),
++        make_unit(U.PROBE),
++        make_unit(U.PYLON),
++        make_unit(U.GATEWAY),
++        make_unit(U.GATEWAY, (8, 8)),
++        make_unit(U.ZERGLING, (20, 0), alliance=4),
++    )
++    bot.already_pending.side_effect = lambda kind: 2 if kind == U.ZEALOT else 0
++    asyncio.run(bot.macro())
++    assert bot.actions[0].ability == A.GATEWAYTRAIN_ZEALOT
++
++
++def test_missing_gas_income_can_be_built_instead_of_locked_behind_counter(bot, make_unit, populate):
++    economy(bot, make_unit, populate)
++    bot.settings.gas = True
++    bot.vespene = 0
++    populate(*bot.all_own_units, make_unit(U.VESPENEGEYSER, (3, 0), alliance=3, vespene_contents=2250))
++    asyncio.run(bot.macro())
++    assert [a.ability for a in bot.actions] == [A.PROTOSSBUILD_ASSIMILATOR]
++
++
++def test_user_disabled_gas_allows_legal_mineral_defender_fallback(bot, make_unit, populate):
++    economy(bot, make_unit, populate)
++    bot.vespene = 0
++    assert not bot.settings.gas
++    assert bot.produce(0)
++    assert bot.actions[0].ability == A.GATEWAYTRAIN_ZEALOT
++
++
++def test_first_counter_reservation_does_not_restart_after_observed_unit_is_lost(bot, make_unit, populate):
++    economy(bot, make_unit, populate)
++    original = list(bot.all_own_units)
++    populate(*original, make_unit(U.STALKER))
++    assert bot.first_tech_combat() is None
++    populate(*original)
++    assert bot.first_tech_combat() is None
++    assert bot.produce(0)
++    assert bot.actions[0].ability == A.GATEWAYTRAIN_ZEALOT
++
++
++def test_first_immortal_gas_is_protected_from_other_controllers_and_released_when_queued(
++    bot, make_unit, populate
++):
++    economy(bot, make_unit, populate, robo=True)
++    bot.minerals, bot.vespene = 1000, bot.calculate_cost(U.IMMORTAL).vespene
++    assert bot.first_tech_combat()[1] == U.IMMORTAL
++    assert bot.affordable(U.IMMORTAL)
++    assert not bot.affordable(U.STALKER)  # A Warpgate must not consume the saved counter gas.
++    bot.already_pending.side_effect = lambda kind: int(kind == U.IMMORTAL)
++    assert bot.first_tech_combat() is None
++    assert bot.affordable(U.STALKER)

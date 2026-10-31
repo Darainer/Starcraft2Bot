@@ -8,9 +8,19 @@ from dataclasses import asdict, dataclass, fields, replace
 from pathlib import Path
 from typing import Protocol
 
+from source.counter_composition import COMPOSITION_POLICIES
+from source.strategy_portfolio import PLAYBOOK_CHOICES
 from source.strategy_profiles import COMPOSITION, PROFILES
 
-COMBAT_POWERS = ("blink", "storm", "feedback", "guardian_shield", "voidray_alignment")
+COMBAT_POWERS = (
+    "blink",
+    "storm",
+    "feedback",
+    "guardian_shield",
+    "voidray_alignment",
+    "oracle_beam",
+    "archon_merge",
+)
 ECONOMY = ("workers", "allocation", "supply", "gas", "expansion", "construction", "production", "upgrades")
 STRATEGIES = ("auto", "defend", "regroup", "push", "retreat")
 
@@ -40,17 +50,24 @@ class AssistantSettings:
     feedback: bool = False
     guardian_shield: bool = False
     voidray_alignment: bool = False
+    oracle_beam: bool = False
+    archon_merge: bool = False
+    oracle_harass: bool = False
+    defend_assets: bool = False
+    local_regroup: bool = False
     hud: bool = False
     attack: bool = False
     strategy: str = "auto"
     profile: str = "balanced"
     strategy_script: str = ""
+    playbook: str = "auto"
     army_waves: bool = True
     scouting: bool = True
     warp_reinforcement: bool = True
     warp_prisms: int = 1
     observers: int = 1
     adaptive_composition: bool = True
+    composition_policy: str = "legacy"
     reserve_minerals: int = 0
     reserve_gas: int = 0
     bases: int = 3
@@ -62,6 +79,8 @@ class AssistantSettings:
     high_templar: int = 0
     colossi: int = 0
     voidrays: int = 0
+    oracles: int = 0
+    archons: int = 0
 
     def validate(self) -> AssistantSettings:
         defaults = type(self)()
@@ -73,6 +92,10 @@ class AssistantSettings:
                 raise ValueError("Unknown strategy; choose " + ", ".join(STRATEGIES))
             if field.name == "profile" and value not in PROFILES:
                 raise ValueError("Unknown profile; choose " + ", ".join(PROFILES))
+            if field.name == "playbook" and value not in PLAYBOOK_CHOICES:
+                raise ValueError("Unknown playbook; choose " + ", ".join(PLAYBOOK_CHOICES))
+            if field.name == "composition_policy" and value not in COMPOSITION_POLICIES:
+                raise ValueError("Unknown composition policy; choose " + ", ".join(COMPOSITION_POLICIES))
             if type(value) is int:
                 limit = 10000 if field.name.startswith("reserve_") else 200
                 minimum = 1 if field.name == "bases" else 0
@@ -109,7 +132,8 @@ class Control:
         return (
             f"{'RUNNING' if s.enabled else 'PAUSED'} | on: {', '.join(enabled)} | "
             f"reserve {s.reserve_minerals}m/{s.reserve_gas}g | bases {s.bases} | "
-            f"released {len(self.released)} | strategy {s.strategy} attack {s.attack} profile {s.profile}"
+            f"released {len(self.released)} | strategy {s.strategy} attack {s.attack} profile {s.profile} "
+            f"playbook {s.playbook} composition {s.composition_policy}"
         )
 
     def command(self, text: str, selected_tags: Sequence[int] = ()) -> str | None:
@@ -125,6 +149,8 @@ class Control:
                 "reserve <minerals> <gas>; set <setting> <number>; release/claim/claim-all. "
                 "strategy auto/defend/regroup/push/retreat; attack on/off. "
                 "profile balanced/pressure/fortress/robotics/air; script <path|off>. "
+                "playbook " + "/".join(PLAYBOOK_CHOICES) + ". "
+                "composition legacy/scouted; oracle_harass/defend_assets/local_regroup on/off. "
                 "Toggles: " + ", ".join(ECONOMY + ("chrono",) + COMBAT_POWERS + ("hud", "attack"))
             )
         if args in (["release"], ["claim"]):
@@ -142,6 +168,10 @@ class Control:
                 candidate.enabled = args[0] == "resume"
             elif len(args) == 2 and args[0] == "strategy":
                 candidate.strategy = args[1]
+            elif len(args) == 2 and args[0] == "playbook":
+                candidate.playbook = args[1]
+            elif len(args) == 2 and args[0] == "composition":
+                candidate.composition_policy = args[1]
             elif len(args) == 2 and args[0] == "profile":
                 if args[1] not in PROFILES:
                     raise ValueError("Unknown profile")

@@ -5,8 +5,10 @@ from dataclasses import replace
 
 import pytest
 
+from source.opponent_beliefs import OpponentBeliefs, SignalBelief
 from source.strategic_plan import Assessment, Opportunity, validate_plan
 from source.strategy_director import DeferredPolicy, StrategicDirector
+from source.strategy_policies import production_from_beliefs
 
 
 @pytest.fixture
@@ -45,6 +47,73 @@ def test_pressure_and_denial_share_budget(assessment):
     assert len({m.target_id for m in plan.missions}) == 2
     assert validate_plan(plan, assessment) is plan
     assert plan.expand
+
+
+def test_belief_counter_plan_conserves_supply_and_does_not_compound(assessment):
+    belief = OpponentBeliefs(time=300, air=SignalBelief(1, 0.2, 0))
+    state = replace(
+        assessment, time=300, adaptive_composition=True, belief_control=True, opponent_beliefs=belief
+    )
+    production, reason, questions = production_from_beliefs(state)
+    assert dict(production) == {"stalkers": 44, "zealots": 8}
+    assert sum(dict(production).values()) == sum(dict(state.production).values())
+    assert "air" in reason and questions
+    assert production_from_beliefs(state)[0] == production
+    assert dict(state.production)["zealots"] == 12
+
+
+@pytest.mark.parametrize("case", ["disabled", "opening", "stale", "uncertain", "future", "zero"])
+def test_counter_targets_require_permission_fresh_evidence_and_existing_unit_target(assessment, case):
+    state = replace(
+        assessment,
+        time=300,
+        adaptive_composition=True,
+        belief_control=True,
+        opponent_beliefs=OpponentBeliefs(time=300, air=SignalBelief(1, 0.2, 0)),
+    )
+    if case == "disabled":
+        state = replace(state, adaptive_composition=False)
+    elif case == "opening":
+        state = replace(state, time=200, opponent_beliefs=replace(state.opponent_beliefs, time=200))
+    elif case == "future":
+        state = replace(state, time=299)
+    elif case == "zero":
+        state = replace(state, production=(("zealots", 24), ("stalkers", 0)))
+    else:
+        signal = SignalBelief(1, 0.9 if case == "uncertain" else 0.2, 91 if case == "stale" else 0)
+        state = replace(state, opponent_beliefs=replace(state.opponent_beliefs, air=signal))
+    assert production_from_beliefs(state)[0] == state.production
+
+
+def test_mixed_threat_keeps_ground_screen_and_never_enables_casters(assessment):
+    signal = SignalBelief(1, 0.2, 0)
+    state = replace(
+        assessment,
+        time=300,
+        adaptive_composition=True,
+        belief_control=True,
+        production=(("zealots", 16), ("stalkers", 10), ("immortals", 2), ("high_templar", 0)),
+        opponent_beliefs=OpponentBeliefs(time=300, air=signal, armored_ground=signal, light_ground=signal),
+    )
+    targets = dict(production_from_beliefs(state)[0])
+    assert targets == {"zealots": 12, "stalkers": 14, "immortals": 2, "high_templar": 0}
+    assert 2 * (targets["zealots"] + targets["stalkers"]) + 4 * targets["immortals"] == 60
+
+
+def test_rejected_belief_controller_is_disabled_in_default_live_assessments(assessment):
+    state = replace(
+        assessment,
+        time=300,
+        adaptive_composition=True,
+        opponent_beliefs=OpponentBeliefs(time=300, air=SignalBelief(1, 0.2, 0)),
+    )
+    assert not state.belief_control
+    assert production_from_beliefs(state)[0] == state.production
+    with_beliefs = StrategicDirector().decide(state)
+    without_beliefs = StrategicDirector().decide(replace(state, opponent_beliefs=None))
+    assert with_beliefs.objective == without_beliefs.objective
+    assert with_beliefs.missions == without_beliefs.missions
+    assert with_beliefs.scores == without_beliefs.scores
 
 
 def test_rush_warning_interrupts_expansion_pressure_without_invalid_defense_target(assessment):

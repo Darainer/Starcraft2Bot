@@ -1,0 +1,87 @@
+{
+  "candidate_id": "production-v5-r1-20261031",
+  "base_revision": "9fd64a1",
+  "archive_inputs": {
+    "integrated-v5.patch": "032c32bf7dc04d9ce71f3fdd9a22a4b00286027ca05e29a933cad6cb081a63a8",
+    "integrated-v5-gas-unfinished.patch": "0f0d5abc7ad5a1f7ef49a63b4497ff1b36674c8a23eb5c45be68760177192fcf"
+  },
+  "reconciliation": "v5 integration with the unfinished gas-reservation economy; corrected cost fixtures and additional arbitration tests",
+  "frozen_source_config_sha256": {
+    "source/action_intents.py": "60bd5413e43ffd5c9e1be22487902327064c02f7232a3fa07b49015e2fda339a",
+    "source/analyze_session.py": "11523ce7b47aae0ddd6b697bf9d973c6536b626080b2fc901922bdfbad34cef3",
+    "source/army_waves.py": "24e1a22dbe5eda56f0134afd2544120fc3bc2696ea1088f1df679ed12f1cca8a",
+    "source/assistant_control.py": "7ad6498a2694edf9288116a3971345938cff2441946a894d9c09c2b178f09165",
+    "source/benchmark_controllers.py": "a2fa5594d8e8d06301b35df533c43ebbf197289a6b4b5a7095dae3b2bfcdedb6",
+    "source/combat_assessment.py": "db233bccfeaac8d8173ceb4eaa60782626002213b1b951d76dd6785018dfbdb3",
+    "source/composition.py": "df7e6d93e98478a9ba2dcefac58a059efeb508213922af0440fa49b5aa6bd8fa",
+    "source/control_cli.py": "7db29b956c9293f424b00442dbe417f5a7b27e301a86dc6d95d392adaf1aa049",
+    "source/economy_assistant.py": "2ec53a7c93af71ee058f7dd5d154f4940c84747d91a55cb93c142905eb26b7bb",
+    "source/endgame_sweep.py": "0e9104f1d98cb9eca02de1867b92c18a3361b6dc296b64c652bd458b0a5bdf3d",
+    "source/evaluate_matches.py": "f3f589c402903d65304a436f3522a8f58a447631a91671f3b496da3ad8262de0",
+    "source/expansion_intel.py": "1cfa53c22b743cb8a62452a28b0fa5704e6e4aa6f6aeb13b10b87bd381946abe",
+    "source/game_assessment.py": "1ef3bc5f921402005bb7c02c2dc12def8e9ecf32f8160412ab65691805592e20",
+    "source/layout.py": "90ad04a164e4a031230c93edaed4fd11bf56cdbab0935402765181559cba1871",
+    "source/local_control.py": "491e46fdb99e1c7bb268751bd2e278a6716b854a96d221d88439f9ffd7970ea1",
+    "source/missions.py": "943b3f5b56aa505329422bbb2f506b5efff8c23cd7be23d62e422c896132bc67",
+    "source/opponent_strategy.py": "cb21f8dbd847b0db62dd90b99a3669442f46ed83631402c0eb6e24f418382f8c",
+    "source/replay_strategy.py": "e0b2d753783b39aa6ceb9f29653bbc6643ba0a3288b522f4bfa52f639b2bd85c",
+    "source/runtime.py": "6fa7b046172e8fb294bae188aa29263bb0cc4c18568b8c2d1a3179e6dd4be822",
+    "source/run_assistant.py": "aea08f8f5971f31ea2d2ebc570acac8aac24ea2146dc7c80aa86219d8e429988",
+    "source/run_SC2_game.py": "e73158a13334a2f9504aa3a68b3fcc0827989d6a9f39aa4d8642ebe6ddcd8fa7",
+    "source/scouting.py": "d8cc0f947e3006d91210a082bba035f83948e1dbdbdeb5c563223e9c4b530405",
+    "source/session_review.py": "bdfb4da6420dab45ad948b8376fac928d362259783d67145805c05328aa41615",
+    "source/setup_sc2_bot.py": "d1e793af3edf16676c0382eb9b4186a3455ff446a5cf0ff565929bc290481af4",
+    "source/strategic_plan.py": "3ec1045f67573fa360b233ab6ffe0e2c8ef8fcd4918ad934fe95fb6a3681237c",
+    "source/strategy_director.py": "428c22d06fd79c64176a9a1ab505011208b2565350c92662e0a06261fa74ee8e",
+    "source/strategy_policies.py": "8d4422861af0743b28e148933e52bdd249b03d4df8797442164a5c676ee0d884",
+    "source/strategy_profiles.py": "710c8211be5e8575dbe5c10a8e074bffbe1b057fc172523d17b3024f3d04f757",
+    "source/strategy_scripts.py": "5805d683c678241a0c608456904c15292c47e95ca1cb00467658d815f14af986",
+    "source/tactics.py": "dc6d4713e52bd0daf4502b066cd00c8a0141131852680c7f3276a403e99f55cc",
+    "source/ThreeBaseVoidRay.py": "d7b54d2db9e09336fad514f2446f630691a8c818096cd3bbb9a721e9e04b2c61",
+    "source/trials.py": "7ce9a2581ae6c35ebd1db1212653469ba2f6211ad3ea6a11683c164cabb0ac17",
+    "source/warp_reinforcement.py": "c51c66878abb4652cec5cd84e1ff6baa5d5bfe905b43ed461b60977ea3b38c68",
+    "source/__init__.py": "85f308974fcb510a722756b2087cf4b7233d7643fb8d9c7e648386a9981e9dab",
+    "config/assistant.example.json": "69da82319d5a6c6c9f619a7f301d1be739d56968605fe66d74619fba14e3db44",
+    "uv.lock": "3ecbda6908bb8f3498435b64b71ea91749caf70269be68062ad7e4762e804b39",
+    "pyproject.toml": "0d3b8c64157ed895a8e7dc0f16e0fafddb736a32f528dc100c984f2ad3cc872e"
+  },
+  "orchestration_sha256": "9ecdb66f02cd874b60468ea1f329ccc9054dcdb32b74fdf549679e9ee6ee7061",
+  "map_sha256": "9cb078a287c76c0b55e3bc137b0e4590415231367d7c5724ab1bfd24a06a1d1e",
+  "settings": {
+    "profile": "pressure",
+    "difficulty": "VeryHard",
+    "seed": 20261025,
+    "step_size": 8,
+    "duration": 1500,
+    "repeats": 3,
+    "global_client_limit": 8
+  },
+  "software_validation": {
+    "tests_passed": 452,
+    "coverage_percent": 92.74,
+    "locked_sync": true,
+    "lint": true,
+    "format": true,
+    "mypy": true,
+    "build": true
+  },
+  "human_shared_control": "NOT_VERIFIED",
+  "archive_patch_sha256": "031f4ca32345ceab88623ae2d60b9ca11801df03e65b14a5ee8f9c691f9b9411",
+  "promotion": "REJECTED_TARGETED_MACRO",
+  "targeted_results": {
+    "Zerg/Macro": [
+      "Result.Defeat",
+      "Result.Defeat",
+      "Result.Defeat"
+    ],
+    "end_seconds": [
+      875.4,
+      815.4,
+      875.4
+    ],
+    "all_starts_match_baseline": true,
+    "source_unchanged": true,
+    "nonempty_replays": 3
+  },
+  "archive_reconstruction_verified": true
+}

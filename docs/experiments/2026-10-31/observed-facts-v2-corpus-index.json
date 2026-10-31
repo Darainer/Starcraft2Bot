@@ -1,0 +1,188 @@
+{
+  "scope": "Compatible completed observed-fact archives, distinct episodes only; raw artifacts retained locally and not committed. Repeats and policies sharing a world start remain in one split group. Weak configured-build labels are separate; no oracle label extractor or trained predictor.",
+  "unique_episodes": 111,
+  "unique_world_groups": 4,
+  "facts_schema": "sc2-observed-facts-v2",
+  "total_examples": 87958,
+  "total_artifacts": 1365,
+  "total_artifact_bytes": 21147763187,
+  "archives": [
+    {
+      "archive_name": "facts-v2-dev-27",
+      "manifest_sha256": "178b4897f842d34c5b656678280a20bae8c97581d0f8c04645c6760f745ab3de",
+      "episodes": 27,
+      "examples": 12929,
+      "artifacts": 299,
+      "artifact_bytes": 3277646176,
+      "source_commits": [
+        "2be052b",
+        "b3aff99"
+      ],
+      "metadata": {
+        "schema_version": 1,
+        "phase": "complete",
+        "input_schema": "sc2-observed-facts-v2",
+        "oracle_targets_available": false,
+        "extractor_sha256": {
+          "opponent_dataset.py": "9535a39c69bca4e135382a04b6ef4130b84eebb437e6ad8df5f60a9db6fd7dac",
+          "scouting_facts.py": "53f5852f13ec4908db3b2637f30245f402e90d74f55bfae66166e911e520f8b9",
+          "scouting_diagnostics.py": "b0c66849b61d34a4411fab83eaa7fc29012a0ea1834c116687dc1a4b20803bb7",
+          "opponent_strategy.py": "cb21f8dbd847b0db62dd90b99a3669442f46ed83631402c0eb6e24f418382f8c"
+        },
+        "scope": "Local player-view observations. Labels and provenance are separate from model inputs; no RL action policy or reliable trained predictor is included.",
+        "split_groups": 1
+      }
+    },
+    {
+      "archive_name": "scout-v2-targets",
+      "manifest_sha256": "ff7462a3aab7122e0b91d4c822e7d3baad3290e875eadd18e4d71a638b9fb2cb",
+      "episodes": 6,
+      "examples": 4882,
+      "artifacts": 73,
+      "artifact_bytes": 1164076312,
+      "source_commits": [
+        "64001d5"
+      ],
+      "metadata": {
+        "schema_version": 1,
+        "phase": "complete",
+        "input_schema": "sc2-observed-facts-v2",
+        "oracle_targets_available": false,
+        "extractor_sha256": {
+          "opponent_dataset.py": "9535a39c69bca4e135382a04b6ef4130b84eebb437e6ad8df5f60a9db6fd7dac",
+          "scouting_facts.py": "53f5852f13ec4908db3b2637f30245f402e90d74f55bfae66166e911e520f8b9",
+          "scouting_diagnostics.py": "b0c66849b61d34a4411fab83eaa7fc29012a0ea1834c116687dc1a4b20803bb7",
+          "opponent_strategy.py": "cb21f8dbd847b0db62dd90b99a3669442f46ed83631402c0eb6e24f418382f8c"
+        },
+        "scope": "Local player-view observations. Labels and provenance are separate from model inputs; no RL action policy or reliable trained predictor is included.",
+        "split_groups": 1
+      }
+    },
+    {
+      "archive_name": "ref-seed3101",
+      "manifest_sha256": "0e8824dba641ea05d358fc0834c9de475ca8f402c5c75a75385f67b77327d7f8",
+      "episodes": 15,
+      "examples": 12607,
+      "artifacts": 186,
+      "artifact_bytes": 3046517692,
+      "source_commits": [
+        "2be052b"
+      ],
+      "metadata": {
+        "schema_version": 1,
+        "phase": "complete",
+        "input_schema": "sc2-observed-facts-v2",
+        "oracle_targets_available": false,
+        "extractor_sha256": {
+          "opponent_dataset.py": "9535a39c69bca4e135382a04b6ef4130b84eebb437e6ad8df5f60a9db6fd7dac",
+          "scouting_facts.py": "53f5852f13ec4908db3b2637f30245f402e90d74f55bfae66166e911e520f8b9",
+          "scouting_diagnostics.py": "b0c66849b61d34a4411fab83eaa7fc29012a0ea1834c116687dc1a4b20803bb7",
+          "opponent_strategy.py": "cb21f8dbd847b0db62dd90b99a3669442f46ed83631402c0eb6e24f418382f8c"
+        },
+        "scope": "Local player-view observations. Labels and provenance are separate from model inputs; no RL action policy or reliable trained predictor is included.",
+        "split_groups": 1
+      }
+    },
+    {
+      "archive_name": "seed3102-and-scout-v3-targets",
+      "manifest_sha256": "2ec0d1d0b1c06f798ba13f1bee081cf4a45d3fd7ada39470b259909a0958c2a7",
+      "episodes": 21,
+      "examples": 16965,
+      "artifacts": 252,
+      "artifact_bytes": 3887879670,
+      "source_commits": [
+        "0f673b2",
+        "2be052b"
+      ],
+      "metadata": {
+        "schema_version": 1,
+        "phase": "complete",
+        "input_schema": "sc2-observed-facts-v2",
+        "oracle_targets_available": false,
+        "extractor_sha256": {
+          "opponent_dataset.py": "9535a39c69bca4e135382a04b6ef4130b84eebb437e6ad8df5f60a9db6fd7dac",
+          "scouting_facts.py": "53f5852f13ec4908db3b2637f30245f402e90d74f55bfae66166e911e520f8b9",
+          "scouting_diagnostics.py": "b0c66849b61d34a4411fab83eaa7fc29012a0ea1834c116687dc1a4b20803bb7",
+          "opponent_strategy.py": "cb21f8dbd847b0db62dd90b99a3669442f46ed83631402c0eb6e24f418382f8c"
+        },
+        "scope": "Local player-view observations. Labels and provenance are separate from model inputs; no RL action policy or reliable trained predictor is included.",
+        "split_groups": 2
+      }
+    },
+    {
+      "archive_name": "scout-v3-seed3102-failures",
+      "manifest_sha256": "8a29a967560b2a17db0e5ec4c6f6ab81c9be0dd8c0bab892933238404b6f8d33",
+      "episodes": 6,
+      "examples": 5376,
+      "artifacts": 78,
+      "artifact_bytes": 1282822396,
+      "source_commits": [
+        "0f673b2"
+      ],
+      "metadata": {
+        "schema_version": 1,
+        "phase": "complete",
+        "input_schema": "sc2-observed-facts-v2",
+        "oracle_targets_available": false,
+        "extractor_sha256": {
+          "opponent_dataset.py": "9535a39c69bca4e135382a04b6ef4130b84eebb437e6ad8df5f60a9db6fd7dac",
+          "scouting_facts.py": "53f5852f13ec4908db3b2637f30245f402e90d74f55bfae66166e911e520f8b9",
+          "scouting_diagnostics.py": "b0c66849b61d34a4411fab83eaa7fc29012a0ea1834c116687dc1a4b20803bb7",
+          "opponent_strategy.py": "cb21f8dbd847b0db62dd90b99a3669442f46ed83631402c0eb6e24f418382f8c"
+        },
+        "scope": "Local player-view observations. Labels and provenance are separate from model inputs; no RL action policy or reliable trained predictor is included.",
+        "split_groups": 1
+      }
+    },
+    {
+      "archive_name": "portfolio-final-main-30",
+      "manifest_sha256": "0ba8742d9d3cfea724f403c41bcae96e3144b9a1b7e3bac4442a8aa424c5fcbc",
+      "episodes": 30,
+      "examples": 27168,
+      "artifacts": 384,
+      "artifact_bytes": 6337639756,
+      "source_commits": [
+        "d0f8cf3"
+      ],
+      "metadata": {
+        "schema_version": 1,
+        "phase": "complete",
+        "input_schema": "sc2-observed-facts-v2",
+        "oracle_targets_available": false,
+        "extractor_sha256": {
+          "opponent_dataset.py": "9535a39c69bca4e135382a04b6ef4130b84eebb437e6ad8df5f60a9db6fd7dac",
+          "scouting_facts.py": "53f5852f13ec4908db3b2637f30245f402e90d74f55bfae66166e911e520f8b9",
+          "scouting_diagnostics.py": "b0c66849b61d34a4411fab83eaa7fc29012a0ea1834c116687dc1a4b20803bb7",
+          "opponent_strategy.py": "cb21f8dbd847b0db62dd90b99a3669442f46ed83631402c0eb6e24f418382f8c"
+        },
+        "scope": "Local player-view observations. Labels and provenance are separate from model inputs; no RL action policy or reliable trained predictor is included.",
+        "split_groups": 2
+      }
+    },
+    {
+      "archive_name": "portfolio-final-known-6",
+      "manifest_sha256": "9983bab7751863ce5c642b68b74b42ddeede40c7f330c6b03181b6fef4783b54",
+      "episodes": 6,
+      "examples": 8031,
+      "artifacts": 93,
+      "artifact_bytes": 2151181185,
+      "source_commits": [
+        "d0f8cf3"
+      ],
+      "metadata": {
+        "schema_version": 1,
+        "phase": "complete",
+        "input_schema": "sc2-observed-facts-v2",
+        "oracle_targets_available": false,
+        "extractor_sha256": {
+          "opponent_dataset.py": "9535a39c69bca4e135382a04b6ef4130b84eebb437e6ad8df5f60a9db6fd7dac",
+          "scouting_facts.py": "53f5852f13ec4908db3b2637f30245f402e90d74f55bfae66166e911e520f8b9",
+          "scouting_diagnostics.py": "b0c66849b61d34a4411fab83eaa7fc29012a0ea1834c116687dc1a4b20803bb7",
+          "opponent_strategy.py": "cb21f8dbd847b0db62dd90b99a3669442f46ed83631402c0eb6e24f418382f8c"
+        },
+        "scope": "Local player-view observations. Labels and provenance are separate from model inputs; no RL action policy or reliable trained predictor is included.",
+        "split_groups": 1
+      }
+    }
+  ]
+}

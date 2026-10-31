@@ -1,0 +1,192 @@
+diff --git a/source/scouting.py b/source/scouting.py
+index d5a4e9a..761e45f 100644
+--- a/source/scouting.py
++++ b/source/scouting.py
+@@ -22,6 +22,9 @@ class ScoutController:
+         self.base_memory = {}
+         self.tech_memory = {}
+         self.opening_complete = False
++        self.scout_attempts = 0
++        self.retry_after = 0
++        self.scout_interruption = None
+         self.returning = False
+         self.observer_visits = {}
+         self.expansion_checks = {}
+@@ -392,40 +395,86 @@ class ScoutController:
+         report["known_enemy_tech"] = sorted({value[0] for value in self.tech_memory.values()})
+ 
+     def _worker_scout(self, bot, enemies, report):
++        phase = self._worker_scout_tick(bot, enemies, report)
++        report["opening_scout"] = {
++            "schema_version": 1,
++            "completed": self.opening_complete,
++            "phase": phase,
++            "attempts": self.scout_attempts,
++            "route_points_inspected": self.worker_route_index,
++            "retry_after": self.retry_after,
++            "interruption": self.scout_interruption,
++        }
++        return phase
++
++    def _worker_scout_tick(self, bot, enemies, report):
+         if not bot.settings.enabled or not bot.settings.attack or not bot.settings.scouting:
+             self.worker_tag = bot.scout_tag = None
+             return "disabled"
+         scout = bot.workers.find_by_tag(self.worker_tag) if self.worker_tag else None
+         if scout is None:
++            if self.worker_tag is not None:
++                self.scout_interruption = "scout_missing"
++                self.retry_after = max(self.retry_after, bot.time + 60)
++            self.worker_tag = None
+             bot.scout_tag = None
+             if self.opening_complete:
+                 return "opening_complete"
+-            if bot.supply_workers >= 12 and bot.time - self.last_assignment >= 90:
++            if self.scout_attempts >= 3 or bot.time >= 300:
++                return "opening_incomplete"
++            threats = enemies.filter(lambda u: u.is_visible and u.can_attack_ground)
++            homes = [base.position for base in bot.townhalls.ready] or [bot.start_location]
++            route = self._worker_route(bot)
++            unsafe = any(any(u.distance_to(home) < 32 for home in homes) for u in threats)
++            unsafe |= bool(route and threats.closer_than(12, route[0]))
++            unsafe |= bot.time < report.get("rush_warning", {}).get("expires_at", 0)
++            if (
++                not unsafe
++                and bot.time >= self.retry_after
++                and bot.supply_workers >= 12
++                and bot.time - self.last_assignment >= 90
++            ):
+                 candidates = bot.workers.filter(
+-                    lambda unit: bot.available(unit) and (unit.is_idle or unit.is_gathering)
++                    lambda unit: (
++                        bot.available(unit)
++                        and unit.health + unit.shield >= (unit.health_max + unit.shield_max) * 0.75
++                        and (unit.is_idle or unit.is_gathering)
++                    )
+                 )
+                 if candidates:
+                     scout = candidates.closest_to(bot.game_info.map_center)
+                     self.worker_tag = bot.scout_tag = scout.tag
+                     self.last_assignment = bot.time
++                    self.scout_attempts += 1
++                    self.worker_route_index = 0
++                    self.returning = False
++                    self.scout_interruption = None
+         if scout is None:
+             return "observing" if report.get("enemy_seen") else "waiting_for_scout"
+         if not bot.control.eligible(scout):
+             return "human_owned"
+         threatened = enemies.filter(lambda unit: unit.can_attack_ground and unit.distance_to(scout) < 8)
++        if threatened or scout.health + scout.shield < 30:
++            self.scout_interruption = "threatened" if threatened else "damaged"
+         self.returning |= bool(threatened) or scout.health + scout.shield < 30
+         route = self._worker_route(bot)
+         if not route and not self.returning:
+             self.returning = True
+             return "no_known_start"
+-        if not self.returning and scout.distance_to(route[self.worker_route_index % len(route)]) < 6:
++        if (
++            not self.returning
++            and scout.distance_to(route[self.worker_route_index % len(route)]) < 6
++            and bot.is_visible(route[self.worker_route_index % len(route)])
++        ):
+             self.worker_route_index += 1
+             self.returning = self.worker_route_index >= len(route)
++            self.opening_complete = self.returning
+         if self.returning:
+             target = bot.start_location
+             if scout.distance_to(target) <= 6:
+                 self.worker_tag = bot.scout_tag = None
+-                self.opening_complete = True
++                if not self.opening_complete:
++                    self.retry_after = bot.time + 60
+                 return "returned"
+             phase = "returning"
+         else:
+diff --git a/tests/test_scouting_routes.py b/tests/test_scouting_routes.py
+index 6e5a348..d914e51 100644
+--- a/tests/test_scouting_routes.py
++++ b/tests/test_scouting_routes.py
+@@ -108,8 +108,10 @@ def test_worker_scout_returns_home_and_releases_assignment(bot, make_unit, popul
+     bot.supply_workers = 12
+     bot.game_info.start_locations = [Point2((100, 100))]
+     scout = ScoutController()
++    scout.worker_tag = bot.scout_tag = probe.tag
+     assert scout._worker_scout(bot, bot.enemy_units, {}) == "returned"
+     assert scout.worker_tag is None and bot.scout_tag is None
++    assert not scout.opening_complete
+ 
+ 
+ def test_worker_scout_waits_if_start_is_unknown_and_flees_if_threatened(bot, make_unit, populate):
+@@ -147,3 +149,71 @@ def test_scout_reports_enemy_composition_peak_and_incoming_force(bot, make_unit,
+     assert intel["enemy_bases"][0]["unit_type"] == "NEXUS"
+     assert intel["enemy_seen"] and intel["force_intel_ready"]
+     assert result["observer"]["phase"] == "disabled"
++
++
++def test_interrupted_scout_retries_from_a_fresh_route_only_after_pressure_clears(bot, make_unit, populate):
++    probe = make_unit(U.PROBE, (2, 2))
++    enemy = make_unit(U.MARINE, (3, 2), alliance=4)
++    populate(probe)
++    bot.settings.enabled = bot.settings.attack = bot.settings.scouting = True
++    bot.supply_workers = 12
++    bot.game_info.start_locations = [Point2((90, 90))]
++    scout = ScoutController()
++    scout.worker_tag = bot.scout_tag = probe.tag
++    scout.scout_attempts = 1
++    scout.last_assignment = 0
++    scout.worker_route_index = 1
++    report = {}
++    assert scout._worker_scout(bot, Units([enemy], bot), report) == "returned"
++    assert not report["opening_scout"]["completed"]
++    assert report["opening_scout"]["interruption"] == "threatened"
++    bot.state.game_loop = 1120  # A safe home does not bypass the retry cooldown.
++    assert scout._worker_scout(bot, Units([], bot), report) == "waiting_for_scout"
++    assert scout.worker_tag is None
++    bot.state.game_loop = 2240
++    assert scout._worker_scout(bot, Units([enemy], bot), report) == "waiting_for_scout"
++    assert scout.worker_tag is None and not bot.actions
++    assert scout._worker_scout(bot, Units([], bot), report) == "scouting_enemy_start"
++    assert not scout.returning and scout.worker_route_index == 0
++    assert report["opening_scout"]["attempts"] == 2
++    assert not report["opening_scout"]["completed"]
++    assert bot.actions[-1].target == scout._worker_route(bot)[0]
++
++
++def test_scout_completion_requires_visible_route_inspection_not_returning_home(bot, make_unit, populate):
++    probe = make_unit(U.PROBE, (80, 80))
++    populate(probe)
++    bot.settings.enabled = bot.settings.attack = bot.settings.scouting = True
++    bot.game_info.start_locations = [Point2((90, 90))]
++    bot._expansion_positions_list = [Point2((80, 80))]
++    scout = ScoutController()
++    scout.worker_tag = bot.scout_tag = probe.tag
++    report = {}
++    bot.is_visible = lambda point: False
++    scout._worker_scout(bot, Units([], bot), report)
++    assert scout.worker_route_index == 0 and not scout.opening_complete
++    bot.is_visible = lambda point: True
++    bot._used.clear()
++    scout._worker_scout(bot, Units([], bot), report)
++    assert scout.worker_route_index == 1 and not scout.opening_complete
++    populate(make_unit(U.PROBE, (90, 90), tag=probe.tag))
++    bot._used.clear()
++    assert scout._worker_scout(bot, Units([], bot), report) == "returning"
++    assert report["opening_scout"]["completed"]
++    populate(make_unit(U.PROBE, (0, 0), tag=probe.tag))
++    assert scout._worker_scout(bot, Units([], bot), report) == "returned"
++    assert scout._worker_scout(bot, Units([], bot), report) == "opening_complete"
++
++
++def test_missing_scout_preserves_incomplete_status_and_retries_are_bounded(bot, make_unit, populate):
++    probe = make_unit(U.PROBE)
++    populate(probe)
++    bot.settings.enabled = bot.settings.attack = bot.settings.scouting = True
++    bot.supply_workers = 12
++    scout = ScoutController()
++    scout.worker_tag = 999
++    scout.scout_attempts = 3
++    report = {}
++    assert scout._worker_scout(bot, Units([], bot), report) == "opening_incomplete"
++    assert report["opening_scout"]["interruption"] == "scout_missing"
++    assert not report["opening_scout"]["completed"] and not bot.actions

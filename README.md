@@ -1,4 +1,4 @@
-# Starcraft2Bot — human economy assistant
+# Starcraft2Bot â€” human economy assistant
 
 An API assistant intended to manage Protoss economy and build-out while you
 control the army with normal mouse and keyboard, or delegate movement and attacks
@@ -144,7 +144,44 @@ are supported. Force Fields, Disruptor Novas, Oracle abilities, Archon merging,
 and transport-drop micro remain unsupported. See the
 [adaptive tactics architecture](docs/tactical-architecture-plan.md).
 
+The [belief and scouting design](docs/opponent-beliefs-and-scouting.md) and
+[source-linked game ontology](source/data/game_ontology.v1.json) provide the
+foundation for the [first RL architecture](docs/rl-architecture.md): uncertain
+world beliefs feed a recurrent strategic policy and a guarded action-vector
+decoder. The RL controller remains a design; no trained policy is included.
+The separate [RL training plan](docs/rl-training-plan.md) covers teacher data,
+public opponents, headless Linux containers, patch compatibility and rollout
+throughput. [Winning-bot research](docs/research/winning-bot-tactics.md) supplies
+source-linked tactics and an inventory of public bots.
+The approved [two layer architecture](docs/game-agnostic-architecture.md) separates
+a game-agnostic doctrine/reasoning core from a StarCraft-specific encoder,
+policy heads, decoder and execution adapter. The
+[military doctrine review](docs/doctrine-inspired-control.md) grounds beliefs,
+decision-linked scouting, intent, readiness and sustainable income. Additional
+games can supply their own adapters; cross-game weight transfer remains untested.
+The first belief/scouting live candidate was rejected; belief telemetry remains,
+while its control rules are disabled by default. The
+[hardcoded bot milestone](docs/hardcoded-elite-milestone.md) takes priority over RL training.
+
 ## Validation
+
+The [final bot report](docs/final-bot-report-2026-10-31.md) records the completed
+36-game integration set: 24 wins, 12 losses and no timeouts. The automatic
+selector remains experimental. See [overall status](docs/bot-status.md) for
+Zerg/Terran results, retained specialists and remaining acceptance gates.
+The [scouted strategy repertoire](docs/strategy-portfolio.md) brings the retained
+Zerg/Terran response packages onto one integration branch, with evidence-based
+selection and explicit fixed-package experiments.
+
+The historical `b3aff99` [scout-selected Zerg response](docs/zerg-scout-response-experiment.md)
+completed 15/15 VeryHard Zerg development wins: three repeats of each explicit
+build at the 3600-second bound. This is one map/seed per build; held-out and
+community-bot strength remain unverified. See the
+[R2 production-recovery evaluation](docs/production-recovery-2026-10-31.md) for the
+separate baseline history and remaining acceptance gaps.
+The [opponent-inference collection plan](docs/opponent-inference-training.md)
+separates scouting gaps from recognition errors and archives causal facts for
+later supervised estimation. Gameplay RL remains a later milestone.
 
 ```bash
 uv sync --locked

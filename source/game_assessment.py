@@ -2,13 +2,18 @@
 
 from collections import deque
 
+from sc2.data import Race
+from sc2.ids.unit_typeid import UnitTypeId as U
 from sc2.position import Point2
 
 from source.combat_assessment import home_threats, observed_supply, power, visible_threats
 from source.composition import composition_targets
+from source.economic_defense import EconomicDefense
 from source.endgame_sweep import BASE_TYPES
 from source.expansion_intel import is_expansion
+from source.opponent_beliefs import beliefs_from_dict
 from source.strategic_plan import Assessment, Opportunity
+from source.strategy_portfolio import Selection, select_playbook
 from source.strategy_profiles import PROFILES
 
 
@@ -25,8 +30,9 @@ class GameAssessment:
         self.upgrades = set()
         self.upgraded_at = -999
         self.visited = {}
+        self.economic_defense = EconomicDefense()
 
-    def observe(self, bot, army):
+    def observe(self, bot, army, recovery=None):
         fighters = army.filter(lambda unit: unit.can_attack)
         contacts = visible_threats(bot)
         incoming = home_threats(bot, contacts)
@@ -35,9 +41,33 @@ class GameAssessment:
         if bases:
             home = max(bases, key=lambda b: min((b.distance_to(e) for e in contacts), default=999)).position
         front = bases.closest_to(bot.game_info.map_center).position if bases else home
+        # Search travel is paid by the army, which may already be across the
+        # map. Home-relative costs repeatedly send it back to stale nearby sites.
+        travel_origin = fighters.center if fighters else front
         rally = front.towards(
             bot.game_info.map_center, max(8, PROFILES[bot.settings.profile]["rally_distance"])
         )
+        opening_hold = None
+        opening_phase = getattr(bot, "opening_phase", None)
+        if (
+            bot.enemy_race == Race.Zerg
+            and bot.settings.enabled
+            and bot.settings.attack
+            and bot.settings.production
+            and bot.settings.strategy == "auto"
+            and bot.time < 180
+            and opening_phase in {"first_force", "defend"}
+        ):
+            rally = home.towards(bot.game_info.map_center, 3.5)
+            opening_anchor = getattr(bot, "opening_defense_anchor", None)
+            if opening_anchor:
+                point = Point2(opening_anchor)
+                batteries = bot.structures(U.SHIELDBATTERY).ready.filter(
+                    lambda battery: battery.is_powered and battery.distance_to(point) <= 5.5
+                )
+                if batteries and bot.in_pathing_grid(point) and bot.is_visible(point):
+                    home = rally = point
+            opening_hold = tuple(rally)
         if self.had_threat and not incoming:
             self.defended_at = bot.time
         self.had_threat = bool(incoming)
@@ -47,6 +77,7 @@ class GameAssessment:
         # Each local contact gets local support only. A distant army cannot
         # subsidize a losing skirmish on the other side of the map.
         local_advantage = 10.0
+        local_fight_observed = False
         army_supply = sum(bot.calculate_supply_cost(u.type_id) for u in fighters)
         remaining = list(contacts)
         while remaining:
@@ -54,13 +85,32 @@ class GameAssessment:
             friends = fighters.closer_than(18, enemy)
             if not friends:
                 continue
-            if sum(bot.calculate_supply_cost(u.type_id) for u in friends) < min(8, army_supply * 0.3):
+            if sum(bot.calculate_supply_cost(u.type_id) for u in friends) < min(
+                army_supply, max(8, army_supply * 0.3)
+            ):
                 # Small detached fights are handled by that mission's controller.
                 continue
+            local_fight_observed = True
             group = contacts.closer_than(14, enemy)
             local_advantage = min(local_advantage, ratio(friends, group))
             grouped = group.tags
             remaining = [unit for unit in remaining if unit.tag not in grouped]
+        response_tags, response_supply = [], 0
+        response = fighters.tags_in(set())
+        budget = min(army_supply * 0.3, max(8, sum(observed_supply(bot, e) for e in incoming) * 1.5))
+        # A projected remote response is distinct from defenders already nearby.
+        # Require every selected actor to hit all observed attacking domains.
+        if incoming and threat is not None:
+            capable = fighters.filter(
+                lambda u: all(u.can_attack_air if e.is_flying else u.can_attack_ground for e in incoming)
+            )
+            for unit in capable.sorted_by_distance_to(threat):
+                cost = bot.calculate_supply_cost(unit.type_id)
+                if response_supply + cost <= budget:
+                    response_tags.append(unit.tag)
+                    response_supply += cost
+            response = fighters.tags_in(response_tags)
+        response_advantage = ratio(response, incoming) if response else 0
         score = getattr(bot.state, "score", None)
         lost = sum(getattr(score, f"lost_{kind}_army", 0) for kind in ("minerals", "vespene"))
         killed = sum(getattr(score, f"killed_{kind}_army", 0) for kind in ("minerals", "vespene"))
@@ -128,7 +178,7 @@ class GameAssessment:
                         55,
                         float(info.get("visible_defenders", 0) + info.get("visible_defense_buildings", 0)),
                         1,
-                        front.distance_to(point),
+                        travel_origin.distance_to(point),
                         expansion=info.get("expansion", is_expansion(bot, point)),
                         defender_supply=info.get("defender_supply", 0),
                         static_defense=info.get("visible_defense_buildings", 0) > 0,
@@ -158,10 +208,29 @@ class GameAssessment:
                     40 if index == 0 else 32,
                     0,
                     1,
-                    front.distance_to(site),
+                    travel_origin.distance_to(site),
                 )
             )
         maximum = sum(unit.health_max + unit.shield_max for unit in fighters)
+        beliefs = beliefs_from_dict(bot.scout_report.get("opponent_beliefs"))
+        automatic = (
+            bot.settings.enabled
+            and bot.settings.attack
+            and bot.settings.adaptive_composition
+            and bot.settings.strategy == "auto"
+            and not bot.settings.strategy_script
+        )
+        selection = (
+            select_playbook(
+                bot.time,
+                getattr(bot.enemy_race, "name", "Unknown"),
+                bot.scout_report,
+                bot.settings.playbook,
+                tuple(u.type_id.name for u in bot.structures.ready),
+            )
+            if automatic
+            else Selection(reason="Preserve manual, scripted or disabled control")
+        )
         return Assessment(
             bot.state.game_loop,
             bot.time,
@@ -191,4 +260,20 @@ class GameAssessment:
             and bot.time - bot.scout_report.get("last_seen_seconds", -999) <= 10
             and bot.scout_report.get("composition_intel", {}).get("supply", 999) < army_supply * 0.2,
             rush_warning=bot.time < bot.scout_report.get("rush_warning", {}).get("expires_at", 0),
+            local_fight_observed=local_fight_observed,
+            raid_response_tags=tuple(response_tags),
+            raid_response_supply=response_supply,
+            raid_response_advantage=response_advantage,
+            opening_hold=opening_hold,
+            opponent_beliefs=beliefs.relative_to(army_supply) if beliefs is not None else None,
+            adaptive_composition=bot.settings.adaptive_composition,
+            response_policy=selection.playbook.response,
+            response_policy_until=selection.until,
+            response_reason=selection.reason,
+            response_evidence=selection.evidence,
+            playbook_id=selection.id,
+            playbook_uncertainty=selection.uncertainty,
+            tactical_policy=selection.playbook.tactic,
+            combat_window=self.economic_defense.observe(bot, fighters, contacts, recovery or {}),
+            local_regroup=bot.settings.local_regroup,
         )

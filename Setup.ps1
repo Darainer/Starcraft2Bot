@@ -69,7 +69,7 @@ try {
         Push-Location -LiteralPath $RepoRoot
         try {
             Invoke-Uv sync --locked --python 3.12
-            Invoke-Uv run --locked --no-sync sc2-assistant --check-config --config config/assistant.example.json
+            Invoke-Uv run --locked --no-sync python -m source.run_assistant --check-config --config config/assistant.example.json
             foreach ($Directory in @('maps', 'logs', 'replays', '.local')) {
                 $null = New-Item -ItemType Directory -Force -Path $Directory
             }
@@ -95,7 +95,7 @@ try {
                     }
                 }
             }
-            $DoctorArgs = @('run', '--locked', '--no-sync', 'sc2-assistant', '--doctor', '--map-file', $MapFile)
+            $DoctorArgs = @('run', '--locked', '--no-sync', 'python', '-m', 'source.run_assistant', '--doctor', '--map-file', $MapFile)
             if ($Sc2Path) { $DoctorArgs += @('--sc2-path', $Sc2Path) }
             $Doctor = (Invoke-Uv @DoctorArgs) -join "`n" | ConvertFrom-Json
             if (-not $Doctor.preflight_ok) { throw 'SC2/map preflight did not pass.' }

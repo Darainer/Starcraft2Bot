@@ -1,0 +1,94 @@
+--- a/source/economy_assistant.py
++++ b/source/economy_assistant.py
+@@ -325,0 +326,15 @@
++        # A usable Gateway must not sit idle while the natural consumes the
++        # opening bank. Queued supply is not completed defensive readiness.
++        first_defender = (
++            s.attack
++            and s.production
++            and self.time < 180
++            and bool(self.structures(U.GATEWAY).ready | self.structures(U.WARPGATE).ready)
++            and any(production_target(self, name) > 0 for name in ARMY_TARGETS.values())
++            and sum(
++                self.calculate_supply_cost(unit.type_id)
++                for unit in self.units.of_type(set(ARMY_TARGETS)).ready
++                if unit.can_attack
++            )
++            < 2
++        )
+@@ -353,0 +369 @@
++                and not first_defender
+@@ -380,0 +397,2 @@
++        if first_defender and self.produce(0):
++            return
+@@ -444,0 +463 @@
++            and not first_defender
+--- /dev/null
++++ b/tests/test_opening_defender.py
+@@ -0,0 +1,66 @@
++import asyncio
++import importlib.util
++from pathlib import Path
++
++import pytest
++from s2clientprotocol import raw_pb2
++from sc2.ids.ability_id import AbilityId as A
++from sc2.ids.unit_typeid import UnitTypeId as U
++
++spec = importlib.util.spec_from_file_location(
++    "opening_candidate", Path(__file__).parents[1] / "source/economy_assistant.py"
++)
++candidate = importlib.util.module_from_spec(spec)
++spec.loader.exec_module(candidate)
++
++
++def opening(bot, make_unit, populate, *, completed=False, busy=False):
++    orders = [raw_pb2.UnitOrder(ability_id=A.GATEWAYTRAIN_ZEALOT.value, progress=0.3)] if busy else []
++    units = [make_unit(U.NEXUS), make_unit(U.PYLON), make_unit(U.GATEWAY, orders=orders), make_unit(U.PROBE)]
++    if completed:
++        units.append(make_unit(U.ZEALOT))
++    populate(*units)
++    bot.state.game_loop = 2240
++    bot.settings.attack = True
++    bot.settings.workers = bot.settings.gas = bot.settings.supply = False
++    bot.settings.construction = bot.settings.upgrades = False
++    bot.minerals, bot.vespene = 400, 0
++    bot.supply_workers = 19
++    return bot
++
++
++def test_first_gateway_defender_precedes_core_and_natural_saving(bot, make_unit, populate):
++    opening(bot, make_unit, populate)
++    bot.settings.construction = True
++    asyncio.run(candidate.EconomyAssistant.macro(bot))
++    assert [action.ability for action in bot.actions] == [A.GATEWAYTRAIN_ZEALOT]
++
++
++def test_queued_army_supply_does_not_release_completed_defender_gate(bot, make_unit, populate):
++    opening(bot, make_unit, populate, busy=True)
++    bot.supply_army = 2
++    bot.already_pending.side_effect = lambda kind: int(kind == U.ZEALOT)
++    asyncio.run(candidate.EconomyAssistant.macro(bot))
++    assert not bot.actions
++
++
++def test_completed_defender_releases_natural_gate(bot, make_unit, populate):
++    opening(bot, make_unit, populate, completed=True, busy=True)
++    asyncio.run(candidate.EconomyAssistant.macro(bot))
++    assert [action.ability for action in bot.actions] == [A.PROTOSSBUILD_NEXUS]
++
++
++@pytest.mark.parametrize("setting", ["attack", "production"])
++def test_manual_control_settings_do_not_force_an_opening_defender(bot, make_unit, populate, setting):
++    opening(bot, make_unit, populate, busy=True)
++    setattr(bot.settings, setting, False)
++    asyncio.run(candidate.EconomyAssistant.macro(bot))
++    assert [action.ability for action in bot.actions] == [A.PROTOSSBUILD_NEXUS]
++
++
++def test_selected_gateway_and_reserves_remain_protected(bot, make_unit, populate):
++    opening(bot, make_unit, populate)
++    bot.structures(U.GATEWAY).first._proto.is_selected = True
++    bot.settings.reserve_minerals = 400
++    asyncio.run(candidate.EconomyAssistant.macro(bot))
++    assert not bot.actions

@@ -48,7 +48,7 @@ try {
     if ($ConfigFile) { $ConfigFile = (Resolve-Path -LiteralPath $ConfigFile).ProviderPath }
     else { $ConfigFile = Join-Path $RepoRoot 'config/assistant.example.json' }
     if ($StrategyScript) { $StrategyScript = (Resolve-Path -LiteralPath $StrategyScript).ProviderPath }
-    $LaunchArgs = @('run', '--locked', '--no-sync', 'sc2-assistant', '--sc2-path', $Sc2Path,
+    $LaunchArgs = @('run', '--locked', '--no-sync', 'python', '-m', 'source.run_assistant', '--sc2-path', $Sc2Path,
         '--sc2-version', $Sc2Version, '--config', $ConfigFile)
     if ($Probe) { $LaunchArgs += '--probe' }
     else {

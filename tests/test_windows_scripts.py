@@ -93,9 +93,14 @@ def test_setup_and_start_from_another_directory(scripts):
     assert saved["sc2_path"] == str(game)
     assert saved["map_file"] == str(map_file)
     assert all(Path(c["cwd"]) == repo for c in calls())
+    application_calls = [
+        c["args"] for c in calls() if "--check-config" in c["args"] or "--doctor" in c["args"]
+    ]
+    assert all(args[3:6] == ["python", "-m", "source.run_assistant"] for args in application_calls)
     result = run("Start.ps1", "-StartPaused", "-Opponent", "Zerg", "-Difficulty", "Hard")
     assert result.returncode == 0, result.stdout + result.stderr
     args = calls()[-1]["args"]
+    assert args[3:6] == ["python", "-m", "source.run_assistant"]
     assert "--no-sync" in args and "--locked" in args
     assert "--start-paused" in args
     assert args[args.index("--sc2-path") + 1] == str(game)

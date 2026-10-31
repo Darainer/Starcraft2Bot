@@ -1,0 +1,17 @@
+{
+  "status": "UNFINISHED_DO_NOT_LAUNCH_OR_PROMOTE",
+  "reason": "User requested session closeout; work and further launches stopped.",
+  "last_full_test_result": "429 passed before later gas-reservation arbitration changes",
+  "latest_focused_test_result": "21 passed,1 failed across22 first-tech investment cases; failure in gas reservation release test",
+  "remaining_gap": "Scoped gas reservation arbitration added to check/source but not fully verified; last gas-budget test failure unresolved. Latest check/source and staged/source deliberately differ; reconcile and retest before any promotion.",
+  "source_paths": {
+    "staged": ".local/staged/integrated-v5/source/economy_assistant.py",
+    "latest_unfinished": ".local/staged/integrated-v5-check/source/economy_assistant.py"
+  },
+  "source_sha256": {
+    ".local\\staged\\integrated-v5\\source\\economy_assistant.py": "a128044c6516e9fdf03ee41c11e682a839b5f56031728e9d28aafbf9ad6fb959",
+    ".local\\staged\\integrated-v5-check\\source\\economy_assistant.py": "2ec53a7c93af71ee058f7dd5d154f4940c84747d91a55cb93c142905eb26b7bb"
+  },
+  "live_launches": "NONE; no candidate snapshot or live integrated-v5 run",
+  "queued_launches": "NONE"
+}

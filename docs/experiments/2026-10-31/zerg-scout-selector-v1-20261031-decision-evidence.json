@@ -1,0 +1,1876 @@
+{
+  "scope": "Recorded candidate decisions and sampled delivery; no hidden opponent state or counterfactual outcomes. Early means are over fresh observed-force samples from180-360s, not independent battles or calibrated win probabilities.",
+  "candidate": "zerg-scout-selector-v1-20261031",
+  "source_commit": "b3aff99",
+  "records": [
+    {
+      "recording": "runtime-20261031-145009-490463-a8825c4b4fe14ed7aa0d7d595cc15991-001.json",
+      "build": "Macro",
+      "phase": "ended",
+      "result": "Result.Victory",
+      "last_sample_seconds": 1145.4,
+      "first_completed": {
+        "ROBOTICSFACILITY": 360.4,
+        "OBSERVER": 380.4,
+        "IMMORTAL": 410.4,
+        "ROBOTICSBAY": 520.4,
+        "COLOSSUS": 760.4
+      },
+      "first_roach_force_seconds": 305.4,
+      "first_home_threat_seconds": 315.4,
+      "switches": [
+        {
+          "sample_time": 0.0,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_warren_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline",
+          "plan_reason": "No sufficiently fresh positive opening evidence; retain R2 baseline"
+        },
+        {
+          "sample_time": 305.4,
+          "response": "early_robotics",
+          "hypothesis": "observed_roach_path_force",
+          "uncertainty": 0.25,
+          "first_pool_seen": null,
+          "first_warren_seen": null,
+          "first_expansion_seen": 295.7142857142857,
+          "observed_army_supply": 14.5,
+          "observed_roach_path_supply": 8.0,
+          "plan_response_policy": "early_robotics",
+          "plan_reason": "Fresh Roach/Ravager force supports a Robotics ground response"
+        },
+        {
+          "sample_time": 360.4,
+          "response": "baseline",
+          "hypothesis": "observed_roach_path_force",
+          "uncertainty": 0.25,
+          "first_pool_seen": null,
+          "first_warren_seen": null,
+          "first_expansion_seen": 295.7142857142857,
+          "observed_army_supply": 10.5,
+          "observed_roach_path_supply": 10.0,
+          "plan_response_policy": "baseline",
+          "plan_reason": "Fresh Roach/Ravager force supports a Robotics ground response"
+        }
+      ],
+      "horizons": {
+        "90": {
+          "sample_time": 85.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        },
+        "180": {
+          "sample_time": 175.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        },
+        "195": {
+          "sample_time": 190.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        },
+        "240": {
+          "sample_time": 235.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        },
+        "300": {
+          "sample_time": 295.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 2.0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        },
+        "360": {
+          "sample_time": 355.4,
+          "response": "early_robotics",
+          "hypothesis": "observed_roach_path_force",
+          "uncertainty": 0.25,
+          "first_pool_seen": null,
+          "first_expansion_seen": 295.7142857142857,
+          "observed_army_supply": 13.5,
+          "observed_roach_path_supply": 12.0,
+          "plan_response_policy": "early_robotics"
+        }
+      },
+      "early_counter_evidence_samples": 8,
+      "early_counter_sample_means": {
+        "planned_role_fit": 0.8169117505301716,
+        "delivered_role_readiness": 0.8536842105263158,
+        "ready_tech_target_fraction": 0.8422685185185185
+      }
+    },
+    {
+      "recording": "runtime-20261031-145009-490463-a8825c4b4fe14ed7aa0d7d595cc15991-002.json",
+      "build": "Macro",
+      "phase": "ended",
+      "result": "Result.Victory",
+      "last_sample_seconds": 1145.4,
+      "first_completed": {
+        "ROBOTICSFACILITY": 360.4,
+        "OBSERVER": 380.4,
+        "IMMORTAL": 410.4,
+        "ROBOTICSBAY": 520.4,
+        "COLOSSUS": 760.4
+      },
+      "first_roach_force_seconds": 305.4,
+      "first_home_threat_seconds": 315.4,
+      "switches": [
+        {
+          "sample_time": 0.0,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_warren_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline",
+          "plan_reason": "No sufficiently fresh positive opening evidence; retain R2 baseline"
+        },
+        {
+          "sample_time": 305.4,
+          "response": "early_robotics",
+          "hypothesis": "observed_roach_path_force",
+          "uncertainty": 0.25,
+          "first_pool_seen": null,
+          "first_warren_seen": null,
+          "first_expansion_seen": 295.7142857142857,
+          "observed_army_supply": 14.5,
+          "observed_roach_path_supply": 8.0,
+          "plan_response_policy": "early_robotics",
+          "plan_reason": "Fresh Roach/Ravager force supports a Robotics ground response"
+        },
+        {
+          "sample_time": 360.4,
+          "response": "baseline",
+          "hypothesis": "observed_roach_path_force",
+          "uncertainty": 0.25,
+          "first_pool_seen": null,
+          "first_warren_seen": null,
+          "first_expansion_seen": 295.7142857142857,
+          "observed_army_supply": 10.5,
+          "observed_roach_path_supply": 10.0,
+          "plan_response_policy": "baseline",
+          "plan_reason": "Fresh Roach/Ravager force supports a Robotics ground response"
+        }
+      ],
+      "horizons": {
+        "90": {
+          "sample_time": 85.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        },
+        "180": {
+          "sample_time": 175.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        },
+        "195": {
+          "sample_time": 190.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        },
+        "240": {
+          "sample_time": 235.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        },
+        "300": {
+          "sample_time": 295.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 2.0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        },
+        "360": {
+          "sample_time": 355.4,
+          "response": "early_robotics",
+          "hypothesis": "observed_roach_path_force",
+          "uncertainty": 0.25,
+          "first_pool_seen": null,
+          "first_expansion_seen": 295.7142857142857,
+          "observed_army_supply": 13.5,
+          "observed_roach_path_supply": 12.0,
+          "plan_response_policy": "early_robotics"
+        }
+      },
+      "early_counter_evidence_samples": 8,
+      "early_counter_sample_means": {
+        "planned_role_fit": 0.8169117505301716,
+        "delivered_role_readiness": 0.8536842105263158,
+        "ready_tech_target_fraction": 0.8422685185185185
+      }
+    },
+    {
+      "recording": "runtime-20261031-145009-490463-a8825c4b4fe14ed7aa0d7d595cc15991-003.json",
+      "build": "Macro",
+      "phase": "ended",
+      "result": "Result.Victory",
+      "last_sample_seconds": 1145.4,
+      "first_completed": {
+        "ROBOTICSFACILITY": 360.4,
+        "OBSERVER": 380.4,
+        "IMMORTAL": 410.4,
+        "ROBOTICSBAY": 520.4,
+        "COLOSSUS": 760.4
+      },
+      "first_roach_force_seconds": 305.4,
+      "first_home_threat_seconds": 315.4,
+      "switches": [
+        {
+          "sample_time": 0.0,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_warren_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline",
+          "plan_reason": "No sufficiently fresh positive opening evidence; retain R2 baseline"
+        },
+        {
+          "sample_time": 305.4,
+          "response": "early_robotics",
+          "hypothesis": "observed_roach_path_force",
+          "uncertainty": 0.25,
+          "first_pool_seen": null,
+          "first_warren_seen": null,
+          "first_expansion_seen": 295.7142857142857,
+          "observed_army_supply": 14.5,
+          "observed_roach_path_supply": 8.0,
+          "plan_response_policy": "early_robotics",
+          "plan_reason": "Fresh Roach/Ravager force supports a Robotics ground response"
+        },
+        {
+          "sample_time": 360.4,
+          "response": "baseline",
+          "hypothesis": "observed_roach_path_force",
+          "uncertainty": 0.25,
+          "first_pool_seen": null,
+          "first_warren_seen": null,
+          "first_expansion_seen": 295.7142857142857,
+          "observed_army_supply": 10.5,
+          "observed_roach_path_supply": 10.0,
+          "plan_response_policy": "baseline",
+          "plan_reason": "Fresh Roach/Ravager force supports a Robotics ground response"
+        }
+      ],
+      "horizons": {
+        "90": {
+          "sample_time": 85.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        },
+        "180": {
+          "sample_time": 175.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        },
+        "195": {
+          "sample_time": 190.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        },
+        "240": {
+          "sample_time": 235.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        },
+        "300": {
+          "sample_time": 295.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 2.0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        },
+        "360": {
+          "sample_time": 355.4,
+          "response": "early_robotics",
+          "hypothesis": "observed_roach_path_force",
+          "uncertainty": 0.25,
+          "first_pool_seen": null,
+          "first_expansion_seen": 295.7142857142857,
+          "observed_army_supply": 13.5,
+          "observed_roach_path_supply": 12.0,
+          "plan_response_policy": "early_robotics"
+        }
+      },
+      "early_counter_evidence_samples": 8,
+      "early_counter_sample_means": {
+        "planned_role_fit": 0.8169117505301716,
+        "delivered_role_readiness": 0.8536842105263158,
+        "ready_tech_target_fraction": 0.8422685185185185
+      }
+    },
+    {
+      "recording": "runtime-20261031-145020-935789-c62acd2a79e34d0d816718d10524b2ce-001.json",
+      "build": "Timing",
+      "phase": "ended",
+      "result": "Result.Victory",
+      "last_sample_seconds": 1050.4,
+      "first_completed": {
+        "ROBOTICSFACILITY": 195.4,
+        "OBSERVER": 215.4,
+        "IMMORTAL": 265.4
+      },
+      "first_roach_force_seconds": 240.4,
+      "first_home_threat_seconds": 195.4,
+      "switches": [
+        {
+          "sample_time": 0.0,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_warren_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline",
+          "plan_reason": "No sufficiently fresh positive opening evidence; retain R2 baseline"
+        },
+        {
+          "sample_time": 45.4,
+          "response": "early_robotics",
+          "hypothesis": "early_ground_technology",
+          "uncertainty": 0.65,
+          "first_pool_seen": 45.0,
+          "first_warren_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "early_robotics",
+          "plan_reason": "Early observed Pool supports a bounded ground-counter investment"
+        },
+        {
+          "sample_time": 230.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": 45.0,
+          "first_warren_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0.5,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline",
+          "plan_reason": "Early observed Pool supports a bounded ground-counter investment"
+        },
+        {
+          "sample_time": 240.4,
+          "response": "early_robotics",
+          "hypothesis": "observed_roach_path_force",
+          "uncertainty": 0.25,
+          "first_pool_seen": 45.0,
+          "first_warren_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 8.5,
+          "observed_roach_path_supply": 8.0,
+          "plan_response_policy": "early_robotics",
+          "plan_reason": "Fresh Roach/Ravager force supports a Robotics ground response"
+        },
+        {
+          "sample_time": 355.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": 45.0,
+          "first_warren_seen": null,
+          "first_expansion_seen": 268.92857142857144,
+          "observed_army_supply": 0.5,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline",
+          "plan_reason": "No sufficiently fresh positive opening evidence; retain R2 baseline"
+        }
+      ],
+      "horizons": {
+        "90": {
+          "sample_time": 85.4,
+          "response": "early_robotics",
+          "hypothesis": "early_ground_technology",
+          "uncertainty": 0.65,
+          "first_pool_seen": 45.0,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "early_robotics"
+        },
+        "180": {
+          "sample_time": 175.4,
+          "response": "early_robotics",
+          "hypothesis": "early_ground_technology",
+          "uncertainty": 0.65,
+          "first_pool_seen": 45.0,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "early_robotics"
+        },
+        "195": {
+          "sample_time": 190.4,
+          "response": "early_robotics",
+          "hypothesis": "early_ground_technology",
+          "uncertainty": 0.65,
+          "first_pool_seen": 45.0,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "early_robotics"
+        },
+        "240": {
+          "sample_time": 235.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": 45.0,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0.5,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        },
+        "300": {
+          "sample_time": 295.4,
+          "response": "early_robotics",
+          "hypothesis": "observed_roach_path_force",
+          "uncertainty": 0.25,
+          "first_pool_seen": 45.0,
+          "first_expansion_seen": 268.92857142857144,
+          "observed_army_supply": 21.0,
+          "observed_roach_path_supply": 20.0,
+          "plan_response_policy": "early_robotics"
+        },
+        "360": {
+          "sample_time": 355.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": 45.0,
+          "first_expansion_seen": 268.92857142857144,
+          "observed_army_supply": 0.5,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        }
+      },
+      "early_counter_evidence_samples": 14,
+      "early_counter_sample_means": {
+        "planned_role_fit": 0.7981558392659803,
+        "delivered_role_readiness": 0.49744508549453,
+        "ready_tech_target_fraction": 1.0
+      }
+    },
+    {
+      "recording": "runtime-20261031-145020-935789-c62acd2a79e34d0d816718d10524b2ce-002.json",
+      "build": "Timing",
+      "phase": "ended",
+      "result": "Result.Victory",
+      "last_sample_seconds": 1050.4,
+      "first_completed": {
+        "ROBOTICSFACILITY": 195.4,
+        "OBSERVER": 215.4,
+        "IMMORTAL": 265.4
+      },
+      "first_roach_force_seconds": 240.4,
+      "first_home_threat_seconds": 195.4,
+      "switches": [
+        {
+          "sample_time": 0.0,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_warren_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline",
+          "plan_reason": "No sufficiently fresh positive opening evidence; retain R2 baseline"
+        },
+        {
+          "sample_time": 45.4,
+          "response": "early_robotics",
+          "hypothesis": "early_ground_technology",
+          "uncertainty": 0.65,
+          "first_pool_seen": 45.0,
+          "first_warren_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "early_robotics",
+          "plan_reason": "Early observed Pool supports a bounded ground-counter investment"
+        },
+        {
+          "sample_time": 230.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": 45.0,
+          "first_warren_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0.5,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline",
+          "plan_reason": "Early observed Pool supports a bounded ground-counter investment"
+        },
+        {
+          "sample_time": 240.4,
+          "response": "early_robotics",
+          "hypothesis": "observed_roach_path_force",
+          "uncertainty": 0.25,
+          "first_pool_seen": 45.0,
+          "first_warren_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 8.5,
+          "observed_roach_path_supply": 8.0,
+          "plan_response_policy": "early_robotics",
+          "plan_reason": "Fresh Roach/Ravager force supports a Robotics ground response"
+        },
+        {
+          "sample_time": 355.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": 45.0,
+          "first_warren_seen": null,
+          "first_expansion_seen": 268.92857142857144,
+          "observed_army_supply": 0.5,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline",
+          "plan_reason": "No sufficiently fresh positive opening evidence; retain R2 baseline"
+        }
+      ],
+      "horizons": {
+        "90": {
+          "sample_time": 85.4,
+          "response": "early_robotics",
+          "hypothesis": "early_ground_technology",
+          "uncertainty": 0.65,
+          "first_pool_seen": 45.0,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "early_robotics"
+        },
+        "180": {
+          "sample_time": 175.4,
+          "response": "early_robotics",
+          "hypothesis": "early_ground_technology",
+          "uncertainty": 0.65,
+          "first_pool_seen": 45.0,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "early_robotics"
+        },
+        "195": {
+          "sample_time": 190.4,
+          "response": "early_robotics",
+          "hypothesis": "early_ground_technology",
+          "uncertainty": 0.65,
+          "first_pool_seen": 45.0,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "early_robotics"
+        },
+        "240": {
+          "sample_time": 235.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": 45.0,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0.5,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        },
+        "300": {
+          "sample_time": 295.4,
+          "response": "early_robotics",
+          "hypothesis": "observed_roach_path_force",
+          "uncertainty": 0.25,
+          "first_pool_seen": 45.0,
+          "first_expansion_seen": 268.92857142857144,
+          "observed_army_supply": 21.0,
+          "observed_roach_path_supply": 20.0,
+          "plan_response_policy": "early_robotics"
+        },
+        "360": {
+          "sample_time": 355.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": 45.0,
+          "first_expansion_seen": 268.92857142857144,
+          "observed_army_supply": 0.5,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        }
+      },
+      "early_counter_evidence_samples": 14,
+      "early_counter_sample_means": {
+        "planned_role_fit": 0.7981558392659803,
+        "delivered_role_readiness": 0.49744508549453,
+        "ready_tech_target_fraction": 1.0
+      }
+    },
+    {
+      "recording": "runtime-20261031-145020-935789-c62acd2a79e34d0d816718d10524b2ce-003.json",
+      "build": "Timing",
+      "phase": "ended",
+      "result": "Result.Victory",
+      "last_sample_seconds": 1050.4,
+      "first_completed": {
+        "ROBOTICSFACILITY": 195.4,
+        "OBSERVER": 215.4,
+        "IMMORTAL": 265.4
+      },
+      "first_roach_force_seconds": 240.4,
+      "first_home_threat_seconds": 195.4,
+      "switches": [
+        {
+          "sample_time": 0.0,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_warren_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline",
+          "plan_reason": "No sufficiently fresh positive opening evidence; retain R2 baseline"
+        },
+        {
+          "sample_time": 45.4,
+          "response": "early_robotics",
+          "hypothesis": "early_ground_technology",
+          "uncertainty": 0.65,
+          "first_pool_seen": 45.0,
+          "first_warren_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "early_robotics",
+          "plan_reason": "Early observed Pool supports a bounded ground-counter investment"
+        },
+        {
+          "sample_time": 230.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": 45.0,
+          "first_warren_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0.5,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline",
+          "plan_reason": "Early observed Pool supports a bounded ground-counter investment"
+        },
+        {
+          "sample_time": 240.4,
+          "response": "early_robotics",
+          "hypothesis": "observed_roach_path_force",
+          "uncertainty": 0.25,
+          "first_pool_seen": 45.0,
+          "first_warren_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 8.5,
+          "observed_roach_path_supply": 8.0,
+          "plan_response_policy": "early_robotics",
+          "plan_reason": "Fresh Roach/Ravager force supports a Robotics ground response"
+        },
+        {
+          "sample_time": 355.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": 45.0,
+          "first_warren_seen": null,
+          "first_expansion_seen": 268.92857142857144,
+          "observed_army_supply": 0.5,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline",
+          "plan_reason": "No sufficiently fresh positive opening evidence; retain R2 baseline"
+        }
+      ],
+      "horizons": {
+        "90": {
+          "sample_time": 85.4,
+          "response": "early_robotics",
+          "hypothesis": "early_ground_technology",
+          "uncertainty": 0.65,
+          "first_pool_seen": 45.0,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "early_robotics"
+        },
+        "180": {
+          "sample_time": 175.4,
+          "response": "early_robotics",
+          "hypothesis": "early_ground_technology",
+          "uncertainty": 0.65,
+          "first_pool_seen": 45.0,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "early_robotics"
+        },
+        "195": {
+          "sample_time": 190.4,
+          "response": "early_robotics",
+          "hypothesis": "early_ground_technology",
+          "uncertainty": 0.65,
+          "first_pool_seen": 45.0,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "early_robotics"
+        },
+        "240": {
+          "sample_time": 235.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": 45.0,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0.5,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        },
+        "300": {
+          "sample_time": 295.4,
+          "response": "early_robotics",
+          "hypothesis": "observed_roach_path_force",
+          "uncertainty": 0.25,
+          "first_pool_seen": 45.0,
+          "first_expansion_seen": 268.92857142857144,
+          "observed_army_supply": 21.0,
+          "observed_roach_path_supply": 20.0,
+          "plan_response_policy": "early_robotics"
+        },
+        "360": {
+          "sample_time": 355.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": 45.0,
+          "first_expansion_seen": 268.92857142857144,
+          "observed_army_supply": 0.5,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        }
+      },
+      "early_counter_evidence_samples": 14,
+      "early_counter_sample_means": {
+        "planned_role_fit": 0.7981558392659803,
+        "delivered_role_readiness": 0.49744508549453,
+        "ready_tech_target_fraction": 1.0
+      }
+    },
+    {
+      "recording": "runtime-20261031-145546-768785-3472a079070e4fe1a2b5bc2089c9d7b8-001.json",
+      "build": "Rush",
+      "phase": "ended",
+      "result": "Result.Victory",
+      "last_sample_seconds": 685.4,
+      "first_completed": {
+        "ROBOTICSFACILITY": 255.4,
+        "OBSERVER": 305.4,
+        "IMMORTAL": 350.4,
+        "ROBOTICSBAY": 490.4
+      },
+      "first_roach_force_seconds": 435.4,
+      "first_home_threat_seconds": 125.4,
+      "switches": [
+        {
+          "sample_time": 0.0,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_warren_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline",
+          "plan_reason": "No sufficiently fresh positive opening evidence; retain R2 baseline"
+        }
+      ],
+      "horizons": {
+        "90": {
+          "sample_time": 85.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        },
+        "180": {
+          "sample_time": 175.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        },
+        "195": {
+          "sample_time": 190.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        },
+        "240": {
+          "sample_time": 235.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        },
+        "300": {
+          "sample_time": 295.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_expansion_seen": 294.64285714285717,
+          "observed_army_supply": 0.5,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        },
+        "360": {
+          "sample_time": 355.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_expansion_seen": 294.64285714285717,
+          "observed_army_supply": 5.0,
+          "observed_roach_path_supply": 2.0,
+          "plan_response_policy": "baseline"
+        }
+      },
+      "early_counter_evidence_samples": 6,
+      "early_counter_sample_means": {
+        "planned_role_fit": 1.0,
+        "delivered_role_readiness": 1.0,
+        "ready_tech_target_fraction": 0.8595480225988701
+      }
+    },
+    {
+      "recording": "runtime-20261031-145546-768785-3472a079070e4fe1a2b5bc2089c9d7b8-002.json",
+      "build": "Rush",
+      "phase": "ended",
+      "result": "Result.Victory",
+      "last_sample_seconds": 685.4,
+      "first_completed": {
+        "ROBOTICSFACILITY": 255.4,
+        "OBSERVER": 305.4,
+        "IMMORTAL": 350.4,
+        "ROBOTICSBAY": 490.4
+      },
+      "first_roach_force_seconds": 435.4,
+      "first_home_threat_seconds": 125.4,
+      "switches": [
+        {
+          "sample_time": 0.0,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_warren_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline",
+          "plan_reason": "No sufficiently fresh positive opening evidence; retain R2 baseline"
+        }
+      ],
+      "horizons": {
+        "90": {
+          "sample_time": 85.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        },
+        "180": {
+          "sample_time": 175.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        },
+        "195": {
+          "sample_time": 190.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        },
+        "240": {
+          "sample_time": 235.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        },
+        "300": {
+          "sample_time": 295.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_expansion_seen": 294.64285714285717,
+          "observed_army_supply": 0.5,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        },
+        "360": {
+          "sample_time": 355.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_expansion_seen": 294.64285714285717,
+          "observed_army_supply": 5.0,
+          "observed_roach_path_supply": 2.0,
+          "plan_response_policy": "baseline"
+        }
+      },
+      "early_counter_evidence_samples": 6,
+      "early_counter_sample_means": {
+        "planned_role_fit": 1.0,
+        "delivered_role_readiness": 1.0,
+        "ready_tech_target_fraction": 0.8595480225988701
+      }
+    },
+    {
+      "recording": "runtime-20261031-145546-768785-3472a079070e4fe1a2b5bc2089c9d7b8-003.json",
+      "build": "Rush",
+      "phase": "ended",
+      "result": "Result.Victory",
+      "last_sample_seconds": 685.4,
+      "first_completed": {
+        "ROBOTICSFACILITY": 255.4,
+        "OBSERVER": 305.4,
+        "IMMORTAL": 350.4,
+        "ROBOTICSBAY": 490.4
+      },
+      "first_roach_force_seconds": 435.4,
+      "first_home_threat_seconds": 125.4,
+      "switches": [
+        {
+          "sample_time": 0.0,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_warren_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline",
+          "plan_reason": "No sufficiently fresh positive opening evidence; retain R2 baseline"
+        }
+      ],
+      "horizons": {
+        "90": {
+          "sample_time": 85.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        },
+        "180": {
+          "sample_time": 175.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        },
+        "195": {
+          "sample_time": 190.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        },
+        "240": {
+          "sample_time": 235.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        },
+        "300": {
+          "sample_time": 295.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_expansion_seen": 294.64285714285717,
+          "observed_army_supply": 0.5,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        },
+        "360": {
+          "sample_time": 355.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_expansion_seen": 294.64285714285717,
+          "observed_army_supply": 5.0,
+          "observed_roach_path_supply": 2.0,
+          "plan_response_policy": "baseline"
+        }
+      },
+      "early_counter_evidence_samples": 6,
+      "early_counter_sample_means": {
+        "planned_role_fit": 1.0,
+        "delivered_role_readiness": 1.0,
+        "ready_tech_target_fraction": 0.8595480225988701
+      }
+    },
+    {
+      "recording": "runtime-20261031-145557-987810-0c07c01cf52d410bbff7edae2d18dc72-001.json",
+      "build": "Power",
+      "phase": "ended",
+      "result": "Result.Victory",
+      "last_sample_seconds": 1070.4,
+      "first_completed": {
+        "ROBOTICSFACILITY": 340.4,
+        "OBSERVER": 360.4,
+        "IMMORTAL": 395.4,
+        "ROBOTICSBAY": 490.4,
+        "COLOSSUS": 625.4
+      },
+      "first_roach_force_seconds": 315.4,
+      "first_home_threat_seconds": 220.4,
+      "switches": [
+        {
+          "sample_time": 0.0,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_warren_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline",
+          "plan_reason": "No sufficiently fresh positive opening evidence; retain R2 baseline"
+        },
+        {
+          "sample_time": 315.4,
+          "response": "early_robotics",
+          "hypothesis": "observed_roach_path_force",
+          "uncertainty": 0.25,
+          "first_pool_seen": null,
+          "first_warren_seen": null,
+          "first_expansion_seen": 312.8571428571429,
+          "observed_army_supply": 24.0,
+          "observed_roach_path_supply": 16.0,
+          "plan_response_policy": "early_robotics",
+          "plan_reason": "Fresh Roach/Ravager force supports a Robotics ground response"
+        },
+        {
+          "sample_time": 360.4,
+          "response": "baseline",
+          "hypothesis": "observed_roach_path_force",
+          "uncertainty": 0.25,
+          "first_pool_seen": null,
+          "first_warren_seen": null,
+          "first_expansion_seen": 312.8571428571429,
+          "observed_army_supply": 24.0,
+          "observed_roach_path_supply": 18.0,
+          "plan_response_policy": "baseline",
+          "plan_reason": "Fresh Roach/Ravager force supports a Robotics ground response"
+        }
+      ],
+      "horizons": {
+        "90": {
+          "sample_time": 85.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        },
+        "180": {
+          "sample_time": 175.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        },
+        "195": {
+          "sample_time": 190.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        },
+        "240": {
+          "sample_time": 235.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0.5,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        },
+        "300": {
+          "sample_time": 295.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0.5,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        },
+        "360": {
+          "sample_time": 355.4,
+          "response": "early_robotics",
+          "hypothesis": "observed_roach_path_force",
+          "uncertainty": 0.25,
+          "first_pool_seen": null,
+          "first_expansion_seen": 312.8571428571429,
+          "observed_army_supply": 24.0,
+          "observed_roach_path_supply": 18.0,
+          "plan_response_policy": "early_robotics"
+        }
+      },
+      "early_counter_evidence_samples": 9,
+      "early_counter_sample_means": {
+        "planned_role_fit": 0.8480806642772024,
+        "delivered_role_readiness": 0.5258619705119859,
+        "ready_tech_target_fraction": 0.7842786069651742
+      }
+    },
+    {
+      "recording": "runtime-20261031-145557-987810-0c07c01cf52d410bbff7edae2d18dc72-002.json",
+      "build": "Power",
+      "phase": "ended",
+      "result": "Result.Victory",
+      "last_sample_seconds": 1070.4,
+      "first_completed": {
+        "ROBOTICSFACILITY": 340.4,
+        "OBSERVER": 360.4,
+        "IMMORTAL": 395.4,
+        "ROBOTICSBAY": 490.4,
+        "COLOSSUS": 625.4
+      },
+      "first_roach_force_seconds": 315.4,
+      "first_home_threat_seconds": 220.4,
+      "switches": [
+        {
+          "sample_time": 0.0,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_warren_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline",
+          "plan_reason": "No sufficiently fresh positive opening evidence; retain R2 baseline"
+        },
+        {
+          "sample_time": 315.4,
+          "response": "early_robotics",
+          "hypothesis": "observed_roach_path_force",
+          "uncertainty": 0.25,
+          "first_pool_seen": null,
+          "first_warren_seen": null,
+          "first_expansion_seen": 312.8571428571429,
+          "observed_army_supply": 24.0,
+          "observed_roach_path_supply": 16.0,
+          "plan_response_policy": "early_robotics",
+          "plan_reason": "Fresh Roach/Ravager force supports a Robotics ground response"
+        },
+        {
+          "sample_time": 360.4,
+          "response": "baseline",
+          "hypothesis": "observed_roach_path_force",
+          "uncertainty": 0.25,
+          "first_pool_seen": null,
+          "first_warren_seen": null,
+          "first_expansion_seen": 312.8571428571429,
+          "observed_army_supply": 24.0,
+          "observed_roach_path_supply": 18.0,
+          "plan_response_policy": "baseline",
+          "plan_reason": "Fresh Roach/Ravager force supports a Robotics ground response"
+        }
+      ],
+      "horizons": {
+        "90": {
+          "sample_time": 85.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        },
+        "180": {
+          "sample_time": 175.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        },
+        "195": {
+          "sample_time": 190.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        },
+        "240": {
+          "sample_time": 235.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0.5,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        },
+        "300": {
+          "sample_time": 295.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0.5,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        },
+        "360": {
+          "sample_time": 355.4,
+          "response": "early_robotics",
+          "hypothesis": "observed_roach_path_force",
+          "uncertainty": 0.25,
+          "first_pool_seen": null,
+          "first_expansion_seen": 312.8571428571429,
+          "observed_army_supply": 24.0,
+          "observed_roach_path_supply": 18.0,
+          "plan_response_policy": "early_robotics"
+        }
+      },
+      "early_counter_evidence_samples": 9,
+      "early_counter_sample_means": {
+        "planned_role_fit": 0.8480806642772024,
+        "delivered_role_readiness": 0.5258619705119859,
+        "ready_tech_target_fraction": 0.7842786069651742
+      }
+    },
+    {
+      "recording": "runtime-20261031-145557-987810-0c07c01cf52d410bbff7edae2d18dc72-003.json",
+      "build": "Power",
+      "phase": "ended",
+      "result": "Result.Victory",
+      "last_sample_seconds": 1070.4,
+      "first_completed": {
+        "ROBOTICSFACILITY": 340.4,
+        "OBSERVER": 360.4,
+        "IMMORTAL": 395.4,
+        "ROBOTICSBAY": 490.4,
+        "COLOSSUS": 625.4
+      },
+      "first_roach_force_seconds": 315.4,
+      "first_home_threat_seconds": 220.4,
+      "switches": [
+        {
+          "sample_time": 0.0,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_warren_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline",
+          "plan_reason": "No sufficiently fresh positive opening evidence; retain R2 baseline"
+        },
+        {
+          "sample_time": 315.4,
+          "response": "early_robotics",
+          "hypothesis": "observed_roach_path_force",
+          "uncertainty": 0.25,
+          "first_pool_seen": null,
+          "first_warren_seen": null,
+          "first_expansion_seen": 312.8571428571429,
+          "observed_army_supply": 24.0,
+          "observed_roach_path_supply": 16.0,
+          "plan_response_policy": "early_robotics",
+          "plan_reason": "Fresh Roach/Ravager force supports a Robotics ground response"
+        },
+        {
+          "sample_time": 360.4,
+          "response": "baseline",
+          "hypothesis": "observed_roach_path_force",
+          "uncertainty": 0.25,
+          "first_pool_seen": null,
+          "first_warren_seen": null,
+          "first_expansion_seen": 312.8571428571429,
+          "observed_army_supply": 24.0,
+          "observed_roach_path_supply": 18.0,
+          "plan_response_policy": "baseline",
+          "plan_reason": "Fresh Roach/Ravager force supports a Robotics ground response"
+        }
+      ],
+      "horizons": {
+        "90": {
+          "sample_time": 85.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        },
+        "180": {
+          "sample_time": 175.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        },
+        "195": {
+          "sample_time": 190.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        },
+        "240": {
+          "sample_time": 235.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0.5,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        },
+        "300": {
+          "sample_time": 295.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0.5,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        },
+        "360": {
+          "sample_time": 355.4,
+          "response": "early_robotics",
+          "hypothesis": "observed_roach_path_force",
+          "uncertainty": 0.25,
+          "first_pool_seen": null,
+          "first_expansion_seen": 312.8571428571429,
+          "observed_army_supply": 24.0,
+          "observed_roach_path_supply": 18.0,
+          "plan_response_policy": "early_robotics"
+        }
+      },
+      "early_counter_evidence_samples": 9,
+      "early_counter_sample_means": {
+        "planned_role_fit": 0.8480806642772024,
+        "delivered_role_readiness": 0.5258619705119859,
+        "ready_tech_target_fraction": 0.7842786069651742
+      }
+    },
+    {
+      "recording": "runtime-20261031-145607-807756-5612765ca4454dfd97758ffd1547a7b8-001.json",
+      "build": "Air",
+      "phase": "ended",
+      "result": "Result.Victory",
+      "last_sample_seconds": 480.4,
+      "first_completed": {
+        "ROBOTICSFACILITY": 450.4,
+        "OBSERVER": 460.4
+      },
+      "first_roach_force_seconds": 375.4,
+      "first_home_threat_seconds": null,
+      "switches": [
+        {
+          "sample_time": 0.0,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_warren_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline",
+          "plan_reason": "No sufficiently fresh positive opening evidence; retain R2 baseline"
+        }
+      ],
+      "horizons": {
+        "90": {
+          "sample_time": 85.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        },
+        "180": {
+          "sample_time": 175.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        },
+        "195": {
+          "sample_time": 190.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        },
+        "240": {
+          "sample_time": 235.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        },
+        "300": {
+          "sample_time": 295.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_expansion_seen": 294.64285714285717,
+          "observed_army_supply": 2.0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        },
+        "360": {
+          "sample_time": 355.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": 346.0714285714286,
+          "first_expansion_seen": 294.64285714285717,
+          "observed_army_supply": 8.5,
+          "observed_roach_path_supply": 2.0,
+          "plan_response_policy": "baseline"
+        }
+      },
+      "early_counter_evidence_samples": 6,
+      "early_counter_sample_means": {
+        "planned_role_fit": 0.9333333333333333,
+        "delivered_role_readiness": 1.0,
+        "ready_tech_target_fraction": 0.8264406779661018
+      }
+    },
+    {
+      "recording": "runtime-20261031-145607-807756-5612765ca4454dfd97758ffd1547a7b8-002.json",
+      "build": "Air",
+      "phase": "ended",
+      "result": "Result.Victory",
+      "last_sample_seconds": 480.4,
+      "first_completed": {
+        "ROBOTICSFACILITY": 450.4,
+        "OBSERVER": 460.4
+      },
+      "first_roach_force_seconds": 375.4,
+      "first_home_threat_seconds": null,
+      "switches": [
+        {
+          "sample_time": 0.0,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_warren_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline",
+          "plan_reason": "No sufficiently fresh positive opening evidence; retain R2 baseline"
+        }
+      ],
+      "horizons": {
+        "90": {
+          "sample_time": 85.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        },
+        "180": {
+          "sample_time": 175.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        },
+        "195": {
+          "sample_time": 190.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        },
+        "240": {
+          "sample_time": 235.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        },
+        "300": {
+          "sample_time": 295.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_expansion_seen": 294.64285714285717,
+          "observed_army_supply": 2.0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        },
+        "360": {
+          "sample_time": 355.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": 346.0714285714286,
+          "first_expansion_seen": 294.64285714285717,
+          "observed_army_supply": 8.5,
+          "observed_roach_path_supply": 2.0,
+          "plan_response_policy": "baseline"
+        }
+      },
+      "early_counter_evidence_samples": 6,
+      "early_counter_sample_means": {
+        "planned_role_fit": 0.9333333333333333,
+        "delivered_role_readiness": 1.0,
+        "ready_tech_target_fraction": 0.8264406779661018
+      }
+    },
+    {
+      "recording": "runtime-20261031-145607-807756-5612765ca4454dfd97758ffd1547a7b8-003.json",
+      "build": "Air",
+      "phase": "ended",
+      "result": "Result.Victory",
+      "last_sample_seconds": 480.4,
+      "first_completed": {
+        "ROBOTICSFACILITY": 450.4,
+        "OBSERVER": 460.4
+      },
+      "first_roach_force_seconds": 375.4,
+      "first_home_threat_seconds": null,
+      "switches": [
+        {
+          "sample_time": 0.0,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_warren_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline",
+          "plan_reason": "No sufficiently fresh positive opening evidence; retain R2 baseline"
+        }
+      ],
+      "horizons": {
+        "90": {
+          "sample_time": 85.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        },
+        "180": {
+          "sample_time": 175.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        },
+        "195": {
+          "sample_time": 190.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        },
+        "240": {
+          "sample_time": 235.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_expansion_seen": null,
+          "observed_army_supply": 0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        },
+        "300": {
+          "sample_time": 295.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": null,
+          "first_expansion_seen": 294.64285714285717,
+          "observed_army_supply": 2.0,
+          "observed_roach_path_supply": 0,
+          "plan_response_policy": "baseline"
+        },
+        "360": {
+          "sample_time": 355.4,
+          "response": "baseline",
+          "hypothesis": "unresolved",
+          "uncertainty": 1.0,
+          "first_pool_seen": 346.0714285714286,
+          "first_expansion_seen": 294.64285714285717,
+          "observed_army_supply": 8.5,
+          "observed_roach_path_supply": 2.0,
+          "plan_response_policy": "baseline"
+        }
+      },
+      "early_counter_evidence_samples": 6,
+      "early_counter_sample_means": {
+        "planned_role_fit": 0.9333333333333333,
+        "delivered_role_readiness": 1.0,
+        "ready_tech_target_fraction": 0.8264406779661018
+      }
+    }
+  ]
+}

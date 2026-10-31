@@ -1,0 +1,3152 @@
+diff --git a/AGENTS.md b/AGENTS.md
+index 60bb7fc..b970d84 100644
+--- a/AGENTS.md
++++ b/AGENTS.md
+@@ -26,11 +26,16 @@ retail binary first. Preserve local changes when updating the checkout.
+ - The current requested suite is pressure versus VeryHard Terran and Zerg, three
+   repeats of each explicit build (Rush, Timing, Power, Macro, Air): 30 games with
+   three clients for the first Rush batch, then five concurrent clients for the
+-  remaining scenarios (user instruction). Five live Windows clients were verified
+-  on 2026-10-25; use up to five subsequently, keeping three repeats per scenario.
++  remaining scenarios (original user instruction). The user subsequently approved
++  eight concurrent clients on 2026-10-27; eight is now the global live-client limit,
++  keeping three repeats per scenario. The trial runner supports that limit.
++  On 2026-10-27 the user explicitly replaced mandatory full-matrix evaluation of
++  poor candidates with short targeted trials and early rejection. Freeze gameplay
++  within each trial batch; run broader regression tests only after a candidate
++  improves its targeted failure. Do not spend thirty games confirming a poor change.
+   Concurrency may cross scenario boundaries. Individual games slow under load;
+   do not claim a net speedup without a matched throughput comparison. Finish the
+-  matrix before tuning.
++  targeted batch before tuning; intentionally aborted trials must remain labeled.
+   Retain separate logs/reports/replays and record results by gameplay revision.
+   Repeated fixed-seed starts measure reproducibility, not 30 independent scenarios.
+ - Do not call `--probe` a gameplay acceptance test. Never infer human input works
+diff --git a/Setup.ps1 b/Setup.ps1
+index 6df386a..2b57e45 100644
+--- a/Setup.ps1
++++ b/Setup.ps1
+@@ -69,7 +69,7 @@ try {
+         Push-Location -LiteralPath $RepoRoot
+         try {
+             Invoke-Uv sync --locked --python 3.12
+-            Invoke-Uv run --locked --no-sync sc2-assistant --check-config --config config/assistant.example.json
++            Invoke-Uv run --locked --no-sync python -m source.run_assistant --check-config --config config/assistant.example.json
+             foreach ($Directory in @('maps', 'logs', 'replays', '.local')) {
+                 $null = New-Item -ItemType Directory -Force -Path $Directory
+             }
+@@ -95,7 +95,7 @@ try {
+                     }
+                 }
+             }
+-            $DoctorArgs = @('run', '--locked', '--no-sync', 'sc2-assistant', '--doctor', '--map-file', $MapFile)
++            $DoctorArgs = @('run', '--locked', '--no-sync', 'python', '-m', 'source.run_assistant', '--doctor', '--map-file', $MapFile)
+             if ($Sc2Path) { $DoctorArgs += @('--sc2-path', $Sc2Path) }
+             $Doctor = (Invoke-Uv @DoctorArgs) -join "`n" | ConvertFrom-Json
+             if (-not $Doctor.preflight_ok) { throw 'SC2/map preflight did not pass.' }
+diff --git a/Start.ps1 b/Start.ps1
+index 33828df..9111fdc 100644
+--- a/Start.ps1
++++ b/Start.ps1
+@@ -48,7 +48,7 @@ try {
+     if ($ConfigFile) { $ConfigFile = (Resolve-Path -LiteralPath $ConfigFile).ProviderPath }
+     else { $ConfigFile = Join-Path $RepoRoot 'config/assistant.example.json' }
+     if ($StrategyScript) { $StrategyScript = (Resolve-Path -LiteralPath $StrategyScript).ProviderPath }
+-    $LaunchArgs = @('run', '--locked', '--no-sync', 'sc2-assistant', '--sc2-path', $Sc2Path,
++    $LaunchArgs = @('run', '--locked', '--no-sync', 'python', '-m', 'source.run_assistant', '--sc2-path', $Sc2Path,
+         '--sc2-version', $Sc2Version, '--config', $ConfigFile)
+     if ($Probe) { $LaunchArgs += '--probe' }
+     else {
+diff --git a/source/action_intents.py b/source/action_intents.py
+index df927ec..c3cd04e 100644
+--- a/source/action_intents.py
++++ b/source/action_intents.py
+@@ -65,6 +65,19 @@ class ActionExecutor:
+                 unit.orders
+                 and isinstance(unit.order_target, Point2)
+                 and unit.order_target.distance_to(point) < 1
++                and (
++                    unit.is_flying
++                    or (
++                        (
++                            area is None
++                            or (
++                                area.x <= unit.order_target.x < area.x + area.width
++                                and area.y <= unit.order_target.y < area.y + area.height
++                            )
++                        )
++                        and bot.in_pathing_grid(unit.order_target)
++                    )
++                )
+             ):
+                 # Only suppress a matching action; retreat must replace attack-move.
+                 current_move = unit.is_moving
+diff --git a/source/army_waves.py b/source/army_waves.py
+index b89f34c..0d56cda 100644
+--- a/source/army_waves.py
++++ b/source/army_waves.py
+@@ -1,6 +1,7 @@
+ """Persistent army cohorts, assembly gates, role formations and reinforcement batches."""
+ 
+ from collections import Counter
++from math import ceil, cos, pi, sin
+ from statistics import median
+ 
+ from sc2.ids.unit_typeid import UnitTypeId as U
+@@ -22,6 +23,54 @@ def staging_slot(index, total, rally):
+     return rally.offset(((column - (columns - 1) / 2) * 1.8, (row - (rows - 1) / 2) * 1.8))
+ 
+ 
++def terrain_destination(bot, unit, point, goal):
++    """Use engine pathfinding to a real goal when a geometric slot crosses terrain."""
++    area = getattr(bot.game_info, "playable_area", None)
++
++    def inside(position):
++        return area is None or (
++            area.x <= position.x < area.x + area.width and area.y <= position.y < area.y + area.height
++        )
++
++    if unit.is_flying:
++        if inside(point):
++            return point
++        if inside(goal):
++            return goal
++        return Point2(
++            (
++                min(max(goal.x, area.x), area.x + area.width - 0.001),
++                min(max(goal.y, area.y), area.y + area.height - 0.001),
++            )
++        )
++
++    def walkable(position):
++        return (
++            area is None
++            or (area.x <= position.x < area.x + area.width and area.y <= position.y < area.y + area.height)
++        ) and bot.in_pathing_grid(position)
++
++    origin = unit.position
++    steps = max(1, ceil(origin.distance_to(point)))
++    if all(
++        walkable(
++            Point2((origin.x + (point.x - origin.x) * i / steps, origin.y + (point.y - origin.y) * i / steps))
++        )
++        for i in range(1, steps + 1)
++    ):
++        return point
++    # The engine can route around the obstruction to this destination. Do not
++    # substitute another straight-line intermediate on the same blocked ray.
++    if walkable(goal):
++        return goal
++    for radius in (2, 4, 6, 8):
++        candidates = [goal.offset((cos(i * pi / 8) * radius, sin(i * pi / 8) * radius)) for i in range(16)]
++        valid = [candidate for candidate in candidates if walkable(candidate)]
++        if valid:
++            return min(valid, key=lambda candidate: (unit.distance_to(candidate), candidate.x, candidate.y))
++    return origin
++
++
+ class ArmyWaves:
+     def __init__(self):
+         self.members = set()
+@@ -173,6 +222,22 @@ class ArmyWaves:
+                 if coherent
+                 else "Wait for stragglers before advancing"
+             )
++        # Never leave an army attacking an unreachable geometric formation
++        # slot: short points on a cliff can strand it beside the intended route.
++        by_tag = {unit.tag: unit for unit in units}
++        for tag, (mode, point) in list(destinations.items()):
++            goal = (
++                rally
++                if self.phase == "assemble"
++                else self.regroup_anchor or rally
++                if self.phase == "regroup"
++                else objective
++                if tag in self.members
++                else self.center or objective
++                if tag in self.reinforcements
++                else rally
++            )
++            destinations[tag] = (mode, terrain_destination(bot, by_tag[tag], point, goal))
+         state = {
+             "id": self.wave_id,
+             "phase": self.phase,
+diff --git a/source/economy_assistant.py b/source/economy_assistant.py
+index 6f0b15b..bf1a415 100644
+--- a/source/economy_assistant.py
++++ b/source/economy_assistant.py
+@@ -4,6 +4,7 @@ import math
+ 
+ from loguru import logger
+ from sc2.bot_ai import BotAI
++from sc2.data import Race
+ from sc2.ids.ability_id import AbilityId as A
+ from sc2.ids.buff_id import BuffId
+ from sc2.ids.unit_typeid import UnitTypeId as U
+@@ -14,6 +15,7 @@ from source.assistant_control import Control, within_budget
+ from source.combat_assessment import visible_threats
+ from source.composition import composition_targets, production_target
+ from source.layout import find_spaced_placement
++from source.strategy_profiles import PROFILES
+ 
+ ARMY_TARGETS = {
+     U.ZEALOT: "zealots",
+@@ -122,6 +124,13 @@ class EconomyAssistant(BotAI):
+ 
+     def affordable(self, item, extra_minerals=0):
+         cost = self.calculate_cost(item)
++        investment = getattr(self, "_first_tech_reservation", None)
++        if (
++            investment is not None
++            and item != investment[0]
++            and self.vespene - cost.vespene < self.settings.reserve_gas + investment[1]
++        ):
++            return False
+         return self.can_afford(item) and within_budget(
+             self.minerals, self.vespene, cost.minerals, cost.vespene, self.settings, extra_minerals
+         )
+@@ -205,12 +214,16 @@ class EconomyAssistant(BotAI):
+         workers = self.workers.filter(lambda w: self.available(w) and (w.is_idle or w.is_gathering))
+         return workers.closest_to(point) if workers else None
+ 
+-    async def safe_expansion_location(self, reference):
++    async def safe_expansion_location(self, reference, require_minerals=False):
+         preferred = await self.get_next_expansion()
+         candidates = ([preferred] if preferred else []) + sorted(
+             self.expansion_locations_list, key=reference.distance_to
+         )
+         for location in candidates:
++            if require_minerals and not self.mineral_field.closer_than(10, location).filter(
++                lambda patch: patch.mineral_contents > 0
++            ):
++                continue
+             if any(base.distance_to(location) < 10 for base in self.townhalls):
+                 continue
+             if self.enemy_structures.closer_than(10, location):
+@@ -322,7 +335,36 @@ class EconomyAssistant(BotAI):
+     async def macro(self):
+         """At most one paid action per macro tick, plus periodic worker allocation."""
+         s = self.settings
++        self._first_tech_reservation = None
+         bases = self.townhalls.ready
++        contacts = visible_threats(self)
++        early_contact = self.time < 180 and any(
++            any(enemy.distance_to(base) < 32 for base in bases) for enemy in contacts
++        )
++        completed_supply = sum(
++            self.calculate_supply_cost(unit.type_id)
++            for unit in self.units.of_type(set(ARMY_TARGETS)).ready
++            if unit.can_attack
++        )
++        requested_supply = sum(
++            production_target(self, name) * self.calculate_supply_cost(kind)
++            for kind, name in ARMY_TARGETS.items()
++            if kind in {U.ZEALOT, U.STALKER}
++        )
++        first_defender = (
++            self.enemy_race == Race.Zerg
++            and s.attack
++            and s.production
++            and self.time < 180
++            and requested_supply > 0
++            and (completed_supply < min(6, requested_supply) or early_contact)
++        )
++        self.opening_phase = (
++            "defend" if first_defender and early_contact else "first_force" if first_defender else "complete"
++        )
++        self._opening_reserve = 0
++        if not first_defender:
++            self.opening_defense_anchor = None
+         self._macro_reserve = 0
+         base_target = s.bases
+         capacity = len(self.structures.of_type(set(PRODUCERS) | {U.WARPGATE}))
+@@ -336,14 +378,26 @@ class EconomyAssistant(BotAI):
+             return
+         home = bases.closest_to(self.start_location)
+         safe_bases = bases.filter(lambda base: self.safe_at(base.position))
++        core_priority = (
++            first_defender
++            and not early_contact
++            and s.construction
++            and self.units(U.ZEALOT).amount + self.already_pending(U.ZEALOT) >= 2
++            and not self.structures(U.CYBERNETICSCORE)
++            and not self.already_pending(U.CYBERNETICSCORE)
++        )
++        if first_defender and not core_priority and self.produce_opening_defender():
++            return
+         if not safe_bases:
++            if first_defender and s.construction and await self.opening_battery(home, contacts):
++                return
+             if s.supply and self.supply_cap < 200 and need_supply:
+                 safe_pylons = self.structures(U.PYLON).ready.filter(
+                     lambda pylon: self.safe_at(pylon.position)
+                 )
+                 if await self.build_supply_pylons([pylon.position for pylon in safe_pylons], pylon_target):
+                     return
+-            if self.economic_emergency and s.production and self.produce(0):
++            if not first_defender and self.economic_emergency and s.production and self.produce(0):
+                 return
+             if (
+                 s.expansion
+@@ -351,6 +405,7 @@ class EconomyAssistant(BotAI):
+                 and not self.already_pending(U.NEXUS)
+                 and self.supply_workers >= 14
+                 and not self.economic_emergency
++                and not first_defender
+                 and (self.strategic_plan is None or self.strategic_plan.expand)
+             ):
+                 location = await self.safe_expansion_location(self.start_location)
+@@ -362,6 +417,31 @@ class EconomyAssistant(BotAI):
+                     return
+             return
+         home = safe_bases.closest_to(home)
++        # Saturation falls as mineral patches disappear. Saving for a replacement
++        # mineral line must not require training up to the normal expansion gate:
++        # that same depleted saturation also prevents producing more workers.
++        depleted_income = (
++            self.time >= 360
++            and any(base.ideal_harvesters < 8 for base in safe_bases)
++            and sum(base.ideal_harvesters for base in safe_bases) < max(8, self.supply_workers * 0.6)
++        )
++        if (
++            depleted_income
++            and s.expansion
++            and self.townhalls.amount < base_target
++            and not self.already_pending(U.NEXUS)
++            and self.supply_workers >= 14
++            and not self.economic_emergency
++            and (self.strategic_plan is None or self.strategic_plan.expand)
++            and (not s.attack or self.supply_army >= 12)
++        ):
++            location = await self.safe_expansion_location(home.position, require_minerals=True)
++            if location and self.builder(location):
++                self._macro_reserve = 400
++                if not self.affordable(U.NEXUS):
++                    return  # Retain the remaining bank instead of spending the recovery fund.
++                if await self.build_structure(U.NEXUS, location, max_distance=2):
++                    return
+         # Spending/building first prevents allocation from claiming every idle builder.
+         if (
+             s.supply
+@@ -378,6 +458,21 @@ class EconomyAssistant(BotAI):
+             if not self.already_pending(U.PYLON) and not self.affordable(U.PYLON):
+                 self._macro_reserve = self.calculate_cost(U.PYLON).minerals
+                 return  # Save for supply instead of repeatedly spending on probes.
++        if first_defender and s.construction:
++            gateways = self.structures(U.GATEWAY) | self.structures(U.WARPGATE)
++            count = len(gateways) + sum(
++                kind == U.GATEWAY and expiry > self.time and not gateways.closer_than(2, point)
++                for kind, point, expiry in self.construction_reservations.values()
++            )
++            if count == 1 and self.structures(U.PYLON).ready:
++                self._macro_reserve = 150
++                if self.affordable(U.GATEWAY):
++                    pylons = self.structures(U.PYLON).ready.filter(lambda p: self.safe_at(p.position))
++                    if pylons:
++                        await self.build_structure(
++                            U.GATEWAY, pylons.closest_to(home).position, allow_pending=True
++                        )
++                return  # Complete parallel capacity before Core/worker/natural investment.
+         if s.construction:
+             for kind, prerequisite in ((U.GATEWAY, U.PYLON), (U.CYBERNETICSCORE, U.GATEWAY)):
+                 if (
+@@ -387,12 +482,24 @@ class EconomyAssistant(BotAI):
+                     and self.structures(prerequisite).ready
+                 ):
+                     self._macro_reserve = self.calculate_cost(kind).minerals
+-                    pylons = self.structures(U.PYLON).ready
+-                    if pylons and await self.build_structure(kind, pylons.closest_to(home).position):
+-                        return
++                    pylons = self.structures(U.PYLON).ready.filter(lambda p: self.safe_at(p.position))
++                    # The opening can hold production while funding this tech.
++                    # A crowded closest Pylon must not hide another powered site.
++                    for pylon in pylons.sorted_by_distance_to(home):
++                        if await self.build_structure(kind, pylon.position):
++                            return
+                     if self.minerals < self.calculate_cost(kind).minerals:
+                         return
+-        if self.economic_emergency:
++        # A legal first tech counter is an explicit investment, not an
++        # affordability fallback. Urgent supply and depleted-income recovery
++        # above retain priority; powerless/human-owned/blocked tech never locks
++        # this budget. Very low worker counts retain their recovery economy.
++        investment = self.first_tech_combat()
++        if investment is not None and not (early_contact and completed_supply < 6):
++            self._macro_reserve = self.calculate_cost(investment[1]).minerals
++            self.produce(0)
++            return
++        if self.economic_emergency and not first_defender:
+             if s.production and self.produce(0):
+                 return
+             if s.construction and await self.construct(home, 0, army_only=True):
+@@ -406,16 +513,17 @@ class EconomyAssistant(BotAI):
+             for nexus in safe_bases.idle:
+                 if (
+                     self.available(nexus)
+-                    and self.affordable(U.PROBE)
++                    and self.affordable(U.PROBE, self._opening_reserve)
+                     and self.issue(nexus.train(U.PROBE), paid=True, supply=True)
+                 ):
+                     return
+         gas_limit = min(2 * len(bases), max(1, int((self.supply_workers - 12) / 8)))
++        active_gases = self.gas_buildings.filter(lambda gas: not gas.is_ready or gas.vespene_contents > 0)
+         if (
+             s.gas
+             and (self.structures(U.GATEWAY) or self.structures(U.CYBERNETICSCORE))
+-            and len(self.gas_buildings) < gas_limit
+-            and (not self.gas_buildings or self.vespene < max(300, self.minerals))
++            and len(active_gases) < gas_limit
++            and (not active_gases or self.vespene < max(300, self.minerals))
+             and not self.already_pending(U.ASSIMILATOR)
+         ):
+             for base in safe_bases:
+@@ -429,6 +537,20 @@ class EconomyAssistant(BotAI):
+                         and self.issue(worker.build_gas(geyser), paid=True)
+                     ):
+                         return
++        if first_defender:
++            if s.construction and await self.opening_battery(home, contacts):
++                return
++            if (
++                early_contact
++                and s.construction
++                and len(self.structures(U.GATEWAY) | self.structures(U.WARPGATE)) < 2
++                and not self.already_pending(U.GATEWAY)
++                and self.affordable(U.GATEWAY, self._opening_reserve)
++            ):
++                pylons = self.structures(U.PYLON).ready.filter(lambda p: self.safe_at(p.position))
++                if pylons:
++                    await self.build_structure(U.GATEWAY, pylons.closest_to(home).position)
++            return  # Retain the defense fund; do not buy technology or a natural.
+         # Get a useful opening defense before saving for a natural in auto play.
+         if s.attack and s.production and self.structures(U.CYBERNETICSCORE).ready:
+             fighting_supply = sum(
+@@ -442,6 +564,7 @@ class EconomyAssistant(BotAI):
+             and self.townhalls.amount < base_target
+             and not self.already_pending(U.NEXUS)
+             and not self.economic_emergency
++            and not first_defender
+             and (self.strategic_plan is None or self.strategic_plan.expand)
+             and (self.structures(U.GATEWAY) or self.structures(U.CYBERNETICSCORE))
+             and self.supply_workers >= (16 if len(bases) == 1 else 20 * len(bases) - 2)
+@@ -472,6 +595,71 @@ class EconomyAssistant(BotAI):
+             self.produce(expansion_reserve)
+         # Also runs in on_step after paid actions via the separate allocation clock.
+ 
++    def produce_opening_defender(self):
++        """A legal first force; avoid spending its Stalker gas on support units."""
++        gateways = self.structures(U.GATEWAY).ready.idle.filter(
++            lambda gateway: (
++                gateway.is_powered
++                and self.available(gateway)
++                and self._blocked_producers.get(gateway.tag, 0) <= self.time
++            )
++        )
++        if not gateways:
++            return False
++        kinds = [U.STALKER, U.ZEALOT] if self.structures(U.CYBERNETICSCORE).ready else [U.ZEALOT]
++        for kind in kinds:
++            target = production_target(self, ARMY_TARGETS[kind])
++            if target <= self.units(kind).amount + self.already_pending(kind):
++                continue
++            if self.tech_requirement_progress(kind) < 1:
++                continue
++            self._opening_reserve = self.calculate_cost(kind).minerals
++            if self.affordable(kind) and self.issue(gateways.first.train(kind), paid=True, supply=True):
++                self._last_production = self.time
++                return True
++            return False  # Preserve this legal defender's budget instead of buying a Sentry.
++        return False
++
++    async def opening_battery(self, home, contacts):
++        """Protected powered placements; the front Pylon need not hug the Nexus."""
++        batteries = self.structures(U.SHIELDBATTERY).closer_than(14, home)
++        ready = batteries.ready.filter(lambda battery: battery.is_powered)
++        if ready:
++            battery = ready.closest_to(home)
++            if battery.distance_to(home) <= 6 + home.radius:
++                anchor = battery.position.towards(home.position, min(3, battery.distance_to(home)))
++                if self.in_pathing_grid(anchor) and self.is_visible(anchor):
++                    self.opening_defense_anchor = tuple(anchor)
++        if batteries or self.already_pending(U.SHIELDBATTERY):
++            return False
++        direction = contacts.closest_to(home).position if contacts else self.game_info.map_center
++        hold = home.position.towards(
++            self.game_info.map_center, max(8, PROFILES[self.settings.profile]["rally_distance"])
++        )
++        forward = self.structures(U.PYLON).ready.closest_to(hold) if self.structures(U.PYLON).ready else None
++        anchors = [home.position.towards(forward.position, 3.5)] if forward else []
++        anchors += [home.position.offset(offset) for offset in ((6, 0), (-6, 0), (0, 6), (0, -6))]
++        anchors.sort(key=lambda point: max(point.distance_to(home), point.distance_to(hold)))
++        if self.structures(U.CYBERNETICSCORE).ready and self.affordable(
++            U.SHIELDBATTERY, self._opening_reserve
++        ):
++            for anchor in anchors:
++                point = await find_spaced_placement(self, U.SHIELDBATTERY, anchor, 4)
++                if (
++                    point is not None
++                    and self.state.psionic_matrix.covers(point)
++                    and point.distance_to(home) <= 6 + home.radius
++                    and self.safe_at(point)
++                    and await self.build_structure(U.SHIELDBATTERY, point, max_distance=0)
++                ):
++                    return True
++        # Protect a location before contact makes the exposed front power unusable.
++        if self.settings.supply and not self.already_pending(U.PYLON):
++            rear = home.position.towards(direction, -8)
++            if not self.state.psionic_matrix.covers(rear) and self.affordable(U.PYLON, self._opening_reserve):
++                return await self.build_structure(U.PYLON, rear, max_distance=4)
++        return False
++
+     async def build_supply_pylons(self, anchors, target):
+         if self.already_pending(U.PYLON) >= target:
+             return False
+@@ -559,7 +747,78 @@ class EconomyAssistant(BotAI):
+                 return True
+         return False
+ 
++    def first_tech_combat(self):
++        """Choose an attainable first combat milestone; queued orders are not effects."""
++        self._first_tech_reservation = None
++        if not (self.settings.enabled and self.settings.attack and self.settings.production):
++            return None
++        seen = getattr(self, "_first_tech_combat_seen", set())
++        for kind in (U.STALKER, U.IMMORTAL, U.OBSERVER):
++            if self.units(kind):
++                seen.add(kind)
++        self._first_tech_combat_seen = seen
++        if self.supply_workers < 12:
++            return None
++        if (
++            self.economic_emergency
++            and sum(
++                self.calculate_supply_cost(u.type_id)
++                for u in self.units.of_type(set(ARMY_TARGETS)).ready
++                if u.can_attack
++            )
++            < 6
++        ):
++            return None
++        choices = [(U.GATEWAY, U.STALKER)]
++        if self.settings.scouting and production_target(self, "observers") > 0 and U.OBSERVER not in seen:
++            choices.append((U.ROBOTICSFACILITY, U.OBSERVER))
++        choices.append((U.ROBOTICSFACILITY, U.IMMORTAL))
++        for producer, kind in choices:
++            if (
++                kind in seen
++                or self.already_pending(kind)
++                or production_target(self, PRODUCTION_TARGETS[kind]) <= 0
++            ):
++                continue
++            prerequisite = U.CYBERNETICSCORE if kind == U.STALKER else U.ROBOTICSFACILITY
++            if not self.structures(prerequisite).ready or self.tech_requirement_progress(kind) < 1:
++                continue
++            buildings = self.structures(producer).ready.idle.filter(
++                lambda b: (
++                    b.is_powered and self.available(b) and self._blocked_producers.get(b.tag, 0) <= self.time
++                )
++            )
++            if not buildings or self.supply_left < self.calculate_supply_cost(kind):
++                continue
++            cost = self.calculate_cost(kind)
++            # Do not mortgage minerals/gas that cannot currently be earned.
++            # Allocation and replacement gas must be allowed to establish income.
++            mineral_need = cost.minerals + self.settings.reserve_minerals
++            gas_need = cost.vespene + self.settings.reserve_gas
++            if self.minerals < mineral_need and not any(
++                b.ideal_harvesters > 0 and b.assigned_harvesters > 0 for b in self.townhalls.ready
++            ):
++                continue
++            if self.vespene < gas_need and not (
++                self.settings.gas
++                and any(
++                    g.vespene_contents > 0 and g.assigned_harvesters > 0 for g in self.gas_buildings.ready
++                )
++            ):
++                continue
++            self._first_tech_reservation = (kind, cost.vespene)
++            return buildings.first, kind
++        return None
++
+     def produce(self, reserve):
++        investment = self.first_tech_combat()
++        if investment is not None:
++            building, kind = investment
++            self._macro_reserve = max(getattr(self, "_macro_reserve", 0), self.calculate_cost(kind).minerals)
++            if self.affordable(kind, reserve) and self.issue(building.train(kind), paid=True, supply=True):
++                self._last_production = self.time
++                return True
++            return False
+         producers = list(PRODUCERS.items())
+         order = producers[self._production_cursor :] + producers[: self._production_cursor]
+         for producer, kinds in order:
+diff --git a/source/evaluate_matches.py b/source/evaluate_matches.py
+index 52076f2..f332d05 100644
+--- a/source/evaluate_matches.py
++++ b/source/evaluate_matches.py
+@@ -1,6 +1,7 @@
+ """Build a reproducible Markdown/JSON review from completed player recordings."""
+ 
+ import argparse
++import hashlib
+ import json
+ from collections import Counter, defaultdict
+ from pathlib import Path
+@@ -12,6 +13,57 @@ from source.opponent_strategy import LABELS, MODEL_VERSION, OpponentStrategyMode
+ HORIZONS = (120, 180, 240, 360, 600)
+ 
+ 
++def configuration_identity(settings):
++    """Hash resolved playable settings, not a pathname or hidden opponent label."""
++    if settings is None:
++        return None  # Legacy recordings may lack configuration evidence.
++    return hashlib.sha256(json.dumps(settings, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
++
++
++def evaluation_manifest(matches, revision, comparison_group_id=None):
++    groups = defaultdict(list)
++    for match in matches:
++        key = json.dumps(
++            [match["scenario"], match["configuration_id"]], sort_keys=True, separators=(",", ":")
++        )
++        groups[key].append(match)
++    return {
++        "schema_version": 1,
++        "gameplay_revision": revision,
++        "comparison_group_id": comparison_group_id,
++        "games": len(matches),
++        "scenario_count": len(groups),
++        "configuration_ids": sorted({m["configuration_id"] for m in matches if m["configuration_id"]}),
++        "scenarios": [
++            {
++                "scenario": group[0]["scenario"],
++                "configuration_id": group[0]["configuration_id"],
++                "repeats": len(group),
++                "loop_zero": all(m["initial_game_loop"] == 0 for m in group),
++                "starting_fingerprints": sorted({m["initial_state_sha256"] for m in group}),
++                "recordings": [m["recording"] for m in group],
++            }
++            for group in groups.values()
++        ],
++    }
++
++
++def validate_suite(manifest, repeats, scenarios=None):
++    """Fail closed on incomplete or unmatched matrices instead of dropping games."""
++    if scenarios is not None and manifest["scenario_count"] != scenarios:
++        raise ValueError(f"Expected {scenarios} scenarios; found {manifest['scenario_count']}")
++    for group in manifest["scenarios"]:
++        if group["repeats"] != repeats:
++            raise ValueError(f"Expected {repeats} repeats: {group['scenario']}")
++        if not group["loop_zero"] or len(group["starting_fingerprints"]) != 1:
++            raise ValueError(f"Missing loop-zero sample or mismatched starts: {group['scenario']}")
++        if group["configuration_id"] is None:
++            raise ValueError("Missing resolved configuration evidence")
++        scenario = group["scenario"]
++        if scenario.get("random_seed") is None or scenario.get("opponent_build") not in LABELS:
++            raise ValueError("Controlled suites require fixed seeds and explicit opponent builds")
++
++
+ def classification_metrics(examples):
+     """One prediction per match/scenario, with abstentions counted in total accuracy."""
+     matrix = {label: dict.fromkeys((*LABELS, "Unknown"), 0) for label in LABELS}
+@@ -71,6 +123,8 @@ def evaluate_session(path):
+     result = summarize(path)
+     if result["phase"] != "ended":
+         raise ValueError(f"Recording is still active: {path}")
++    if result["error"] or result["result"] not in {"Result.Victory", "Result.Defeat", "Result.Tie"}:
++        raise ValueError(f"Recording has no valid terminal outcome: {path}")
+     report = json.loads(Path(path).read_text(encoding="utf-8-sig"))
+     label = report.get("opponent_build")
+     model = OpponentStrategyModel()
+@@ -102,9 +156,13 @@ def evaluate_session(path):
+         "race": report.get("opponent_race", "Unknown"),
+         "reference_build": label,
+         "result": result["result"],
++        "configuration_id": configuration_identity(result["initial_state"]["settings"]),
++        "scenario": result["initial_state"]["scenario"],
++        "initial_game_loop": result["initial_state"]["game_loop"],
+         "initial_state_sha256": result["initial_state_sha256"],
+         "sampled_game_seconds": result["sampled_game_seconds"],
+         "performance": result["performance"],
++        "first_completed_seconds": result["first_completed_seconds"],
+         "action_rejections": result["observed_action_rejections"],
+         "peak_workers": peak_workers,
+         "peak_army_supply": peak_army,
+@@ -118,7 +176,7 @@ def evaluate_session(path):
+     }
+ 
+ 
+-def evaluate(reports, revision):
++def evaluate(reports, revision, comparison_group_id=None):
+     matches = [evaluate_session(path) for path in reports]
+     unique = {}
+     for match in matches:
+@@ -135,7 +193,9 @@ def evaluate(reports, revision):
+         for h in HORIZONS
+     }
+     return {
++        "schema_version": 2,
+         "revision": revision,
++        "manifest": evaluation_manifest(matches, revision, comparison_group_id),
+         "model_version": MODEL_VERSION,
+         "matches": matches,
+         "independent_start_groups": len(unique),
+@@ -167,6 +227,12 @@ def seconds(value):
+ 
+ 
+ def markdown(review, baseline=None):
++    manifest = review.get("manifest", {})
++    baseline_manifest = (baseline or {}).get("manifest", {})
++    group_id = manifest.get("comparison_group_id")
++    baseline_group_id = baseline_manifest.get("comparison_group_id")
++    if group_id and baseline_group_id and group_id != baseline_group_id:
++        raise ValueError("Comparison-group identifiers differ")
+     lines = [
+         f"# Match evaluation: {review['revision']}",
+         "",
+@@ -174,6 +240,8 @@ def markdown(review, baseline=None):
+         "",
+         f"Results: `{review['result_counts']}`. `Result.Tie` means the configured time limit in this suite.",
+         "",
++        f"Comparison group: `{group_id or 'unrecorded (legacy)'}`. Configuration identities: `{', '.join(manifest.get('configuration_ids', [])) or 'unrecorded (legacy)'}`.",
++        "",
+         "## Matchups and observed trade evidence",
+         "",
+         "Resource values below are cumulative score high-water estimates (minerals + gas). Economic damage uses the API economy category; it is not a verified worker/base kill count. Sampling and retail score corrections limit fight attribution. Expansion target samples demonstrate committed movement, not economic damage by themselves.",
+@@ -196,7 +264,25 @@ def markdown(review, baseline=None):
+         )
+     lines += [
+         "",
+-        "Values in the table use the first recording of each matchup to avoid repeating identical trajectories; all recording results remain in JSON. These observations suggest mechanisms to investigate, not causal proof of why a game was won.",
++        "Values in the table use the first recording of each matchup; all recording results remain in JSON. Matching starts do not guarantee identical trajectories, so these representative values are not averages over independent games. These observations suggest mechanisms to investigate, not causal proof of why a game was won.",
++        "",
++        "## Opening and spending evidence",
++        "",
++        "Workers are observed Probe disappearances by 240 seconds with no later reappearance, not verified kills. Temporary absences (including gas harvesting) are retracted when the tag returns; loaded passengers remain tracked. Absences near the recording end can remain ambiguous. Completion times and idle/supply-block durations are sampled estimates; idle time sums across production facilities. The first costly army window is a replay-inspection candidate, not proof of the decisive engagement.",
++        "",
++        "| Race / build | Workers lost by 240s | First Zealot / Stalker | First costly army window | Supply block seconds | Idle facility seconds |",
++        "| --- | ---: | --- | --- | ---: | ---: |",
++    ]
++    for (race, build), matches in groups.items():
++        match = matches[0]
++        perf = match["performance"]
++        completed = match.get("first_completed_seconds", {})
++        window = perf.get("first_bad_trade_window")
++        window_text = f"{window['start']}-{window['end']}s" if window else "not recorded"
++        lines.append(
++            f"| {race} / {build} | {perf.get('worker_disappearances_by_240_seconds', 'n/a')} | {seconds(completed.get('ZEALOT'))} / {seconds(completed.get('STALKER'))} | {window_text} | {perf['sampled_supply_block_seconds']:.1f} | {perf['sampled_idle_facility_seconds']:.1f} |"
++        )
++    lines += [
+         "",
+         "## Costly trade windows and match details",
+         "",
+@@ -281,6 +367,13 @@ def markdown(review, baseline=None):
+                 lines.append(
+                     f"| {race} / {build} | {prior['result']} → {current['result']} | {a['movement']['short_target_reversals']} → {b['movement']['short_target_reversals']} | {a['movement']['advance_regroup_transitions']} → {b['movement']['advance_regroup_transitions']} | {a['bad_trade_window_count']} → {b['bad_trade_window_count']} |"
+                 )
++            else:
++                lines.append(f"| {race} / {build} | **Unmatched starting fingerprint** | n/a | n/a | n/a |")
++        if not baseline_manifest:
++            lines += [
++                "",
++                "Legacy baseline: configuration/group identity was not recorded separately; matching still requires the full starting fingerprint.",
++            ]
+         lines.append("")
+     return "\n".join(lines)
+ 
+@@ -293,6 +386,11 @@ def main(argv=None):
+     parser.add_argument("--output", type=Path, required=True)
+     parser.add_argument("--json-output", type=Path, required=True)
+     parser.add_argument("--compare", type=Path)
++    parser.add_argument("--comparison-group", help="Stable identifier for this controlled comparison")
++    parser.add_argument(
++        "--expected-repeats", type=int, help="Reject incomplete or mismatched scenario groups"
++    )
++    parser.add_argument("--expected-scenarios", type=int)
+     args = parser.parse_args(argv)
+     try:
+         reports = args.reports + (
+@@ -303,12 +401,22 @@ def main(argv=None):
+         if not reports:
+             raise ValueError("Supply completed reports or a matrix")
+         reports = list(dict.fromkeys(path.resolve() for path in reports))
+-        review = evaluate(reports, args.revision)
++        if args.expected_scenarios is not None and args.expected_repeats is None:
++            raise ValueError("--expected-scenarios requires --expected-repeats")
++        if args.expected_repeats is not None and args.expected_repeats < 1:
++            raise ValueError("Expected repeats must be positive")
++        review = evaluate(reports, args.revision, args.comparison_group)
++        if args.expected_repeats is not None:
++            validate_suite(review["manifest"], args.expected_repeats, args.expected_scenarios)
+         baseline = json.loads(args.compare.read_text(encoding="utf-8-sig")) if args.compare else None
++        rendered = markdown(review, baseline)
+         for path in (args.output, args.json_output):
+             path.parent.mkdir(parents=True, exist_ok=True)
+-        args.output.write_text(markdown(review, baseline), encoding="utf-8")
++        args.output.write_text(rendered, encoding="utf-8")
+         args.json_output.write_text(json.dumps(review, indent=2) + "\n", encoding="utf-8")
++        args.json_output.with_suffix(".manifest.json").write_text(
++            json.dumps(review["manifest"], indent=2) + "\n", encoding="utf-8"
++        )
+         print(f"Reviewed {len(review['matches'])} matches into {args.output}")
+     except (OSError, ValueError, KeyError) as exc:
+         parser.error(str(exc))
+diff --git a/source/game_assessment.py b/source/game_assessment.py
+index 2106ad2..6513e14 100644
+--- a/source/game_assessment.py
++++ b/source/game_assessment.py
+@@ -2,6 +2,8 @@
+ 
+ from collections import deque
+ 
++from sc2.data import Race
++from sc2.ids.unit_typeid import UnitTypeId as U
+ from sc2.position import Point2
+ 
+ from source.combat_assessment import home_threats, observed_supply, power, visible_threats
+@@ -35,9 +37,33 @@ class GameAssessment:
+         if bases:
+             home = max(bases, key=lambda b: min((b.distance_to(e) for e in contacts), default=999)).position
+         front = bases.closest_to(bot.game_info.map_center).position if bases else home
++        # Search travel is paid by the army, which may already be across the
++        # map. Home-relative costs repeatedly send it back to stale nearby sites.
++        travel_origin = fighters.center if fighters else front
+         rally = front.towards(
+             bot.game_info.map_center, max(8, PROFILES[bot.settings.profile]["rally_distance"])
+         )
++        opening_hold = None
++        opening_phase = getattr(bot, "opening_phase", None)
++        if (
++            bot.enemy_race == Race.Zerg
++            and bot.settings.enabled
++            and bot.settings.attack
++            and bot.settings.production
++            and bot.settings.strategy == "auto"
++            and bot.time < 180
++            and opening_phase in {"first_force", "defend"}
++        ):
++            rally = home.towards(bot.game_info.map_center, 3.5)
++            opening_anchor = getattr(bot, "opening_defense_anchor", None)
++            if opening_anchor:
++                point = Point2(opening_anchor)
++                batteries = bot.structures(U.SHIELDBATTERY).ready.filter(
++                    lambda battery: battery.is_powered and battery.distance_to(point) <= 5.5
++                )
++                if batteries and bot.in_pathing_grid(point) and bot.is_visible(point):
++                    home = rally = point
++            opening_hold = tuple(rally)
+         if self.had_threat and not incoming:
+             self.defended_at = bot.time
+         self.had_threat = bool(incoming)
+@@ -47,6 +73,7 @@ class GameAssessment:
+         # Each local contact gets local support only. A distant army cannot
+         # subsidize a losing skirmish on the other side of the map.
+         local_advantage = 10.0
++        local_fight_observed = False
+         army_supply = sum(bot.calculate_supply_cost(u.type_id) for u in fighters)
+         remaining = list(contacts)
+         while remaining:
+@@ -54,13 +81,32 @@ class GameAssessment:
+             friends = fighters.closer_than(18, enemy)
+             if not friends:
+                 continue
+-            if sum(bot.calculate_supply_cost(u.type_id) for u in friends) < min(8, army_supply * 0.3):
++            if sum(bot.calculate_supply_cost(u.type_id) for u in friends) < min(
++                army_supply, max(8, army_supply * 0.3)
++            ):
+                 # Small detached fights are handled by that mission's controller.
+                 continue
++            local_fight_observed = True
+             group = contacts.closer_than(14, enemy)
+             local_advantage = min(local_advantage, ratio(friends, group))
+             grouped = group.tags
+             remaining = [unit for unit in remaining if unit.tag not in grouped]
++        response_tags, response_supply = [], 0
++        response = fighters.tags_in(set())
++        budget = min(army_supply * 0.3, max(8, sum(observed_supply(bot, e) for e in incoming) * 1.5))
++        # A projected remote response is distinct from defenders already nearby.
++        # Require every selected actor to hit all observed attacking domains.
++        if incoming and threat is not None:
++            capable = fighters.filter(
++                lambda u: all(u.can_attack_air if e.is_flying else u.can_attack_ground for e in incoming)
++            )
++            for unit in capable.sorted_by_distance_to(threat):
++                cost = bot.calculate_supply_cost(unit.type_id)
++                if response_supply + cost <= budget:
++                    response_tags.append(unit.tag)
++                    response_supply += cost
++            response = fighters.tags_in(response_tags)
++        response_advantage = ratio(response, incoming) if response else 0
+         score = getattr(bot.state, "score", None)
+         lost = sum(getattr(score, f"lost_{kind}_army", 0) for kind in ("minerals", "vespene"))
+         killed = sum(getattr(score, f"killed_{kind}_army", 0) for kind in ("minerals", "vespene"))
+@@ -128,7 +174,7 @@ class GameAssessment:
+                         55,
+                         float(info.get("visible_defenders", 0) + info.get("visible_defense_buildings", 0)),
+                         1,
+-                        front.distance_to(point),
++                        travel_origin.distance_to(point),
+                         expansion=info.get("expansion", is_expansion(bot, point)),
+                         defender_supply=info.get("defender_supply", 0),
+                         static_defense=info.get("visible_defense_buildings", 0) > 0,
+@@ -158,7 +204,7 @@ class GameAssessment:
+                     40 if index == 0 else 32,
+                     0,
+                     1,
+-                    front.distance_to(site),
++                    travel_origin.distance_to(site),
+                 )
+             )
+         maximum = sum(unit.health_max + unit.shield_max for unit in fighters)
+@@ -191,4 +237,9 @@ class GameAssessment:
+             and bot.time - bot.scout_report.get("last_seen_seconds", -999) <= 10
+             and bot.scout_report.get("composition_intel", {}).get("supply", 999) < army_supply * 0.2,
+             rush_warning=bot.time < bot.scout_report.get("rush_warning", {}).get("expires_at", 0),
++            local_fight_observed=local_fight_observed,
++            raid_response_tags=tuple(response_tags),
++            raid_response_supply=response_supply,
++            raid_response_advantage=response_advantage,
++            opening_hold=opening_hold,
+         )
+diff --git a/source/missions.py b/source/missions.py
+index 258e747..6c4e009 100644
+--- a/source/missions.py
++++ b/source/missions.py
+@@ -1,6 +1,7 @@
+ """Persistent, disjoint squads; local execution can abort one operation at a time."""
+ 
+ from collections import deque
++from math import atan2, ceil, cos, hypot, pi, sin
+ 
+ from sc2.ids.unit_typeid import UnitTypeId as U
+ from sc2.position import Point2
+@@ -12,6 +13,72 @@ from source.endgame_sweep import EndgameSweep
+ from source.strategy_profiles import PROFILES
+ 
+ 
++def retreat_geometry(contacts):
++    """Cache SDK weapon data once per observation, outside the route search."""
++    return tuple(
++        (
++            e.position.x,
++            e.position.y,
++            e.radius,
++            max(6 if e.type_id == U.BUNKER else 0, e.ground_range),
++            e.air_range,
++            max(24 if e.type_id == U.BUNKER else 1, e.ground_dps),
++            max(1, e.air_dps),
++            e.can_attack_ground or e.type_id == U.BUNKER,
++            e.can_attack_air,
++        )
++        for e in contacts
++    )
++
++
++def retreat_waypoint(bot, unit, goal, contacts, geometry=None):
++    """Choose a short traversable escape using only currently visible weapons."""
++    origin = unit.position
++    ox, oy = origin
++    flying, radius = unit.is_flying, unit.radius
++    geometry = retreat_geometry(contacts) if geometry is None else geometry
++    threats = [
++        (x, y, (ar if flying else gr) + er + radius + 3, ad if flying else gd)
++        for x, y, er, gr, ar, gd, ad, ground, air in geometry
++        if (air if flying else ground) and hypot(x - ox, y - oy) < max(gr, ar) + 18
++    ]
++    area = getattr(bot.game_info, "playable_area", None)
++
++    def traversable(point):
++        x, y = point
++        if area and not (area.x <= x < area.x + area.width and area.y <= y < area.y + area.height):
++            return False
++        if flying:
++            return True
++        steps = max(1, ceil(hypot(x - ox, y - oy)))
++        return all(
++            bot.in_pathing_grid(Point2((ox + (x - ox) * i / steps, oy + (y - oy) * i / steps)))
++            for i in range(1, steps + 1)
++        )
++
++    if not threats and traversable(goal):
++        return goal
++
++    def danger(x, y):
++        return sum(dps * max(0, reach - hypot(ex - x, ey - y)) for ex, ey, reach, dps in threats)
++
++    direction = atan2(goal.y - oy, goal.x - ox)
++    distance = 10 if threats else min(10, hypot(goal.x - ox, goal.y - oy))
++    candidates = [origin]
++    for i in range(16):
++        angle = direction + i * pi / 8
++        point = Point2((ox + cos(angle) * distance, oy + sin(angle) * distance))
++        if traversable(point):
++            candidates.append(point)
++
++    def cost(point):
++        x, y = point
++        exposure = sum(danger(ox + (x - ox) * f, oy + (y - oy) * f) for f in (0.25, 0.5, 0.75, 1))
++        return exposure + danger(x, y) * 4 + hypot(x - goal.x, y - goal.y) * 0.15
++
++    return min(candidates, key=cost)
++
++
+ class MissionPlanner:
+     def __init__(self):
+         self.records = {}
+@@ -24,11 +91,12 @@ class MissionPlanner:
+         self.executor.assign({})
+         self.sweep.active = False
+ 
+-    def execute(self, bot, army, plan, state, waves, preserve_combat=True):
++    def execute(self, bot, army, plan, state, waves, preserve_combat=True, recovery_micro=False):
+         available = army.filter(bot.control.eligible)
+         contacts = visible_threats(bot)
++        geometry = retreat_geometry(contacts)
+         remaining = set(available.tags)
+-        destinations, assignments, records = {}, {}, {}
++        destinations, assignments, records, retreat_goals = {}, {}, {}, {}
+         wave_report = None
+         evidence = {target.id for target in state.targets}
+         for mission_id, old in self.records.items():
+@@ -46,6 +114,14 @@ class MissionPlanner:
+             old = self.records.get(spec.id, {})
+             target = Point2(spec.target)
+             candidates = available.filter(lambda u: u.tag in remaining)
++            if (
++                spec.role == "defend"
++                and state.raid_response_schema_version == 1
++                and state.raid_response_tags
++                and state.raid_response_advantage >= 1.2
++                and state.raid_response_supply == spec.supply_budget
++            ):
++                candidates = candidates.tags_in(state.raid_response_tags)
+             if spec.role == "deny":
+                 candidates = candidates.of_type({U.ZEALOT, U.STALKER, U.ADEPT})
+             if spec.role != "main":
+@@ -98,8 +174,23 @@ class MissionPlanner:
+                     squad, contacts.closer_than(20, target), 1.3
+                 )
+                 abort |= lost_members >= 4
+-            if abort or (old.get("phase") == "recover" and bot.time < old.get("recover_until", 0)):
++            if (
++                abort
++                or (spec.role == "main" and plan.objective == "recover")
++                or (old.get("phase") == "recover" and bot.time < old.get("recover_until", 0))
++            ):
+                 phase = "recover"
++                goal = Point2(old.get("retreat_goal", state.home))
++                if spec.target_id == "script" and plan.objective == "recover":
++                    goal = target
++                elif (
++                    old.get("phase") != "recover"
++                    or not bot.townhalls.ready.closer_than(2, goal)
++                    or contacts.closer_than(14, goal)
++                ):
++                    safe_bases = bot.townhalls.ready.filter(lambda base: not contacts.closer_than(14, base))
++                    goal = safe_bases.closest_to(anchor).position if safe_bases else Point2(state.home)
++                record["retreat_goal"] = list(goal)
+                 until = old.get("recover_until", bot.time + 8)
+                 record["recover_until"] = max(until, bot.time + 8 if abort else until)
+                 if old.get("phase") != "recover":
+@@ -112,7 +203,8 @@ class MissionPlanner:
+                         }
+                     )
+                 for unit in squad:
+-                    destinations[unit.tag] = ("move", Point2(state.home))
++                    retreat_goals[unit.tag] = goal
++                    destinations[unit.tag] = ("move", retreat_waypoint(bot, unit, goal, contacts, geometry))
+                 if spec.role == "main":
+                     waves.reset()
+             elif spec.role == "main":
+@@ -165,8 +257,19 @@ class MissionPlanner:
+             if unit is None:
+                 continue
+             critical = unit.health + unit.shield < (unit.health_max + unit.shield_max) * 0.25
+-            if critical:
+-                mode, target = "move", Point2(state.home)
++            if critical and tag not in retreat_goals:
++                mode, target = "move", retreat_waypoint(bot, unit, Point2(state.home), contacts, geometry)
++            # Automatic recovery micro alternates in-range volleys with escape
++            # moves. Give it this observation's actor budget; explicit manual
++            # retreat/regroup and critical/support actors retain movement here.
++            if (
++                assignments[tag].endswith(":True")
++                and recovery_micro
++                and bot.settings.strategy == "auto"
++                and unit.can_attack
++                and not critical
++            ):
++                continue
+             # Preserve weapon execution between tactical updates.
+             fighting = mode == "attack" or (
+                 preserve_combat and not critical and not assignments[tag].endswith(":True")
+diff --git a/source/session_review.py b/source/session_review.py
+index 2e75877..a0e89dd 100644
+--- a/source/session_review.py
++++ b/source/session_review.py
+@@ -19,6 +19,7 @@ class SessionReview:
+         self.moves = {}
+         self.movement = Counter()
+         self.own_units = {}
++        self.missing_workers = {}
+ 
+     def observe(self, row):
+         now = row["game_loop"] / 22.4
+@@ -57,6 +58,14 @@ class SessionReview:
+         raw_units = observation.get("raw_data", {}).get("units", [])
+         present = {str(u["tag"]) for u in raw_units if "tag" in u}
+         present.update(str(p["tag"]) for u in raw_units for p in u.get("passengers", []) if "tag" in p)
++        # Gas harvesting can temporarily hide a Probe from raw observations.
++        # Retract that apparent loss if its tag returns in any later sample.
++        for tag in present & self.missing_workers.keys():
++            disappeared_at = self.missing_workers.pop(tag)
++            counts = self.windows[int(disappeared_at // 15)]["own_economy_disappearances"]
++            counts["PROBE"] -= 1
++            if not counts["PROBE"]:
++                del counts["PROBE"]
+         units = {
+             str(u["tag"]): u
+             for u in observation.get("raw_data", {}).get("units", [])
+@@ -73,6 +82,9 @@ class SessionReview:
+             for u in missing
+             if u.get("unit_type") in {U.PROBE.value, U.NEXUS.value, U.ASSIMILATOR.value}
+         )
++        for unit in missing:
++            if unit.get("unit_type") == U.PROBE.value:
++                self.missing_workers[str(unit["tag"])] = now
+         for order in decision.get("orders", []):
+             tag = str(order["unit_tag"])
+             unit = units.get(tag)
+@@ -183,6 +195,13 @@ class SessionReview:
+                 self.high_water.get("killed_army", 0) / max(1, self.high_water.get("lost_army", 0)), 3
+             ),
+             "bad_trade_window_count": len(windows),
++            "first_bad_trade_window": min(windows, key=lambda w: w["start"], default=None),
++            "worker_disappearances_by_240_seconds": sum(
++                round(time, 6) <= 240 for time in self.missing_workers.values()
++            ),
++            "first_worker_disappearance_seconds": round(min(self.missing_workers.values()), 6)
++            if self.missing_workers
++            else None,
+             "corroborated_bad_trade_window_count": sum(bool(w["own_army_disappearances"]) for w in windows),
+             "worst_trade_windows": windows[:5],
+             "worst_economy_loss_windows": sorted(
+diff --git a/source/strategic_plan.py b/source/strategic_plan.py
+index 8437a85..a445a25 100644
+--- a/source/strategic_plan.py
++++ b/source/strategic_plan.py
+@@ -50,6 +50,13 @@ class Assessment:
+     timing_ready: bool = False
+     cleanup_ready: bool = False
+     rush_warning: bool = False
++    engagement_evidence_schema_version: int = 1
++    local_fight_observed: bool = False
++    raid_response_schema_version: int = 1
++    raid_response_tags: tuple[int, ...] = ()
++    raid_response_supply: float = 0
++    raid_response_advantage: float = 0
++    opening_hold: Point | None = None
+ 
+     def to_dict(self):
+         return asdict(self)
+diff --git a/source/strategy_policies.py b/source/strategy_policies.py
+index a5f7359..b50ead4 100644
+--- a/source/strategy_policies.py
++++ b/source/strategy_policies.py
+@@ -21,7 +21,21 @@ def candidates(state: Assessment, continuing=False):
+         result.append(Candidate("stabilize", "threat", 100, "Protect a threatened base"))
+     elif state.rush_warning:
+         result.append(Candidate("stabilize", "rally", 100, "Prepare defenders for scouted early aggression"))
+-    if state.health < policy["retreat_health"] or state.local_advantage < 0.85 or state.trade_bad:
++    # Loss accounting describes the preceding 12 seconds, which may already
++    # have reversed. Heuristic override: at least 80% army health and 1.5x
++    # current main-force power allow fighting through that trailing score.
++    # Ten is also the no-contact sentinel, so it never proves a safe fight.
++    favorable_current_fight = (
++        state.engagement_evidence_schema_version == 1
++        and state.local_fight_observed
++        and state.health >= 0.8
++        and 1.5 <= state.local_advantage < 10
++    )
++    if (
++        state.health < policy["retreat_health"]
++        or state.local_advantage < 0.85
++        or (state.trade_bad and not favorable_current_fight)
++    ):
+         result.append(Candidate("recover", "home", 120, "Recover from an unfavorable engagement"))
+     if state.rush_warning:
+         return result
+@@ -64,16 +78,26 @@ def compose(state, choice, plan_id, ranked):
+     defending = objective == "stabilize"
+     # A small home raid can coexist with pressure only when the remaining army
+     # and the allocated response can each do useful work.
++    projected_response = (
++        state.raid_response_schema_version == 1
++        and bool(state.raid_response_tags)
++        and 2 <= state.raid_response_supply <= min(remaining * 0.3, max(8, state.threat_supply * 1.5))
++        and state.raid_response_advantage >= 1.2
++    )
+     split = (
+         defending
+         and not state.rush_warning
+         and state.threat_supply > 0
+         and state.threat_supply <= min(12, remaining * 0.2)
+         and remaining >= 40
+-        and state.home_advantage >= 1.2
++        and (state.home_advantage >= 1.2 or projected_response)
+     )
+     if split:
+-        budget = min(remaining * 0.3, max(8, state.threat_supply * 1.5))
++        budget = (
++            state.raid_response_supply
++            if projected_response
++            else min(remaining * 0.3, max(8, state.threat_supply * 1.5))
++        )
+         missions.append(MissionSpec("home-defense", "defend", "threat", state.threat, budget, 2, 90))
+         remaining -= budget
+         attacks = [c for c in ranked if c.objective in {"pressure", "counterattack", "finish"}]
+@@ -90,6 +114,11 @@ def compose(state, choice, plan_id, ranked):
+     if objective == "stabilize" and state.home_advantage < 0.85:
+         point, mode = state.home, "move"
+         choice = Candidate("stabilize", "home", choice.score, "Concentrate defenders at a safe base")
++    if objective == "stabilize" and state.opening_hold is not None:
++        point, mode = tuple(state.opening_hold), "move"
++        choice = Candidate(
++            "stabilize", "rally", choice.score, "Hold opening defenders together near protected power"
++        )
+     if objective == "contain":
+         # The mission executor chooses a safe offset; retain the evidence target.
+         mode = "move"
+diff --git a/source/tactics.py b/source/tactics.py
+index 9dca4e5..565a1e5 100644
+--- a/source/tactics.py
++++ b/source/tactics.py
+@@ -10,7 +10,7 @@ from source.army_waves import ArmyWaves
+ from source.combat_assessment import visible_threats
+ from source.economy_assistant import ARMY_TARGETS
+ from source.game_assessment import GameAssessment
+-from source.missions import MissionPlanner
++from source.missions import MissionPlanner, retreat_geometry, retreat_waypoint
+ from source.strategic_plan import MissionSpec, Opportunity, StrategicPlan, validate_plan
+ from source.strategy_director import StrategicDirector
+ from source.strategy_profiles import PROFILES
+@@ -73,10 +73,12 @@ class TacticalController:
+         self._last_director = -999
+         self._signature = None
+         self._micro_allowed = True
++        self._automatic_recovery = False
+ 
+     def tick(self, bot, observation=None, available_abilities=None):
+         self.active_mode = "manual"
+         self._micro_allowed = False
++        self._automatic_recovery = False
+         if not bot.settings.enabled or not bot.settings.attack:
+             self.missions.reset()
+             self.waves.reset()
+@@ -233,8 +235,15 @@ class TacticalController:
+         bot.strategic_plan = plan
+         bot.economic_emergency = requested == "auto" and (state.threat_supply >= 8 or state.rush_warning)
+         self._micro_allowed = requested not in {"retreat", "regroup"}
++        self._automatic_recovery = requested == "auto"
+         result = self.missions.execute(
+-            bot, army, plan, state, self.waves, preserve_combat=self._micro_allowed
++            bot,
++            army,
++            plan,
++            state,
++            self.waves,
++            preserve_combat=self._micro_allowed,
++            recovery_micro=self._automatic_recovery,
+         )
+         for event in result["events"]:
+             if event["time"] == bot.time and event["result"] == "unfavorable_fight":
+@@ -267,27 +276,61 @@ class TacticalController:
+             or bot.settings.strategy in {"retreat", "regroup"}
+         ):
+             return []
+-        if self.active_mode not in {"push", "defend", "regroup"}:
++        if self.active_mode not in {"push", "defend", "regroup"} and not (
++            self.active_mode == "retreat" and self._automatic_recovery and bot.settings.strategy == "auto"
++        ):
+             return []
+         enemies = (bot.enemy_units | bot.enemy_structures).filter(
+             lambda u: u.is_visible and u.can_be_attacked
+         )
+         contacts = visible_threats(bot)
++        geometry = None
+         recovering = {
+-            tag
++            tag: mission
+             for mission in self.missions.records.values()
+             if mission["phase"] == "recover"
+             for tag in mission["members"]
+         }
+         decisions, assigned_damage = [], {}
+         for unit in bot.units.of_type(set(ARMY_TARGETS)).ready:
+-            if not bot.available(unit) or not unit.can_attack or unit.tag in recovering:
++            if not bot.available(unit) or not unit.can_attack:
+                 continue
+             targets = enemies.filter(lambda enemy, unit=unit: unit.target_in_range(enemy))
+             command, reason = None, None
+             if unit.health + unit.shield < (unit.health_max + unit.shield_max) * 0.25:
+-                home = Point2(self.last_assessment.home) if self.last_assessment else bot.start_location
+-                command, reason = unit.move(home), "individual_retreat"
++                home = (
++                    Point2(recovering[unit.tag]["retreat_goal"])
++                    if unit.tag in recovering and "retreat_goal" in recovering[unit.tag]
++                    else (Point2(self.last_assessment.home) if self.last_assessment else bot.start_location)
++                )
++                if geometry is None:
++                    geometry = retreat_geometry(contacts)
++                waypoint = retreat_waypoint(bot, unit, home, contacts, geometry)
++                command, reason = unit.move(waypoint), "individual_retreat"
++            elif unit.tag in recovering:
++                if bot.settings.strategy != "auto" or not self._automatic_recovery:
++                    continue
++                if targets and unit.weapon_cooldown == 0:
++                    target = min(
++                        targets,
++                        key=lambda enemy: (
++                            not enemy.can_attack,
++                            enemy.health + enemy.shield,
++                            unit.distance_to(enemy),
++                        ),
++                    )
++                    command, reason = unit.attack(target), "recovery_volley"
++                else:
++                    goal = Point2(
++                        recovering[unit.tag].get(
++                            "retreat_goal",
++                            self.last_assessment.home if self.last_assessment else bot.start_location,
++                        )
++                    )
++                    if geometry is None:
++                        geometry = retreat_geometry(contacts)
++                    command = unit.move(retreat_waypoint(bot, unit, goal, contacts, geometry))
++                    reason = "recovery_escape"
+             elif targets and unit.weapon_cooldown == 0:
+                 target = min(
+                     targets,
+diff --git a/source/trials.py b/source/trials.py
+index bdaf985..dcd5c4e 100644
+--- a/source/trials.py
++++ b/source/trials.py
+@@ -97,7 +97,7 @@ def main(argv=None):
+         "--parallel",
+         type=int,
+         default=1,
+-        help="Concurrent games (1-5); may overlap scenarios when greater than repeat count",
++        help="Concurrent games (1-8); may overlap scenarios when greater than repeat count",
+     )
+     parser.add_argument("--duration", type=int, default=1500)
+     parser.add_argument("--fast-step-size", type=int, default=32)
+@@ -118,8 +118,8 @@ def main(argv=None):
+     args = parser.parse_args(argv)
+     if not 1 <= args.repeat <= 10 or not 30 <= args.duration <= 3600:
+         parser.error("Repeat must be 1-10; duration must be 30-3600 game seconds")
+-    if not 1 <= args.parallel <= 5:
+-        parser.error("Parallel games must be 1-5")
++    if not 1 <= args.parallel <= 8:
++        parser.error("Parallel games must be 1-8")
+     if not 4 <= args.fast_step_size <= 64:
+         parser.error("Fast-test step size must be between 4 and 64 simulation loops")
+     try:
+diff --git a/tests/conftest.py b/tests/conftest.py
+index ec1fbec..a73595d 100644
+--- a/tests/conftest.py
++++ b/tests/conftest.py
+@@ -19,6 +19,24 @@ from sc2.units import Units
+ from source.assistant_control import AssistantSettings
+ from source.economy_assistant import EconomyAssistant
+ 
++STRUCTURE_TYPES = {
++    U.NEXUS,
++    U.PYLON,
++    U.ASSIMILATOR,
++    U.GATEWAY,
++    U.WARPGATE,
++    U.CYBERNETICSCORE,
++    U.ROBOTICSFACILITY,
++    U.TWILIGHTCOUNCIL,
++    U.TEMPLARARCHIVE,
++    U.ROBOTICSBAY,
++    U.STARGATE,
++    U.FORGE,
++    U.BUNKER,
++    U.PHOTONCANNON,
++    U.SHIELDBATTERY,
++}
++
+ 
+ @pytest.fixture
+ def bot():
+@@ -53,9 +71,14 @@ def bot():
+         U.ASSIMILATOR: (75, 0, 0),
+         U.GATEWAY: (150, 0, 0),
+         U.CYBERNETICSCORE: (150, 0, 0),
++        U.ROBOTICSFACILITY: (150, 100, 0),
++        U.STARGATE: (150, 150, 0),
+         U.STALKER: (125, 50, 2),
+         U.ZEALOT: (100, 0, 2),
+         U.HIGHTEMPLAR: (50, 150, 2),
++        U.IMMORTAL: (275, 100, 4),
++        U.WARPPRISM: (250, 0, 2),
++        U.OBSERVER: (25, 75, 1),
+     }
+     units = []
+     kinds = set(creation) | {
+@@ -72,7 +95,11 @@ def bot():
+         U.PHOTONCANNON,
+     }
+     for kind in kinds:
+-        m, g, supply = costs.get(kind, (100, 100, 2))
++        # Supply-consuming producers are interpreted as morph sources by the
++        # SDK. Giving a Robotics Facility the default two supply incorrectly
++        # subtracts its cost from every Robotics unit's training price.
++        default_supply = 0 if kind in STRUCTURE_TYPES or kind in {U.MINERALFIELD, U.VESPENEGEYSER} else 2
++        m, g, supply = costs.get(kind, (100, 100, default_supply))
+         units.append(
+             data_pb2.UnitTypeData(
+                 unit_id=kind.value,
+@@ -129,22 +156,7 @@ def make_unit(bot):
+ @pytest.fixture
+ def populate(bot):
+     def apply(*units):
+-        structures = {
+-            U.NEXUS,
+-            U.PYLON,
+-            U.ASSIMILATOR,
+-            U.GATEWAY,
+-            U.WARPGATE,
+-            U.CYBERNETICSCORE,
+-            U.ROBOTICSFACILITY,
+-            U.TWILIGHTCOUNCIL,
+-            U.TEMPLARARCHIVE,
+-            U.ROBOTICSBAY,
+-            U.STARGATE,
+-            U.FORGE,
+-            U.BUNKER,
+-            U.PHOTONCANNON,
+-        }
++        structures = STRUCTURE_TYPES
+         own = [u for u in units if u.is_mine]
+         bot.all_own_units = Units(own, bot)
+         bot.structures = Units([u for u in own if u.type_id in structures], bot)
+diff --git a/tests/test_depletion_recovery.py b/tests/test_depletion_recovery.py
+new file mode 100644
+index 0000000..3ed69b7
+--- /dev/null
++++ b/tests/test_depletion_recovery.py
+@@ -0,0 +1,122 @@
++import asyncio
++from types import SimpleNamespace
++from unittest.mock import AsyncMock
++
++import pytest
++from sc2.ids.ability_id import AbilityId as A
++from sc2.ids.unit_typeid import UnitTypeId as U
++
++
++def depleted_economy(bot, make_unit, populate):
++    bot.control.command("!assist economy off")
++    bot.settings.expansion = True
++    bot.settings.attack = False
++    bot.state.game_loop = 22400
++    bot.supply_workers = 33
++    bot.supply_army = 20
++    populate(
++        make_unit(U.NEXUS, ideal_harvesters=0),
++        make_unit(U.NEXUS, (0, 30), ideal_harvesters=0),
++        make_unit(U.PROBE),
++        make_unit(U.CYBERNETICSCORE),
++        make_unit(U.MINERALFIELD, (36, 0), alliance=3, mineral_contents=1500),
++    )
++
++
++def test_depleted_mineral_lines_expand_below_normal_worker_gate(bot, make_unit, populate):
++    depleted_economy(bot, make_unit, populate)
++    bot.minerals = 400
++    asyncio.run(bot.macro())
++    assert [action.ability for action in bot.actions] == [A.PROTOSSBUILD_NEXUS]
++    assert bot.minerals == 0
++
++
++def test_recovery_skips_safe_mined_out_former_base_for_remaining_minerals(bot, make_unit, populate):
++    depleted_economy(bot, make_unit, populate)
++    for patch in bot.mineral_field:
++        patch._proto.mineral_contents = 0
++    populate(
++        *bot.all_own_units,
++        *bot.mineral_field,
++        make_unit(U.MINERALFIELD, (86, 80), alliance=3, mineral_contents=1500),
++    )
++    # Ordinary expansion retains its historical preferred-site behavior.
++    assert asyncio.run(bot.safe_expansion_location(bot.start_location)).x == 30
++    asyncio.run(bot.macro())
++    assert bot.actions[0].ability == A.PROTOSSBUILD_NEXUS
++    assert tuple(bot.actions[0].target) == (80, 80)
++
++
++def test_recovery_does_not_build_a_nexus_when_all_known_sites_are_mined_out(bot, make_unit, populate):
++    depleted_economy(bot, make_unit, populate)
++    for patch in bot.mineral_field:
++        patch._proto.mineral_contents = 0
++    asyncio.run(bot.macro())
++    assert not bot.actions
++
++
++def test_recovery_retains_nexus_bank_and_user_reserve(bot, make_unit, populate):
++    depleted_economy(bot, make_unit, populate)
++    bot.settings.reserve_minerals = 100
++    bot.settings.gas = True
++    bot.settings.production = True
++    bot.minerals = 450
++    asyncio.run(bot.macro())
++    assert not bot.actions
++    assert bot.minerals == 450
++    bot.minerals = 500
++    asyncio.run(bot.macro())
++    assert bot.actions[0].ability == A.PROTOSSBUILD_NEXUS
++    assert bot.minerals == 100
++
++
++def test_healthy_oversaturated_bases_keep_normal_spending_priority(bot, make_unit, populate):
++    depleted_economy(bot, make_unit, populate)
++    for nexus in bot.townhalls:
++        nexus._proto.ideal_harvesters = 16
++    bot.supply_workers = 70
++    bot.settings.workers = True
++    bot.settings.max_workers = 80
++    # Worker target is already met; normal macro still expands with the surplus
++    # workforce, but only after its supply response, preserving healthy behavior.
++    bot.settings.supply = True
++    bot.supply_left = 0
++    asyncio.run(bot.macro())
++    assert bot.actions[0].ability == A.PROTOSSBUILD_PYLON
++
++
++@pytest.mark.parametrize("blocked", ["ceiling", "strategy", "emergency", "pending", "ownership", "unsafe"])
++def test_income_recovery_preserves_existing_expansion_boundaries(bot, make_unit, populate, blocked):
++    depleted_economy(bot, make_unit, populate)
++    if blocked == "ceiling":
++        bot.settings.bases = 2
++    elif blocked == "strategy":
++        bot.strategic_plan = SimpleNamespace(expand=False, expires_at=bot.time + 10)
++    elif blocked == "emergency":
++        bot.economic_emergency = True
++    elif blocked == "pending":
++        bot.already_pending.side_effect = lambda kind: int(kind == U.NEXUS)
++    elif blocked == "ownership":
++        bot.control.released.update(bot.workers.tags)
++    else:
++        bot.safe_expansion_location = AsyncMock(return_value=None)
++    asyncio.run(bot.macro())
++    assert not bot.actions
++
++
++def test_depleted_assimilators_do_not_block_fresh_gas(bot, make_unit, populate):
++    bot.control.command("!assist economy off")
++    bot.settings.gas = True
++    bot.supply_workers = 33
++    bot.vespene = 0
++    populate(
++        make_unit(U.NEXUS, ideal_harvesters=16),
++        make_unit(U.NEXUS, (0, 30), ideal_harvesters=16),
++        make_unit(U.PROBE),
++        make_unit(U.GATEWAY),
++        make_unit(U.ASSIMILATOR, (0, 3), vespene_contents=0),
++        make_unit(U.ASSIMILATOR, (3, 0), vespene_contents=0),
++        make_unit(U.VESPENEGEYSER, (0, 33), alliance=3, vespene_contents=2250),
++    )
++    asyncio.run(bot.macro())
++    assert [action.ability for action in bot.actions] == [A.PROTOSSBUILD_ASSIMILATOR]
+diff --git a/tests/test_engagement_participation.py b/tests/test_engagement_participation.py
+new file mode 100644
+index 0000000..d178901
+--- /dev/null
++++ b/tests/test_engagement_participation.py
+@@ -0,0 +1,40 @@
++from sc2.ids.unit_typeid import UnitTypeId as U
++
++from source.game_assessment import GameAssessment
++from source.strategy_director import StrategicDirector
++
++
++def test_eight_supply_flank_does_not_recall_large_healthy_main(bot, make_unit, populate):
++    flank = [make_unit(U.ZEALOT, (70, 70), health=10, shield=0) for _ in range(4)]
++    main = [make_unit(U.STALKER) for _ in range(62)]
++    enemy = make_unit(U.MARINE, (71, 70), alliance=4, health=10000, health_max=10000)
++    populate(make_unit(U.NEXUS), *flank, *main, enemy)
++    bot.settings.profile = "pressure"
++    state = GameAssessment().observe(bot, bot.units)
++    assert state.army_supply == 132
++    assert state.local_advantage == 10
++    assert StrategicDirector().decide(state).objective != "recover"
++
++
++def test_substantial_participating_force_still_triggers_recovery(bot, make_unit, populate):
++    front = [make_unit(U.STALKER, (70, 70)) for _ in range(20)]
++    main = [make_unit(U.STALKER) for _ in range(46)]
++    enemy = make_unit(U.MARINE, (71, 70), alliance=4, health=10000, health_max=10000)
++    populate(make_unit(U.NEXUS), *front, *main, enemy)
++    bot.settings.profile = "pressure"
++    state = GameAssessment().observe(bot, bot.units)
++    assert state.local_advantage < 0.85
++    assert StrategicDirector().decide(state).objective == "recover"
++
++
++def test_small_whole_army_is_still_assessed(bot, make_unit, populate):
++    populate(
++        make_unit(U.NEXUS),
++        make_unit(U.STALKER, (70, 70)),
++        make_unit(U.STALKER, (70, 70)),
++        make_unit(U.MARINE, (71, 70), alliance=4, health=10000, health_max=10000),
++    )
++    state = GameAssessment().observe(bot, bot.units)
++    assert state.army_supply == 4
++    assert state.local_advantage < 0.85
++    assert StrategicDirector().decide(state).objective == "recover"
+diff --git a/tests/test_evaluate_matches.py b/tests/test_evaluate_matches.py
+index e92ada4..e964b10 100644
+--- a/tests/test_evaluate_matches.py
++++ b/tests/test_evaluate_matches.py
+@@ -2,7 +2,15 @@ import json
+ 
+ import pytest
+ 
+-from source.evaluate_matches import classification_metrics, evaluate, evaluate_session, main, markdown
++from source.evaluate_matches import (
++    classification_metrics,
++    configuration_identity,
++    evaluate,
++    evaluate_session,
++    main,
++    markdown,
++    validate_suite,
++)
+ from source.opponent_strategy import LABELS
+ 
+ 
+@@ -32,6 +40,7 @@ def recording(tmp_path, name="sample", label="Rush", phase="ended"):
+         rows.append(
+             {
+                 "game_loop": time * 22.4,
++                "settings": {"profile": "pressure", "blink": False},
+                 "decision": {"strategy": "push", "assessment": {"threat_supply": 8 if time >= 240 else 0}},
+                 "scouting": {"intel": intel},
+                 "observation": {"observation": {"raw_data": {"units": []}}},
+@@ -95,6 +104,11 @@ def test_identical_repeats_are_grouped_and_cli_writes_review_and_comparison(tmp_
+     assert "Matched comparison" in text and "confusion matrix" in text and "not causal proof" in text
+     assert json.loads(data.read_text())["revision"] == "next"
+     assert "No sampled" in markdown(review)
++    manifest = json.loads(data.with_suffix(".manifest.json").read_text())
++    validate_suite(manifest, 3, 1)
++    assert manifest["gameplay_revision"] == "next"
++    assert len(manifest["configuration_ids"]) == 1
++    assert "Opening and spending evidence" in text
+ 
+ 
+ def test_active_recordings_and_missing_inputs_are_rejected(tmp_path):
+@@ -104,3 +118,50 @@ def test_active_recordings_and_missing_inputs_are_rejected(tmp_path):
+         main(
+             ["--revision", "x", "--output", str(tmp_path / "x.md"), "--json-output", str(tmp_path / "x.json")]
+         )
++
++
++def test_configuration_identity_is_canonical_and_does_not_invent_legacy_evidence():
++    assert configuration_identity({"blink": False, "profile": "pressure"}) == configuration_identity(
++        {"profile": "pressure", "blink": False}
++    )
++    assert configuration_identity({"blink": True}) != configuration_identity({"blink": False})
++    assert configuration_identity(None) is None
++
++
++def test_suite_rejects_missing_repeats_spawn_drift_and_nonzero_initial_sample(tmp_path):
++    paths = [recording(tmp_path, str(i)) for i in range(3)]
++    with pytest.raises(ValueError, match="Expected 3 repeats"):
++        validate_suite(evaluate(paths[:2], "x")["manifest"], 3)
++    with pytest.raises(ValueError, match="Expected 10 scenarios"):
++        validate_suite(evaluate(paths, "x")["manifest"], 3, 10)
++    snapshots = paths[-1].with_suffix(".state.jsonl")
++    rows = [json.loads(line) for line in snapshots.read_text().splitlines()]
++    rows[0]["observation"]["observation"]["player_common"] = {"minerals": 999}
++    snapshots.write_text("\n".join(json.dumps(row) for row in rows) + "\n")
++    with pytest.raises(ValueError, match="mismatched starts"):
++        validate_suite(evaluate(paths, "x")["manifest"], 3)
++    rows[0]["game_loop"] = 8
++    snapshots.write_text("\n".join(json.dumps(row) for row in rows) + "\n")
++    with pytest.raises(ValueError, match="Missing loop-zero"):
++        validate_suite(evaluate(paths[-1:], "x")["manifest"], 1)
++
++
++def test_comparison_reports_unmatched_scenarios_and_accepts_legacy_schema(tmp_path):
++    current = evaluate([recording(tmp_path)], "new", "controlled")
++    baseline = evaluate([recording(tmp_path, "old")], "old", "other")
++    with pytest.raises(ValueError, match="Comparison-group"):
++        markdown(current, baseline)
++    baseline.pop("manifest")
++    baseline.pop("schema_version")
++    assert "Legacy baseline" in markdown(current, baseline)
++    baseline["matches"][0]["initial_state_sha256"] = "different"
++    assert "Unmatched starting fingerprint" in markdown(current, baseline)
++
++
++def test_infrastructure_failure_cannot_be_counted_as_a_completed_match(tmp_path):
++    path = recording(tmp_path)
++    report = json.loads(path.read_text())
++    report["error"] = "Replay or runtime failure"
++    path.write_text(json.dumps(report))
++    with pytest.raises(ValueError, match="no valid terminal outcome"):
++        evaluate([path], "x")
+diff --git a/tests/test_first_tech_investment.py b/tests/test_first_tech_investment.py
+new file mode 100644
+index 0000000..f42a9cf
+--- /dev/null
++++ b/tests/test_first_tech_investment.py
+@@ -0,0 +1,295 @@
++import asyncio
++from unittest.mock import AsyncMock
++
++import pytest
++from sc2.data import Race
++from sc2.ids.ability_id import AbilityId as A
++from sc2.ids.unit_typeid import UnitTypeId as U
++from sc2.ids.upgrade_id import UpgradeId as G
++from sc2.position import Point2
++
++from source.army_waves import ArmyWaves
++from source.warp_reinforcement import WarpReinforcement
++
++
++def economy(bot, make_unit, populate, *, robo=False):
++    bot.control.command("!assist economy off")
++    bot.settings.attack = bot.settings.production = True
++    bot.enemy_race = Race.Terran
++    bot.supply_workers = 20
++    bot.supply_army = 12
++    bot.state.game_loop = 5600
++    bot.minerals, bot.vespene = 115, 54
++    units = [
++        make_unit(U.NEXUS, ideal_harvesters=16, assigned_harvesters=16),
++        make_unit(U.PROBE),
++        make_unit(U.PYLON),
++        make_unit(U.CYBERNETICSCORE),
++        make_unit(U.ROBOTICSFACILITY if robo else U.GATEWAY),
++    ]
++    if robo:
++        bot.settings.scouting = False
++    populate(*units)
++
++
++def test_captured_115_minerals_54_gas_saves_for_stalker_instead_of_cheap_fallback(bot, make_unit, populate):
++    economy(bot, make_unit, populate)
++    assert not bot.produce(0)
++    assert not bot.actions and bot.minerals == 115
++    assert bot._macro_reserve == 125
++    bot.minerals = 125
++    assert bot.produce(0)
++    assert bot.actions[0].ability == A.GATEWAYTRAIN_STALKER
++
++
++def test_first_stalker_reservation_precedes_discretionary_worker_spending(bot, make_unit, populate):
++    economy(bot, make_unit, populate)
++    bot.settings.workers = True
++    bot.townhalls.first._proto.ideal_harvesters = 24
++    asyncio.run(bot.macro())
++    assert not bot.actions and bot.minerals == 115
++
++
++def test_affordable_first_immortal_precedes_prism_and_third_nexus(bot, make_unit, populate):
++    economy(bot, make_unit, populate, robo=True)
++    populate(*bot.all_own_units, make_unit(U.NEXUS, (0, 30), ideal_harvesters=16))
++    bot.settings.expansion = True
++    bot.supply_workers = 40
++    bot.minerals, bot.vespene = 400, 200
++    asyncio.run(bot.macro())
++    assert [a.ability for a in bot.actions] == [A.ROBOTICSFACILITYTRAIN_IMMORTAL]
++    assert (bot.minerals, bot.vespene) == (125, 100)
++
++
++def test_one_requested_observer_can_precede_first_immortal(bot, make_unit, populate):
++    economy(bot, make_unit, populate, robo=True)
++    bot.settings.scouting = True
++    bot.minerals, bot.vespene = 400, 200
++    assert bot.produce(0)
++    assert bot.actions[0].ability == A.ROBOTICSFACILITYTRAIN_OBSERVER
++    bot.actions.clear()
++    bot._used.clear()
++    bot.already_pending.side_effect = lambda kind: int(kind == U.OBSERVER)
++    assert bot.produce(0)
++    assert bot.actions[0].ability == A.ROBOTICSFACILITYTRAIN_IMMORTAL
++
++
++@pytest.mark.parametrize(
++    "blocked",
++    ["selected", "released", "blocked", "unpowered", "busy", "tech", "target", "supply", "gas_off", "income"],
++)
++def test_unattainable_or_user_disabled_milestones_do_not_lock_budget(bot, make_unit, populate, blocked):
++    economy(bot, make_unit, populate)
++    gateway = bot.structures(U.GATEWAY).first
++    if blocked == "selected":
++        gateway._proto.is_selected = True
++    elif blocked == "released":
++        bot.control.released.add(gateway.tag)
++    elif blocked == "blocked":
++        bot._blocked_producers[gateway.tag] = bot.time + 5
++    elif blocked == "unpowered":
++        gateway._proto.is_powered = False
++    elif blocked == "busy":
++        from s2clientprotocol import raw_pb2
++
++        gateway._proto.orders.append(raw_pb2.UnitOrder(ability_id=A.GATEWAYTRAIN_ZEALOT.value))
++    elif blocked == "tech":
++        bot.tech_requirement_progress.return_value = 0
++    elif blocked == "target":
++        bot.settings.stalkers = 0
++    elif blocked == "supply":
++        bot.supply_left = 0
++    elif blocked == "gas_off":
++        bot.vespene = 0
++    else:
++        bot.townhalls.first._proto.assigned_harvesters = 0
++    assert bot.first_tech_combat() is None
++
++
++def test_reservation_does_not_train_through_user_reserve_and_releases_after_first_exists(
++    bot, make_unit, populate
++):
++    economy(bot, make_unit, populate)
++    bot.settings.reserve_minerals = 100
++    bot.minerals = 200
++    assert not bot.produce(0) and not bot.actions
++    bot.minerals = 225
++    assert bot.produce(0) and bot.minerals == 100
++    bot._used.clear()
++    populate(*bot.all_own_units, make_unit(U.STALKER))
++    assert bot.first_tech_combat() is None
++
++
++def test_urgent_supply_and_low_worker_recovery_precede_reservation(bot, make_unit, populate):
++    economy(bot, make_unit, populate)
++    bot.settings.supply = True
++    bot.supply_left = 0
++    asyncio.run(bot.macro())
++    assert bot.actions[0].ability == A.PROTOSSBUILD_PYLON
++    bot.actions.clear()
++    bot._used.clear()
++    bot.settings.supply = False
++    bot.settings.workers = True
++    bot.supply_left, bot.supply_workers, bot.minerals = 20, 8, 115
++    asyncio.run(bot.macro())
++    assert bot.actions[0].ability == A.NEXUSTRAIN_PROBE
++
++
++def test_core_precedes_more_zealots_after_two_queued_without_contact(bot, make_unit, populate):
++    economy(bot, make_unit, populate)
++    bot.enemy_race = Race.Zerg
++    bot.state.game_loop = 2240
++    bot.settings.construction = True
++    bot.minerals = 300
++    populate(
++        make_unit(U.NEXUS),
++        make_unit(U.PROBE),
++        make_unit(U.PYLON),
++        make_unit(U.GATEWAY),
++        make_unit(U.GATEWAY, (8, 8)),
++    )
++    bot.already_pending.side_effect = lambda kind: 2 if kind == U.ZEALOT else 0
++    asyncio.run(bot.macro())
++    assert bot.actions[0].ability == A.PROTOSSBUILD_CYBERNETICSCORE
++
++
++def test_priority_core_uses_second_pylon_when_closest_power_is_crowded(bot, make_unit, populate):
++    economy(bot, make_unit, populate)
++    bot.enemy_race = Race.Zerg
++    bot.state.game_loop = 2912  # Captured 130-second opening stall, before contact.
++    bot.settings.construction = True
++    bot.minerals, bot.vespene = 470, 136
++    bot.game_info.player_start_location = Point2((114.5, 25.5))
++    bot.game_info.map_center = Point2((72, 80))
++    populate(
++        make_unit(U.NEXUS, (114.5, 25.5)),
++        make_unit(U.PROBE, (114, 25)),
++        make_unit(U.PYLON, (114, 32)),
++        make_unit(U.PYLON, (119, 17)),
++        make_unit(U.GATEWAY, (110.5, 36.5)),
++        make_unit(U.GATEWAY, (119.5, 32.5)),
++        make_unit(U.ZEALOT, (112, 28)),
++        make_unit(U.ZEALOT, (113, 28)),
++    )
++
++    # The exposed front power has no legal Core slot. A rear site is legal;
++    # real placement/path/ownership/issue checks still run for that destination.
++    async def placement(kind, near, **kwargs):
++        if kind == U.CYBERNETICSCORE and near.x >= 123 and near.y <= 20:
++            return near
++        return None
++
++    bot.find_placement = AsyncMock(side_effect=placement)
++    asyncio.run(bot.macro())
++    assert [action.ability for action in bot.actions] == [A.PROTOSSBUILD_CYBERNETICSCORE]
++    assert bot.actions[0].target.x >= 123 and bot.actions[0].target.y <= 20
++    assert (bot.minerals, bot.vespene) == (320, 136)
++
++
++def test_early_contact_preserves_two_gateway_defender_production(bot, make_unit, populate):
++    economy(bot, make_unit, populate)
++    bot.enemy_race = Race.Zerg
++    bot.state.game_loop = 2240
++    bot.settings.construction = True
++    bot.minerals = 300
++    populate(
++        make_unit(U.NEXUS),
++        make_unit(U.PROBE),
++        make_unit(U.PYLON),
++        make_unit(U.GATEWAY),
++        make_unit(U.GATEWAY, (8, 8)),
++        make_unit(U.ZERGLING, (20, 0), alliance=4),
++    )
++    bot.already_pending.side_effect = lambda kind: 2 if kind == U.ZEALOT else 0
++    asyncio.run(bot.macro())
++    assert bot.actions[0].ability == A.GATEWAYTRAIN_ZEALOT
++
++
++def test_missing_gas_income_can_be_built_instead_of_locked_behind_counter(bot, make_unit, populate):
++    economy(bot, make_unit, populate)
++    bot.settings.gas = True
++    bot.vespene = 0
++    populate(*bot.all_own_units, make_unit(U.VESPENEGEYSER, (3, 0), alliance=3, vespene_contents=2250))
++    asyncio.run(bot.macro())
++    assert [a.ability for a in bot.actions] == [A.PROTOSSBUILD_ASSIMILATOR]
++
++
++def test_user_disabled_gas_allows_legal_mineral_defender_fallback(bot, make_unit, populate):
++    economy(bot, make_unit, populate)
++    bot.vespene = 0
++    assert not bot.settings.gas
++    assert bot.produce(0)
++    assert bot.actions[0].ability == A.GATEWAYTRAIN_ZEALOT
++
++
++def test_first_counter_reservation_does_not_restart_after_observed_unit_is_lost(bot, make_unit, populate):
++    economy(bot, make_unit, populate)
++    original = list(bot.all_own_units)
++    populate(*original, make_unit(U.STALKER))
++    assert bot.first_tech_combat() is None
++    populate(*original)
++    assert bot.first_tech_combat() is None
++    assert bot.produce(0)
++    assert bot.actions[0].ability == A.GATEWAYTRAIN_ZEALOT
++
++
++def test_first_immortal_gas_is_protected_from_other_controllers_and_released_when_queued(
++    bot, make_unit, populate
++):
++    economy(bot, make_unit, populate, robo=True)
++    bot.minerals, bot.vespene = 1000, 100
++    assert bot.first_tech_combat()[1] == U.IMMORTAL
++    assert bot.affordable(U.IMMORTAL)
++    assert not bot.affordable(U.STALKER)  # A Warpgate must not consume the saved counter gas.
++    bot.already_pending.side_effect = lambda kind: int(kind == U.IMMORTAL)
++    assert bot.first_tech_combat() is None
++    assert bot.affordable(U.STALKER)
++
++
++@pytest.mark.parametrize("release", ["selected", "released", "production_off", "paused", "target_zero"])
++def test_first_tech_gas_reservation_releases_when_milestone_becomes_ineligible(
++    bot, make_unit, populate, release
++):
++    economy(bot, make_unit, populate, robo=True)
++    bot.minerals, bot.vespene = 500, 100
++    assert bot.first_tech_combat()[1] == U.IMMORTAL
++    assert not bot.affordable(U.STALKER)
++    robo = bot.structures(U.ROBOTICSFACILITY).first
++    if release == "selected":
++        robo._proto.is_selected = True
++    elif release == "released":
++        bot.control.released.add(robo.tag)
++    elif release == "production_off":
++        bot.settings.production = False
++    elif release == "paused":
++        bot.settings.enabled = False
++    else:
++        bot.settings.immortals = 0
++    assert bot.first_tech_combat() is None
++    assert bot.affordable(U.STALKER)
++
++
++def test_warpgate_cannot_spend_first_immortal_gas_but_resumes_after_training(bot, make_unit, populate):
++    economy(bot, make_unit, populate, robo=True)
++    populate(*bot.all_own_units, make_unit(U.WARPGATE))
++    bot.settings.warp_reinforcement = True
++    bot.settings.zealots = bot.settings.sentries = bot.settings.high_templar = 0
++    bot.state.upgrades.add(G.WARPGATERESEARCH)
++    bot.get_available_abilities = AsyncMock(return_value=[A.WARPGATETRAIN_STALKER])
++    bot.minerals, bot.vespene = 500, 100
++    assert bot.first_tech_combat()[1] == U.IMMORTAL
++    reinforcement = WarpReinforcement()
++    asyncio.run(reinforcement.tick(bot, ArmyWaves()))
++    assert not bot.actions
++    assert bot.produce(0)
++    assert (bot.minerals, bot.vespene) == (225, 0)
++    bot.actions.clear()
++    bot._used.clear()
++    bot.already_pending.side_effect = lambda kind: int(kind == U.IMMORTAL)
++    assert bot.first_tech_combat() is None
++    assert not bot.affordable(U.STALKER)  # Training spent the gas; releasing it creates no income.
++    bot.vespene = 50
++    bot._macro_reserve = 0
++    asyncio.run(reinforcement.tick(bot, ArmyWaves()))
++    assert [action.ability for action in bot.actions] == [A.WARPGATETRAIN_STALKER]
++    assert (bot.minerals, bot.vespene) == (100, 0)
+diff --git a/tests/test_forward_terrain.py b/tests/test_forward_terrain.py
+new file mode 100644
+index 0000000..4691d15
+--- /dev/null
++++ b/tests/test_forward_terrain.py
+@@ -0,0 +1,119 @@
++from s2clientprotocol import common_pb2, raw_pb2
++from sc2.ids.ability_id import AbilityId as A
++from sc2.ids.unit_typeid import UnitTypeId as U
++from sc2.position import Point2, Rect
++
++from source.action_intents import ActionExecutor, ActionIntent
++from source.army_waves import ArmyWaves, terrain_destination
++from source.strategy_profiles import PROFILES
++
++
++def test_walkable_endpoint_across_cliff_uses_actual_goal(bot, make_unit):
++    unit = make_unit(U.STALKER)
++    slot, goal = Point2((10, 0)), Point2((30, 10))
++    bot.in_pathing_grid = lambda p: not (3 < p.x < 6 and abs(p.y) < 3)
++    assert bot.in_pathing_grid(slot)
++    assert terrain_destination(bot, unit, slot, goal) == goal
++
++
++def test_invalid_slot_and_blocked_goal_choose_deterministic_walkable_goal(bot, make_unit):
++    unit = make_unit(U.STALKER)
++    slot, goal = Point2((10, 0)), Point2((30, 10))
++    bot.in_pathing_grid = lambda p: p.distance_to(goal) >= 1 and p.distance_to(slot) >= 1
++    result = terrain_destination(bot, unit, slot, goal)
++    assert bot.in_pathing_grid(result)
++    assert result.distance_to(goal) <= 2.001
++    assert terrain_destination(bot, unit, slot, goal) == result
++
++
++def test_valid_formation_and_flying_orders_are_unchanged(bot, make_unit):
++    unit = make_unit(U.STALKER)
++    slot, goal = Point2((10, 0)), Point2((30, 10))
++    assert terrain_destination(bot, unit, slot, goal) == slot
++    bot.in_pathing_grid = lambda p: False
++    flying = make_unit(U.STALKER, is_flying=True)
++    assert terrain_destination(bot, flying, slot, goal) == slot
++
++
++def test_advancing_ground_wave_routes_around_invalid_slots_without_reassembling(bot, make_unit, populate):
++    units = [make_unit(U.STALKER) for _ in range(6)]
++    populate(*units)
++    waves = ArmyWaves()
++    waves.members = {u.tag for u in units}
++    waves.phase = "advance"
++    bot.in_pathing_grid = lambda p: not 9 < p.x < 15
++    goal = Point2((30, 0))
++    orders, report = waves.plan(bot, bot.units, goal, Point2((-20, 0)), PROFILES["pressure"])
++    assert report["phase"] == "advance"
++    assert waves.members == {u.tag for u in units}
++    assert all(point == goal for mode, point in orders.values())
++    bot.control.released.add(units[0].tag)
++    orders, _ = waves.plan(bot, bot.units, goal, Point2((-20, 0)), PROFILES["pressure"])
++    assert units[0].tag not in orders
++
++
++def test_invalid_nearby_standing_order_is_replaced_with_walkable_destination(bot, make_unit, populate):
++    old = Point2((10, 0))
++    safe = Point2((10.5, 0))
++    unit = make_unit(
++        U.STALKER,
++        orders=[
++            raw_pb2.UnitOrder(
++                ability_id=A.MOVE_MOVE.value, target_world_space_pos=common_pb2.Point(x=old.x, y=old.y)
++            )
++        ],
++    )
++    populate(unit)
++    bot.settings.attack = True
++    bot.in_pathing_grid = lambda p: p != old
++    executor = ActionExecutor()
++    executor.assign({unit.tag: "main"})
++    intent = ActionIntent(
++        unit.tag,
++        executor.assignments[unit.tag][1],
++        bot.state.game_loop,
++        bot.state.game_loop + 8,
++        "move",
++        tuple(safe),
++    )
++    assert executor.execute(bot, intent)
++    assert len(bot.actions) == 1 and bot.actions[0].target == safe
++
++
++def test_edge_slots_and_cached_orders_do_not_query_outside_map(bot, make_unit, populate):
++    bot.game_info.playable_area = Rect((0, 0, 20, 20))
++
++    def grid(point):
++        assert 0 <= point.x < 20 and 0 <= point.y < 20
++        return True
++
++    bot.in_pathing_grid = grid
++    unit = make_unit(U.STALKER, (1, 1))
++    assert terrain_destination(bot, unit, Point2((-1, 1)), Point2((10, 10))) == Point2((10, 10))
++    flying = make_unit(U.STALKER, (1, 1), is_flying=True)
++    assert terrain_destination(bot, flying, Point2((-1, 1)), Point2((10, 10))) == Point2((10, 10))
++    old = Point2((-0.2, 0))
++    safe = Point2((0.2, 0))
++    unit = make_unit(
++        U.STALKER,
++        orders=[
++            raw_pb2.UnitOrder(
++                ability_id=A.MOVE_MOVE.value, target_world_space_pos=common_pb2.Point(x=old.x, y=old.y)
++            )
++        ],
++    )
++    populate(unit)
++    bot.settings.attack = True
++    executor = ActionExecutor()
++    executor.assign({unit.tag: "main"})
++    assert executor.execute(
++        bot,
++        ActionIntent(
++            unit.tag,
++            executor.assignments[unit.tag][1],
++            bot.state.game_loop,
++            bot.state.game_loop + 8,
++            "move",
++            tuple(safe),
++        ),
++    )
+diff --git a/tests/test_integrated_contracts.py b/tests/test_integrated_contracts.py
+new file mode 100644
+index 0000000..5284663
+--- /dev/null
++++ b/tests/test_integrated_contracts.py
+@@ -0,0 +1,28 @@
++import json
++
++from test_remote_raid import facts
++
++from source.replay_strategy import assessment_from_dict
++from source.strategic_plan import validate_plan
++from source.strategy_director import StrategicDirector
++
++
++def test_serialized_opening_hold_preserves_raid_evidence_and_emergency_full_defense():
++    state = facts(rush_warning=True, rally=(3.5, 0), opening_hold=(3.5, 0))
++    restored = assessment_from_dict(json.loads(json.dumps(state.to_dict())))
++    plan = validate_plan(StrategicDirector().decide(restored), restored)
++    assert restored.raid_response_schema_version == 1
++    assert tuple(restored.raid_response_tags) == state.raid_response_tags
++    assert len(plan.missions) == 1
++    assert plan.missions[0].target == restored.rally
++    assert plan.missions[0].supply_budget == state.army_supply
++
++
++def test_serialized_remote_raid_response_remains_bounded_after_opening_hold_clears():
++    state = facts(opening_hold=None)
++    restored = assessment_from_dict(json.loads(json.dumps(state.to_dict())))
++    plan = validate_plan(StrategicDirector().decide(restored), restored)
++    assert [(mission.role, mission.supply_budget) for mission in plan.missions] == [
++        ("defend", 8),
++        ("main", 134),
++    ]
+diff --git a/tests/test_opening_defender.py b/tests/test_opening_defender.py
+new file mode 100644
+index 0000000..7691d63
+--- /dev/null
++++ b/tests/test_opening_defender.py
+@@ -0,0 +1,272 @@
++import asyncio
++from unittest.mock import AsyncMock
++
++import pytest
++from s2clientprotocol import raw_pb2
++from sc2.data import Race
++from sc2.ids.ability_id import AbilityId as A
++from sc2.ids.unit_typeid import UnitTypeId as U
++from sc2.position import Point2
++from sc2.units import Units
++
++from source import economy_assistant as candidate
++from source import game_assessment as assessment_candidate
++from source import strategic_plan as contract
++from source import strategy_policies as policies
++
++
++def opening(bot, make_unit, populate, *, completed=False, busy=False):
++    bot.enemy_race = Race.Zerg
++    bot.__class__ = candidate.EconomyAssistant
++    orders = [raw_pb2.UnitOrder(ability_id=A.GATEWAYTRAIN_ZEALOT.value, progress=0.3)] if busy else []
++    units = [make_unit(U.NEXUS), make_unit(U.PYLON), make_unit(U.GATEWAY, orders=orders), make_unit(U.PROBE)]
++    if completed:
++        units.append(make_unit(U.ZEALOT))
++    populate(*units)
++    bot.state.game_loop = 2240
++    bot.settings.attack = True
++    bot.settings.workers = bot.settings.gas = bot.settings.supply = False
++    bot.settings.construction = bot.settings.upgrades = False
++    bot.minerals, bot.vespene = 400, 0
++    bot.supply_workers = 19
++    return bot
++
++
++def test_first_gateway_defender_precedes_core_and_natural_saving(bot, make_unit, populate):
++    opening(bot, make_unit, populate)
++    bot.settings.construction = True
++    asyncio.run(candidate.EconomyAssistant.macro(bot))
++    assert [action.ability for action in bot.actions] == [A.GATEWAYTRAIN_ZEALOT]
++
++
++def test_queued_army_supply_does_not_release_completed_defender_gate(bot, make_unit, populate):
++    opening(bot, make_unit, populate, busy=True)
++    bot.supply_army = 2
++    bot.already_pending.side_effect = lambda kind: int(kind == U.ZEALOT)
++    asyncio.run(candidate.EconomyAssistant.macro(bot))
++    assert not bot.actions
++
++
++def test_completed_defender_releases_natural_gate(bot, make_unit, populate):
++    opening(bot, make_unit, populate, completed=True, busy=True)
++    asyncio.run(candidate.EconomyAssistant.macro(bot))
++    assert not bot.actions  # One Zealot is below the completed six-supply force.
++
++
++@pytest.mark.parametrize("setting", ["attack", "production"])
++def test_manual_control_settings_do_not_force_an_opening_defender(bot, make_unit, populate, setting):
++    opening(bot, make_unit, populate, busy=True)
++    setattr(bot.settings, setting, False)
++    asyncio.run(candidate.EconomyAssistant.macro(bot))
++    assert [action.ability for action in bot.actions] == [A.PROTOSSBUILD_NEXUS]
++
++
++def test_selected_gateway_and_reserves_remain_protected(bot, make_unit, populate):
++    opening(bot, make_unit, populate)
++    bot.structures(U.GATEWAY).first._proto.is_selected = True
++    bot.settings.reserve_minerals = 400
++    asyncio.run(candidate.EconomyAssistant.macro(bot))
++    assert not bot.actions
++
++
++def test_repeated_defenders_then_completed_force_releases_natural(bot, make_unit, populate):
++    opening(bot, make_unit, populate)
++    asyncio.run(bot.macro())
++    assert bot.actions[-1].ability == A.GATEWAYTRAIN_ZEALOT
++    bot._used.clear()
++    populate(
++        make_unit(U.NEXUS), make_unit(U.GATEWAY), make_unit(U.PYLON), make_unit(U.PROBE), make_unit(U.ZEALOT)
++    )
++    bot.minerals, bot.vespene = 400, 0
++    asyncio.run(bot.macro())
++    assert bot.actions[-1].ability == A.GATEWAYTRAIN_ZEALOT
++    bot._used.clear()
++    populate(
++        make_unit(U.NEXUS),
++        make_unit(U.GATEWAY),
++        make_unit(U.CYBERNETICSCORE),
++        make_unit(U.PYLON),
++        make_unit(U.PROBE),
++        make_unit(U.ZEALOT),
++        make_unit(U.ZEALOT),
++    )
++    bot.minerals, bot.vespene = 400, 100
++    asyncio.run(bot.macro())
++    assert bot.actions[-1].ability == A.GATEWAYTRAIN_STALKER
++    bot._used.clear()
++    populate(
++        make_unit(U.NEXUS),
++        make_unit(U.GATEWAY),
++        make_unit(U.CYBERNETICSCORE),
++        make_unit(U.PYLON),
++        make_unit(U.PROBE),
++        make_unit(U.ZEALOT),
++        make_unit(U.ZEALOT),
++        make_unit(U.STALKER),
++    )
++    bot.minerals, bot.vespene = 400, 100
++    asyncio.run(bot.macro())
++    assert bot.actions[-1].ability == A.PROTOSSBUILD_NEXUS
++
++
++def test_stalker_budget_is_not_spent_on_cheaper_support(bot, make_unit, populate):
++    opening(bot, make_unit, populate)
++    populate(make_unit(U.NEXUS), make_unit(U.GATEWAY), make_unit(U.CYBERNETICSCORE), make_unit(U.PROBE))
++    bot.minerals, bot.vespene = 100, 100
++    asyncio.run(bot.macro())
++    assert not bot.actions
++    assert bot._opening_reserve == 125
++
++
++def test_workers_continue_while_gateway_is_busy(bot, make_unit, populate):
++    opening(bot, make_unit, populate, busy=True)
++    bot.settings.workers = True
++    bot.supply_workers = 12
++    bot.townhalls.first._proto.ideal_harvesters = 16
++    asyncio.run(bot.macro())
++    assert bot.actions[-1].ability == A.NEXUSTRAIN_PROBE
++
++
++def test_protected_rear_power_can_be_prepared_before_battery_tech(bot, make_unit, populate, monkeypatch):
++    opening(bot, make_unit, populate, busy=True)
++    bot.settings.supply = True
++    bot._opening_reserve = 0
++    bot.state.psionic_matrix.covers = lambda point: False
++    monkeypatch.setattr(candidate, "find_spaced_placement", AsyncMock(return_value=Point2((-8, 0))))
++    assert asyncio.run(bot.opening_battery(bot.townhalls.first, Units([], bot)))
++    assert bot.actions[-1].ability == A.PROTOSSBUILD_PYLON
++    assert bot.actions[-1].target == Point2((-8, 0))
++
++
++def test_small_early_contact_reenters_defense_and_defers_tech(bot, make_unit, populate):
++    opening(bot, make_unit, populate, busy=True)
++    gateway = bot.structures(U.GATEWAY).first
++    populate(
++        make_unit(U.NEXUS),
++        gateway,
++        make_unit(U.PYLON),
++        make_unit(U.PROBE),
++        *[make_unit(U.ZEALOT) for _ in range(3)],
++    )
++    bot.enemy_units = Units([make_unit(U.MARINE, (25, 0), alliance=4)], bot)
++    bot.upgrade = AsyncMock(return_value=True)
++    bot.settings.upgrades = True
++    asyncio.run(bot.macro())
++    assert bot.opening_phase == "defend" and not bot.actions
++    bot.upgrade.assert_not_awaited()
++
++
++def test_opening_still_builds_gas_for_a_legal_stalker(bot, make_unit, populate):
++    opening(bot, make_unit, populate)
++    populate(
++        make_unit(U.NEXUS),
++        make_unit(U.GATEWAY),
++        make_unit(U.CYBERNETICSCORE),
++        make_unit(U.PROBE),
++        make_unit(U.VESPENEGEYSER, (6, 0), vespene_contents=2250),
++    )
++    bot.settings.gas = True
++    bot.minerals, bot.vespene = 100, 0
++    asyncio.run(bot.macro())
++    assert bot.actions[-1].ability == A.PROTOSSBUILD_ASSIMILATOR
++
++
++def test_front_pylon_can_power_a_safe_battery_and_unsafe_or_unpowered_sites_are_rejected(
++    bot, make_unit, populate, monkeypatch
++):
++    opening(bot, make_unit, populate)
++    populate(make_unit(U.NEXUS), make_unit(U.CYBERNETICSCORE), make_unit(U.PYLON, (9, 0)), make_unit(U.PROBE))
++    bot._opening_reserve = 0
++    bot.vespene = 100  # The generic synthetic building table assigns 100 gas.
++    bot.townhalls.first._proto.radius = 2.75
++    point = Point2((6.5, -4.5))
++    monkeypatch.setattr(candidate, "find_spaced_placement", AsyncMock(return_value=point))
++    bot.state.psionic_matrix.covers = lambda p: p == point
++    assert asyncio.run(bot.opening_battery(bot.townhalls.first, Units([], bot)))
++    assert bot.actions[-1].ability == A.BUILD_SHIELDBATTERY
++    bot.actions.clear()
++    bot._used.clear()
++    bot.state.psionic_matrix.covers = lambda p: False
++    assert not asyncio.run(bot.opening_battery(bot.townhalls.first, Units([], bot)))
++    assert not bot.actions
++
++
++def test_second_gateway_is_reserved_before_core_or_workers_while_first_builds(bot, make_unit, populate):
++    opening(bot, make_unit, populate)
++    populate(
++        make_unit(U.NEXUS),
++        make_unit(U.PYLON),
++        make_unit(U.GATEWAY, (8, 8), build_progress=0.3),
++        make_unit(U.PROBE),
++    )
++    bot.settings.construction = bot.settings.workers = True
++    bot.townhalls.first._proto.ideal_harvesters = 16
++    bot.already_pending.side_effect = lambda kind: int(kind == U.GATEWAY)
++    asyncio.run(bot.macro())
++    assert bot.actions[-1].ability == A.PROTOSSBUILD_GATEWAY
++    bot._used.clear()
++    asyncio.run(bot.macro())  # A reserved second footprint must not become a third Gateway.
++    assert sum(action.ability == A.PROTOSSBUILD_GATEWAY for action in bot.actions) == 1
++
++
++def test_parallel_capacity_respects_budget_and_ownership(bot, make_unit, populate):
++    opening(bot, make_unit, populate)
++    populate(
++        make_unit(U.NEXUS), make_unit(U.PYLON), make_unit(U.GATEWAY, build_progress=0.3), make_unit(U.PROBE)
++    )
++    bot.settings.construction = True
++    bot.minerals = 149
++    asyncio.run(bot.macro())
++    assert not bot.actions
++    bot.minerals = 400
++    bot.settings.reserve_minerals = 300
++    asyncio.run(bot.macro())
++    assert not bot.actions
++    bot.settings.reserve_minerals = 0
++    bot.workers.first._proto.is_selected = True
++    asyncio.run(bot.macro())
++    assert not bot.actions
++
++
++def test_ready_battery_provides_only_a_live_opening_defensive_anchor(bot, make_unit, populate):
++    opening(bot, make_unit, populate)
++    populate(
++        make_unit(U.NEXUS, radius=2.75),
++        make_unit(U.PYLON, (9, 0)),
++        make_unit(U.CYBERNETICSCORE),
++        make_unit(U.SHIELDBATTERY, (6.5, -4.5)),
++        make_unit(U.PROBE),
++    )
++    bot._opening_reserve = 0
++    bot.opening_phase = "defend"
++    assert not asyncio.run(bot.opening_battery(bot.townhalls.first, Units([], bot)))
++    anchor = Point2(bot.opening_defense_anchor)
++    assert anchor.distance_to(bot.structures(U.SHIELDBATTERY).first) <= 3.01
++    assessment = assessment_candidate.GameAssessment().observe(bot, bot.units)
++    assert Point2(assessment.home) == Point2(assessment.rally) == anchor
++    bot.opening_phase = "complete"
++    assert assessment_candidate.GameAssessment().observe(bot, bot.units).home == (0, 0)
++
++
++def test_early_contact_does_not_pull_lone_defender_out_to_the_observed_threat(bot, make_unit, populate):
++    opening(bot, make_unit, populate)
++    populate(make_unit(U.NEXUS), make_unit(U.ZEALOT, (3, 0)), make_unit(U.MARINE, (25, 0), alliance=4))
++    bot.opening_phase = "first_force"
++    state = assessment_candidate.GameAssessment().observe(bot, bot.units)
++    assert state.threat == (25, 0)  # Preserve the actual intelligence position.
++    assert Point2(state.rally).distance_to(Point2((0, 0))) == pytest.approx(3.5)
++    ranked = policies.candidates(state)
++    plan = policies.compose(state, max(ranked, key=lambda c: c.score), 1, ranked)
++    assert plan.missions[-1].target_id == "rally"
++    assert plan.missions[-1].mode == "move"
++    assert plan.missions[-1].target != state.threat
++    assert contract.validate_plan(plan, state) is plan
++    bot.opening_phase = "complete"
++    assert assessment_candidate.GameAssessment().observe(bot, bot.units).opening_hold is None
++    bot.opening_phase = "first_force"
++    bot.settings.strategy = "defend"
++    assert assessment_candidate.GameAssessment().observe(bot, bot.units).opening_hold is None
++    bot.state.psionic_matrix.covers = lambda p: True
++    bot.safe_at = lambda p, radius=18: False
++    assert not asyncio.run(bot.opening_battery(bot.townhalls.first, Units([], bot)))
++    assert not bot.actions
+diff --git a/tests/test_race_opening.py b/tests/test_race_opening.py
+new file mode 100644
+index 0000000..7676a14
+--- /dev/null
++++ b/tests/test_race_opening.py
+@@ -0,0 +1,60 @@
++import asyncio
++
++import pytest
++from sc2.data import Race
++from sc2.ids.ability_id import AbilityId as A
++from sc2.ids.unit_typeid import UnitTypeId as U
++
++from source.game_assessment import GameAssessment
++
++
++def opener(bot, make_unit, populate, race, *, gateway_ready=False):
++    populate(
++        make_unit(U.NEXUS),
++        make_unit(U.PYLON),
++        make_unit(U.GATEWAY, (8, 8), build_progress=1 if gateway_ready else 0.3),
++        make_unit(U.PROBE),
++    )
++    bot.enemy_race = race
++    bot.state.game_loop = 2240
++    bot.settings.attack = bot.settings.construction = True
++    bot.settings.workers = bot.settings.gas = bot.settings.supply = bot.settings.upgrades = False
++    bot.minerals, bot.vespene = 400, 0
++    bot.supply_workers = 19
++
++
++@pytest.mark.parametrize("race", [Race.Terran, Race.Protoss, Race.Random, None])
++def test_non_zerg_and_unknown_retain_natural_sequence_without_proactive_second_gateway(
++    bot, make_unit, populate, race
++):
++    opener(bot, make_unit, populate, race)
++    # A hidden evaluation label or observational classifier cannot turn unknown into Zerg.
++    bot.opponent_build = "Rush"
++    bot.scout_report["opponent_strategy"] = {"category": "Rush"}
++    asyncio.run(bot.macro())
++    assert bot.actions[-1].ability == A.PROTOSSBUILD_NEXUS
++    assert bot.opening_phase == "complete"
++
++
++@pytest.mark.parametrize("race", [Race.Terran, Race.Protoss, Race.Random, None])
++def test_original_core_priority_is_retained_for_non_zerg(bot, make_unit, populate, race):
++    opener(bot, make_unit, populate, race, gateway_ready=True)
++    asyncio.run(bot.macro())
++    assert bot.actions[-1].ability == A.PROTOSSBUILD_CYBERNETICSCORE
++
++
++@pytest.mark.parametrize("label", ["Rush", "Air"])
++def test_known_public_zerg_race_enables_defense_independently_of_build_label(bot, make_unit, populate, label):
++    opener(bot, make_unit, populate, Race.Zerg)
++    bot.opponent_build = label
++    asyncio.run(bot.macro())
++    assert bot.actions[-1].ability == A.PROTOSSBUILD_GATEWAY
++    assert bot.opening_phase == "first_force"
++
++
++@pytest.mark.parametrize("race", [Race.Terran, Race.Protoss, Race.Random, None, Race.Zerg])
++def test_opening_hold_requires_public_known_zerg_race(bot, make_unit, populate, race):
++    opener(bot, make_unit, populate, race)
++    bot.opening_phase = "first_force"  # Even stale phase metadata cannot override the race guard.
++    state = GameAssessment().observe(bot, bot.units)
++    assert (state.opening_hold is not None) == (race == Race.Zerg)
+diff --git a/tests/test_recovery_skirmish.py b/tests/test_recovery_skirmish.py
+new file mode 100644
+index 0000000..d4bfdaf
+--- /dev/null
++++ b/tests/test_recovery_skirmish.py
+@@ -0,0 +1,100 @@
++from dataclasses import replace
++from types import SimpleNamespace
++
++from sc2.ids.ability_id import AbilityId as A
++from sc2.ids.unit_typeid import UnitTypeId as U
++
++from source.game_assessment import GameAssessment
++from source.tactics import TacticalController
++
++
++def setup(bot, unit):
++    bot.settings.attack = True
++    bot.settings.strategy = "auto"
++    controller = TacticalController()
++    controller.active_mode = "retreat"
++    controller._micro_allowed = True
++    controller._automatic_recovery = True
++    controller.last_assessment = SimpleNamespace(home=(-20, 0))
++    controller.missions.records = {
++        "main": {"phase": "recover", "members": [unit.tag], "retreat_goal": [-20, 0]}
++    }
++    return controller
++
++
++def test_automatic_recovery_moves_fires_and_resumes_escape_across_observations(bot, make_unit, populate):
++    unit = make_unit(U.STALKER, weapon_cooldown=4)
++    enemy = make_unit(U.MARINE, (3, 0), alliance=4)
++    populate(unit, enemy)
++    controller = setup(bot, unit)
++    for cooldown, expected in ((4, "recovery_escape"), (0, "recovery_volley"), (4, "recovery_escape")):
++        unit._proto.weapon_cooldown = cooldown
++        bot._used.clear()
++        bot.actions.clear()
++        bot.state.game_loop += 8
++        decisions = controller.micro(bot)
++        assert decisions == [{"unit_tag": unit.tag, "action": expected}]
++        assert len(bot.actions) == 1
++        if cooldown:
++            assert bot.actions[0].ability == A.MOVE_MOVE
++            assert bot.actions[0].target.distance_to(enemy.position) > unit.distance_to(enemy)
++        else:
++            assert bot.actions[0].target == enemy
++        controller.micro(bot)
++        assert len(bot.actions) == 1
++
++
++def test_recovery_never_chases_out_of_range_target_and_critical_actor_escapes(bot, make_unit, populate):
++    unit = make_unit(U.STALKER, weapon_cooldown=0)
++    enemy = make_unit(U.MARINE, (20, 0), alliance=4)
++    populate(unit, enemy)
++    controller = setup(bot, unit)
++    assert controller.micro(bot)[0]["action"] == "recovery_escape"
++    assert bot.actions[0].ability == A.MOVE_MOVE
++    bot._used.clear()
++    bot.actions.clear()
++    unit._proto.health, unit._proto.shield = 10, 0
++    enemy._proto.pos.x = 3
++    assert controller.micro(bot)[0]["action"] == "individual_retreat"
++    assert bot.actions[0].ability == A.MOVE_MOVE
++
++
++def test_manual_overrides_and_released_ownership_suppress_recovery_fire(bot, make_unit, populate):
++    unit = make_unit(U.STALKER)
++    populate(unit, make_unit(U.MARINE, (3, 0), alliance=4))
++    controller = setup(bot, unit)
++    for strategy in ("retreat", "regroup"):
++        bot.settings.strategy = strategy
++        assert not controller.micro(bot)
++        assert not bot.actions
++    bot.settings.strategy = "auto"
++    controller._micro_allowed = False  # Resolved scripted retreat overrides configured auto.
++    assert not controller.micro(bot)
++    assert not bot.actions
++
++    controller._micro_allowed = True
++    controller._automatic_recovery = False
++    assert not controller.micro(bot)
++    assert not bot.actions
++    controller._automatic_recovery = True
++    bot.control.released.add(unit.tag)
++    assert not controller.micro(bot)
++    assert not bot.actions
++
++
++def test_strategic_recovery_hands_actor_budget_to_same_observation_micro(bot, make_unit, populate):
++    units = [make_unit(U.STALKER) for _ in range(7)]
++    enemy = make_unit(U.MARINE, (3, 0), alliance=4)
++    populate(*units, make_unit(U.NEXUS, (30, 0)), enemy)
++    bot.settings.attack = True
++    bot.settings.strategy = "auto"
++    state = replace(GameAssessment().observe(bot, bot.units), trade_bad=True, local_advantage=1.2)
++    controller = TacticalController()
++    controller.assessor.observe = lambda *_: state
++    result = controller.tick(bot)
++    assert result["missions"]["main"]["phase"] == "recover"
++    assert not bot.actions  # Movement does not consume the volley actor budget.
++    decisions = controller.micro(bot)
++    assert len(decisions) == len(units)
++    assert all(d["action"] == "recovery_volley" for d in decisions)
++    assert len(bot.actions) == len({a.unit.tag for a in bot.actions}) == len(units)
+diff --git a/tests/test_remote_raid.py b/tests/test_remote_raid.py
+new file mode 100644
+index 0000000..f280a20
+--- /dev/null
++++ b/tests/test_remote_raid.py
+@@ -0,0 +1,119 @@
++"""Load only the four isolated 9fd64a1-based candidate modules."""
++# ruff: noqa: E402 -- staged modules must load before their consumers.
++
++from dataclasses import replace
++
++from sc2.ids.unit_typeid import UnitTypeId as U
++
++from source.army_waves import ArmyWaves
++from source.game_assessment import GameAssessment
++from source.missions import MissionPlanner
++from source.strategic_plan import Assessment, Opportunity, validate_plan
++from source.strategy_director import StrategicDirector
++
++
++def facts(**changes):
++    state = Assessment(
++        224,
++        10,
++        "pressure",
++        142,
++        71,
++        1,
++        10,
++        2,
++        0,
++        (0, 0),
++        (8, 8),
++        (80, 80),
++        (Opportunity("base", (100, 100), 10, True, True, 65, 0, 2, 40),),
++        0,
++        400,
++        200,
++        56,
++        3,
++        (("stalkers", 40),),
++        raid_response_tags=(1, 2, 3, 4),
++        raid_response_supply=8,
++        raid_response_advantage=2,
++    )
++    return replace(state, **changes)
++
++
++def test_remote_small_raid_gets_bounded_response_and_pressure_continues():
++    state = facts()
++    plan = validate_plan(StrategicDirector().decide(state), state)
++    assert plan.objective == "pressure"
++    assert [(m.role, m.supply_budget) for m in plan.missions] == [("defend", 8), ("main", 134)]
++
++
++def test_heavy_threat_rush_and_inadequate_response_keep_full_defense():
++    for changes in (
++        {"threat_supply": 20},
++        {"rush_warning": True},
++        {"raid_response_advantage": 0.5},
++        {"raid_response_tags": ()},
++        {"army_supply": 30},
++        {"raid_response_supply": 60},
++    ):
++        plan = StrategicDirector().decide(facts(**changes))
++        assert plan.objective == "stabilize"
++        assert len(plan.missions) == 1
++
++
++def test_legacy_assessment_remains_conservative():
++    state = facts(raid_response_tags=(), raid_response_supply=0, raid_response_advantage=0)
++    data = state.to_dict()
++    for key in tuple(data):
++        if key.startswith("raid_response_"):
++            del data[key]
++    from source.replay_strategy import assessment_from_dict
++
++    legacy = assessment_from_dict(data)
++    assert StrategicDirector().decide(legacy).objective == "stabilize"
++
++
++def test_projected_response_uses_only_units_that_can_hit_air_and_preserves_main(bot, make_unit, populate):
++    bot.game_data.units[U.ZEALOT.value]._proto.weapons[0].type = 1
++    zealots = [make_unit(U.ZEALOT) for _ in range(50)]
++    stalkers = [make_unit(U.STALKER) for _ in range(21)]
++    populate(
++        *zealots,
++        *stalkers,
++        make_unit(U.NEXUS),
++        make_unit(U.NEXUS, (80, 80)),
++        make_unit(U.MUTALISK, (81, 80), alliance=4, is_flying=True),
++        make_unit(U.MUTALISK, (82, 80), alliance=4, is_flying=True),
++    )
++    bot.settings.attack = True
++    bot.settings.profile = "pressure"
++    state = GameAssessment().observe(bot, bot.units)
++    assert state.home_advantage == 0
++    assert state.raid_response_advantage >= 1.2
++    assert set(state.raid_response_tags) <= {unit.tag for unit in stalkers}
++    plan = validate_plan(StrategicDirector().decide(state), state)
++    assert plan.objective == "pressure"
++    result = MissionPlanner().execute(bot, bot.units, plan, state, ArmyWaves())
++    response = result["missions"]["home-defense"]
++    assert set(response["members"]) == set(state.raid_response_tags)
++    assert response["supply"] <= state.army_supply * 0.3
++    assert result["missions"]["main"]["supply"] >= 40
++    assert len({action.unit.tag for action in bot.actions}) == len(bot.actions)
++    bot._used.clear()
++    bot.actions.clear()
++    bot.control.released.update(state.raid_response_tags)
++    MissionPlanner().execute(bot, bot.units, plan, state, ArmyWaves())
++    assert not any(action.unit.tag in state.raid_response_tags for action in bot.actions)
++    assert len({action.unit.tag for action in bot.actions}) == len(bot.actions)
++
++
++def test_ground_only_army_does_not_claim_remote_air_response(bot, make_unit, populate):
++    bot.game_data.units[U.ZEALOT.value]._proto.weapons[0].type = 1
++    populate(
++        *(make_unit(U.ZEALOT) for _ in range(30)),
++        make_unit(U.NEXUS),
++        make_unit(U.MUTALISK, (1, 1), alliance=4, is_flying=True),
++    )
++    state = GameAssessment().observe(bot, bot.units)
++    assert not state.raid_response_tags
++    assert state.raid_response_advantage == 0
+diff --git a/tests/test_retreat_routes.py b/tests/test_retreat_routes.py
+new file mode 100644
+index 0000000..ad04c0b
+--- /dev/null
++++ b/tests/test_retreat_routes.py
+@@ -0,0 +1,109 @@
++from types import SimpleNamespace
++
++from sc2.ids.unit_typeid import UnitTypeId as U
++from sc2.position import Point2
++from sc2.units import Units
++
++from source.army_waves import ArmyWaves
++from source.missions import MissionPlanner, retreat_waypoint
++from source.strategic_plan import MissionSpec
++from source.tactics import TacticalController
++
++
++def test_retreat_avoids_visible_weapons_instead_of_running_through_them(bot, make_unit):
++    unit = make_unit(U.STALKER)
++    enemy = make_unit(U.MARINE, (5, 0), alliance=4)
++    waypoint = retreat_waypoint(bot, unit, Point2((30, 0)), Units([enemy], bot))
++    assert waypoint.distance_to(enemy.position) > unit.distance_to(enemy)
++    assert waypoint.distance_to(unit.position) <= 10.001
++
++
++def test_retreat_checks_entire_ground_segment_but_air_can_cross(bot, make_unit):
++    unit = make_unit(U.STALKER)
++    bot.in_pathing_grid = lambda point: not 3 < point.x < 5
++    goal = Point2((10, 0))
++    assert retreat_waypoint(bot, unit, goal, Units([], bot)).x <= 3
++    flying = make_unit(U.STALKER, is_flying=True)
++    assert retreat_waypoint(bot, flying, goal, Units([], bot)) == goal
++
++
++def test_unit_at_home_still_escapes_an_attacker_without_zero_length_normalization(bot, make_unit):
++    unit = make_unit(U.STALKER)
++    enemy = make_unit(U.MARINE, (2, 0), alliance=4)
++    waypoint = retreat_waypoint(bot, unit, unit.position, Units([enemy], bot))
++    assert waypoint.distance_to(enemy.position) > unit.distance_to(enemy)
++    assert retreat_waypoint(bot, unit, unit.position, Units([], bot)) == unit.position
++
++
++def test_ground_only_weapons_do_not_divert_air_retreat(bot, make_unit):
++    bot.game_data.units[U.MARINE.value]._proto.weapons[0].type = 1
++    enemy = make_unit(U.MARINE, (5, 0), alliance=4)
++    flying = make_unit(U.STALKER, is_flying=True)
++    goal = Point2((30, 0))
++    assert retreat_waypoint(bot, flying, goal, Units([enemy], bot)) == goal
++
++
++def test_recovery_goal_survives_home_changes_but_revokes_destroyed_base(bot, make_unit, populate):
++    unit = make_unit(U.STALKER, (10, 0))
++    first = make_unit(U.NEXUS, (0, 0))
++    other = make_unit(U.NEXUS, (80, 0))
++    populate(unit, first, other)
++    bot.settings.attack = True
++    planner = MissionPlanner()
++    spec = MissionSpec("main", "main", "home", (0, 0), 2, 0, 100, "move")
++    plan = SimpleNamespace(missions=(spec,), objective="recover")
++    state = SimpleNamespace(targets=(), home=(0, 0))
++    waves = ArmyWaves()
++    planner.execute(bot, bot.units, plan, state, waves)
++    assert planner.records["main"]["retreat_goal"] == [0, 0]
++    bot._used.clear()
++    state.home = (80, 0)
++    planner.execute(bot, bot.units, plan, state, waves)
++    assert planner.records["main"]["retreat_goal"] == [0, 0]
++    populate(unit, other)
++    bot._used.clear()
++    planner.execute(bot, bot.units, plan, state, waves)
++    assert planner.records["main"]["retreat_goal"] == [80, 0]
++
++
++def test_scripted_retreat_keeps_explicit_destination(bot, make_unit, populate):
++    populate(make_unit(U.STALKER, (10, 0)), make_unit(U.NEXUS))
++    bot.settings.attack = True
++    planner = MissionPlanner()
++    spec = MissionSpec("main", "main", "script", (50, 50), 2, 0, 100, "move")
++    plan = SimpleNamespace(missions=(spec,), objective="recover")
++    state = SimpleNamespace(targets=(), home=(0, 0))
++    result = planner.execute(bot, bot.units, plan, state, ArmyWaves(), preserve_combat=False)
++    assert result["missions"]["main"]["retreat_goal"] == [50, 50]
++    assert result["orders"][0]["target"] == [50, 50]
++
++
++def test_critical_escape_stays_safe_between_strategic_ticks_and_honors_ownership(bot, make_unit, populate):
++    weak = make_unit(U.STALKER, health=10, shield=0)
++    enemy = make_unit(U.MARINE, (5, 0), alliance=4)
++    populate(weak, *(make_unit(U.STALKER) for _ in range(6)), make_unit(U.NEXUS, (30, 0)), enemy)
++    bot.settings.attack = True
++    bot.settings.strategy = "push"
++    bot.settings.army_waves = False
++    controller = TacticalController()
++    decision = controller.tick(bot)
++    assert decision["missions"]["main"]["phase"] == "engage"
++    initial = next(action for action in bot.actions if action.unit.tag == weak.tag)
++    assert initial.target.distance_to(enemy.position) > weak.distance_to(enemy)
++    # The runtime clears the actor budget on the next observation, while the
++    # strategic plan remains active until the one-second planning interval.
++    for _ in range(2):
++        bot._used.clear()
++        bot.actions.clear()
++        bot.state.game_loop += 8
++        controller.micro(bot)
++        orders = [action for action in bot.actions if action.unit.tag == weak.tag]
++        assert len(orders) == 1
++        assert orders[0].target.distance_to(enemy.position) > weak.distance_to(enemy)
++        controller.micro(bot)
++        assert len([action for action in bot.actions if action.unit.tag == weak.tag]) == 1
++    bot._used.clear()
++    bot.actions.clear()
++    bot.control.released.add(weak.tag)
++    controller.micro(bot)
++    assert not any(action.unit.tag == weak.tag for action in bot.actions)
+diff --git a/tests/test_session_review.py b/tests/test_session_review.py
+index fd426eb..ab5e81d 100644
+--- a/tests/test_session_review.py
++++ b/tests/test_session_review.py
+@@ -36,6 +36,7 @@ def test_trade_rebound_is_not_counted_twice_and_windows_are_auditable():
+     assert [(w["start"], w["lost_army"]) for w in result["worst_trade_windows"]] == [(0, 1100), (30, 400)]
+     assert result["worst_trade_windows"][0]["targets"] == ["base"]
+     assert result["army_trade_ratio"] == 0.1
++    assert result["first_bad_trade_window"]["start"] == 0
+ 
+ 
+ def test_target_reversals_exclude_emergency_handoffs_and_same_position_ids():
+@@ -104,3 +105,25 @@ def test_worker_and_base_losses_are_reported_without_large_army_losses():
+     result = review.summary()
+     assert result["bad_trade_window_count"] == 0
+     assert result["worst_economy_loss_windows"][0]["own_economy_disappearances"] == {"NEXUS": 1}
++
++
++def test_early_worker_losses_exclude_loading_and_losses_after_the_horizon():
++    review = SessionReview()
++    workers = [{"alliance": "Self", "tag": str(i), "unit_type": U.PROBE.value} for i in range(3)]
++    prism = {"alliance": "Self", "tag": "prism", "unit_type": U.WARPPRISM.value}
++    for time, units in (
++        (0, workers + [prism]),
++        (100, [{**prism, "passengers": workers}]),
++        (120, workers + [prism]),
++        (150, workers[1:] + [prism]),  # A gas harvester temporarily leaves raw vision.
++        (155, workers + [prism]),
++        (240, workers[1:] + [prism]),
++        (245, [prism]),
++    ):
++        sample = row(time)
++        sample["observation"]["observation"]["raw_data"] = {"units": units}
++        review.observe(sample)
++    result = review.summary()
++    assert result["worker_disappearances_by_240_seconds"] == 1
++    assert result["first_worker_disappearance_seconds"] == 240
++    assert result["first_bad_trade_window"] is None
+diff --git a/tests/test_synthetic_costs.py b/tests/test_synthetic_costs.py
+new file mode 100644
+index 0000000..88fb9a3
+--- /dev/null
++++ b/tests/test_synthetic_costs.py
+@@ -0,0 +1,31 @@
++"""Check SDK-derived prices independently of the affordability implementation."""
++
++import pytest
++from sc2.ids.unit_typeid import UnitTypeId as U
++
++
++@pytest.mark.parametrize(
++    ("kind", "minerals", "gas", "supply"),
++    [
++        (U.ROBOTICSFACILITY, 150, 100, 0),
++        (U.STARGATE, 150, 150, 0),
++        (U.IMMORTAL, 275, 100, 4),
++        (U.WARPPRISM, 250, 0, 2),
++        (U.OBSERVER, 25, 75, 1),
++        (U.STALKER, 125, 50, 2),
++    ],
++)
++def test_sdk_costs_do_not_treat_buildings_as_morph_sources(bot, kind, minerals, gas, supply):
++    cost = bot.calculate_cost(kind)
++    assert (cost.minerals, cost.vespene) == (minerals, gas)
++    assert bot.calculate_supply_cost(kind) == supply
++
++
++def test_immortal_requires_gas_and_charges_full_training_cost(bot, make_unit, populate):
++    populate(make_unit(U.ROBOTICSFACILITY))
++    bot.minerals, bot.vespene = 275, 99
++    assert not bot.affordable(U.IMMORTAL)
++    bot.vespene = 100
++    assert bot.affordable(U.IMMORTAL)
++    assert bot.issue(bot.structures.first.train(U.IMMORTAL), paid=True, supply=True)
++    assert (bot.minerals, bot.vespene, bot.supply_left) == (0, 0, 16)
+diff --git a/tests/test_target_travel.py b/tests/test_target_travel.py
+new file mode 100644
+index 0000000..b7d9c41
+--- /dev/null
++++ b/tests/test_target_travel.py
+@@ -0,0 +1,64 @@
++"""Distant-army search costs and emergency overrides use actual observations."""
++
++import pytest
++from sc2.ids.unit_typeid import UnitTypeId as U
++from sc2.position import Point2
++from sc2.units import Units
++
++from source.game_assessment import GameAssessment
++from source.strategy_director import StrategicDirector
++
++
++def setup(bot, make_unit, populate):
++    soldiers = [make_unit(U.STALKER, (99 + i * 0.2, 100)) for i in range(12)]
++    populate(make_unit(U.NEXUS), *soldiers)
++    bot.settings.profile = "pressure"
++    bot.state.game_loop = 22400
++    bot.game_info.start_locations = [Point2((200, 200))]
++    bot._expansion_positions_list = [Point2((25, 0)), Point2((100, 90))]
++    bot.is_visible = lambda point: False
++    return Units(soldiers, bot)
++
++
++def test_distant_army_searches_near_its_position_instead_of_near_home(bot, make_unit, populate):
++    army = setup(bot, make_unit, populate)
++    state = GameAssessment().observe(bot, army)
++    targets = {target.id: target for target in state.targets}
++    assert targets["site:2"].travel == pytest.approx(army.center.distance_to(Point2((100, 90))))
++    assert targets["site:2"].travel < targets["site:1"].travel
++    assert StrategicDirector().decide(state).missions[-1].target_id == "site:2"
++
++
++def test_remembered_bases_use_army_travel_and_do_not_override_an_emergency(bot, make_unit, populate):
++    army = setup(bot, make_unit, populate)
++    bot.scout_report = {
++        "known_enemy_bases": [
++            {"tag": "near_army", "position": [100, 110], "seen_seconds": 990, "expansion": True},
++            {"tag": "near_home", "position": [20, 0], "seen_seconds": 990, "expansion": True},
++        ]
++    }
++    assessment = GameAssessment()
++    state = assessment.observe(bot, army)
++    targets = {target.id: target for target in state.targets}
++    assert targets["near_army"].travel < targets["near_home"].travel
++    director = StrategicDirector()
++    assert director.decide(state).missions[-1].target_id == "near_army"
++    bot.scout_report["rush_warning"] = {"expires_at": 1100}
++    plan = director.decide(assessment.observe(bot, army))
++    assert plan.objective == "stabilize" and not plan.expand
++
++
++def test_no_fighting_army_uses_front_and_fresh_empty_sites_stay_suppressed(bot, make_unit, populate):
++    setup(bot, make_unit, populate)
++    bot.scout_report = {
++        "expansion_sites": [{"position": [100, 90], "status": "empty", "last_checked": 999}],
++        "known_enemy_bases": [
++            {"tag": "remembered", "position": [120, 100], "seen_seconds": 990, "expansion": True}
++        ],
++    }
++    state = GameAssessment().observe(bot, Units([], bot))
++    targets = {target.id: target for target in state.targets}
++    assert "site:2" not in targets
++    assert targets["site:1"].travel == pytest.approx(25)
++    assert targets["remembered"].travel == pytest.approx(Point2((0, 0)).distance_to(Point2((120, 100))))
++    assert StrategicDirector().decide(state).objective == "develop"
+diff --git a/tests/test_trade_recovery_guard.py b/tests/test_trade_recovery_guard.py
+new file mode 100644
+index 0000000..2557c30
+--- /dev/null
++++ b/tests/test_trade_recovery_guard.py
+@@ -0,0 +1,75 @@
++import json
++from dataclasses import replace
++
++import pytest
++from sc2.ids.unit_typeid import UnitTypeId as U
++from test_remote_raid import facts
++
++from source.game_assessment import GameAssessment
++from source.replay_strategy import assessment_from_dict
++from source.strategy_director import StrategicDirector
++
++
++def fighting(**changes):
++    state = facts(
++        threat_supply=0,
++        threat=None,
++        health=0.9,
++        local_advantage=2,
++        trade_bad=True,
++        local_fight_observed=True,
++    )
++    return replace(state, **changes)
++
++
++@pytest.mark.parametrize("advantage", [1.5, 1.58, 2.56])
++def test_healthy_current_favorable_main_fight_continues_despite_trailing_bad_trade(advantage):
++    plan = StrategicDirector().decide(fighting(local_advantage=advantage))
++    assert plan.objective == "pressure"
++    assert plan.missions[-1].mode == "attack"
++
++
++@pytest.mark.parametrize(
++    "changes",
++    [
++        {"health": 0.2, "trade_bad": False},
++        {"local_advantage": 0.7, "trade_bad": False},
++        {"health": 0.79},
++        {"local_advantage": 1.49},
++        {"local_advantage": 10},
++        {"local_fight_observed": False},
++        {"engagement_evidence_schema_version": 2},
++    ],
++)
++def test_damage_danger_or_missing_current_favorable_evidence_preserves_recovery(changes):
++    assert StrategicDirector().decide(fighting(**changes)).objective == "recover"
++
++
++def test_major_home_emergency_still_commands_full_defense():
++    plan = StrategicDirector().decide(fighting(threat_supply=30, threat=(5, 5), home_advantage=0.3))
++    assert plan.objective == "stabilize"
++    assert len(plan.missions) == 1 and plan.missions[0].target_id == "home"
++
++
++def test_legacy_assessment_without_engagement_evidence_remains_conservative():
++    data = json.loads(json.dumps(fighting().to_dict()))
++    data.pop("local_fight_observed")
++    data.pop("engagement_evidence_schema_version")
++    assert StrategicDirector().decide(assessment_from_dict(data)).objective == "recover"
++
++
++def test_observed_main_participation_sets_fresh_evidence_but_detached_contact_does_not(
++    bot, make_unit, populate
++):
++    army = [make_unit(U.STALKER) for _ in range(4)]
++    enemy = make_unit(U.MARINE, (5, 0), alliance=4)
++    populate(*army, enemy, make_unit(U.NEXUS))
++    assert GameAssessment().observe(bot, bot.units).local_fight_observed
++    detached = [make_unit(U.STALKER)] + [make_unit(U.STALKER, (80, 80)) for _ in range(7)]
++    populate(*detached, enemy, make_unit(U.NEXUS))
++    state = GameAssessment().observe(bot, bot.units)
++    assert not state.local_fight_observed and state.local_advantage == 10
++    unseen = make_unit(U.MARINE, (5, 0), alliance=4, display_type=2)
++    populate(*army, unseen, make_unit(U.NEXUS))
++    state = GameAssessment().observe(bot, bot.units)
++    assert not state.local_fight_observed and state.local_advantage == 10
+diff --git a/tests/test_trials.py b/tests/test_trials.py
+index 5a221d6..15d0b52 100644
+--- a/tests/test_trials.py
++++ b/tests/test_trials.py
+@@ -153,11 +153,12 @@ def test_seeded_matrix_stops_when_initial_conditions_differ(monkeypatch, tmp_pat
+     assert len(results) == 3 and all(not r["starting_conditions_match"] for r in results)
+ 
+ 
+-def test_five_clients_overlap_scenarios_and_validate_each_triplet(monkeypatch, tmp_path):
++@pytest.mark.parametrize("parallel", [5, 8])
++def test_clients_overlap_scenarios_and_validate_each_triplet(monkeypatch, tmp_path, parallel):
+     monkeypatch.setattr(trials, "ROOT", tmp_path)
+     (tmp_path / ".local").mkdir()
+     (tmp_path / ".local/windows.json").write_text('{"sc2_path":"game","map_file":"map"}')
+-    barrier, lock = threading.Barrier(5), threading.Lock()
++    barrier, lock = threading.Barrier(parallel), threading.Lock()
+     active = peak = launched = 0
+     races = {}
+ 
+@@ -170,7 +171,7 @@ def test_five_clients_overlap_scenarios_and_validate_each_triplet(monkeypatch, t
+             active += 1
+             peak = max(peak, active)
+             races[report] = command[command.index("--opponent") + 1]
+-        if index <= 5:
++        if index <= parallel:
+             barrier.wait(timeout=5)
+         with lock:
+             active -= 1
+@@ -196,22 +197,23 @@ def test_five_clients_overlap_scenarios_and_validate_each_triplet(monkeypatch, t
+             "Zerg",
+             "--builds",
+             "Rush",
++            "Timing",
+             "--repeat",
+             "3",
+             "--parallel",
+-            "5",
++            str(parallel),
+             "--seed",
+             "42",
+         ]
+     )
+     results = json.loads((tmp_path / "logs/latest-trials.json").read_text())
+-    assert peak == 5 and active == 0 and len(races) == len(results) == 6
+-    assert [r["opponent"] for r in results] == ["Terran"] * 3 + ["Zerg"] * 3
++    assert peak == parallel and active == 0 and len(races) == len(results) == 12
++    assert [r["opponent"] for r in results] == ["Terran"] * 6 + ["Zerg"] * 6
+     assert all(r["starting_conditions_match"] and r["wall_seconds"] >= 0 for r in results)
+     assert all(r["game_seconds_per_wall_second"] > 0 for r in results)
+ 
+ 
+-@pytest.mark.parametrize("args", [["--repeat", "0"], ["--duration", "0"], ["--parallel", "6"]])
++@pytest.mark.parametrize("args", [["--repeat", "0"], ["--duration", "0"], ["--parallel", "9"]])
+ def test_trial_bounds(args):
+     with pytest.raises(SystemExit) as exc:
+         trials.main(args)
+diff --git a/tests/test_windows_scripts.py b/tests/test_windows_scripts.py
+index 4fe8de4..efd662e 100644
+--- a/tests/test_windows_scripts.py
++++ b/tests/test_windows_scripts.py
+@@ -93,9 +93,14 @@ def test_setup_and_start_from_another_directory(scripts):
+     assert saved["sc2_path"] == str(game)
+     assert saved["map_file"] == str(map_file)
+     assert all(Path(c["cwd"]) == repo for c in calls())
++    application_calls = [
++        c["args"] for c in calls() if "--check-config" in c["args"] or "--doctor" in c["args"]
++    ]
++    assert all(args[3:6] == ["python", "-m", "source.run_assistant"] for args in application_calls)
+     result = run("Start.ps1", "-StartPaused", "-Opponent", "Zerg", "-Difficulty", "Hard")
+     assert result.returncode == 0, result.stdout + result.stderr
+     args = calls()[-1]["args"]
++    assert args[3:6] == ["python", "-m", "source.run_assistant"]
+     assert "--no-sync" in args and "--locked" in args
+     assert "--start-paused" in args
+     assert args[args.index("--sc2-path") + 1] == str(game)

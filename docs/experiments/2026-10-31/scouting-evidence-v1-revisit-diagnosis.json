@@ -1,0 +1,861 @@
+{
+  "episodes": 6,
+  "split_groups": 1,
+  "examples": 4247,
+  "archived_files": 69,
+  "archived_bytes": 980788192,
+  "scope": "Development diagnostics; overlapping fact strata, one world split group; no oracle truth, no trained predictor, no causal information ceiling",
+  "scenarios": [
+    {
+      "build": "Macro",
+      "repeats": 3,
+      "first_facts_mean_seconds": {
+        "fresh_army_contact": 275.3571428571429,
+        "fresh_expansion": 285.0,
+        "fresh_force": 292.5,
+        "fresh_site_inspection": 37.5,
+        "fresh_technology": 657.8571428571429
+      },
+      "strata": {
+        "all": {
+          "recorded_seconds": 872.1428571428572,
+          "accuracy": 0.0,
+          "commitment_coverage": 0.21130221130221133,
+          "conditional_accuracy": 0.0,
+          "brier": 0.900612290699289,
+          "time_coverage": 1.0
+        },
+        "fresh_army_contact": {
+          "recorded_seconds": 533.5714285714286,
+          "accuracy": 0.0,
+          "commitment_coverage": 0.3232931726907632,
+          "conditional_accuracy": 0.0,
+          "brier": 0.9539371806447161,
+          "time_coverage": 0.6117936117936117
+        },
+        "fresh_expansion": {
+          "recorded_seconds": 461.7857142857142,
+          "accuracy": 0.0,
+          "commitment_coverage": 0.3921113689095129,
+          "conditional_accuracy": 0.0,
+          "brier": 0.9867052066899262,
+          "time_coverage": 0.5294840294840294
+        },
+        "fresh_force": {
+          "recorded_seconds": 442.50000000000006,
+          "accuracy": 0.0,
+          "commitment_coverage": 0.37530266343825686,
+          "conditional_accuracy": 0.0,
+          "brier": 0.9787016824923777,
+          "time_coverage": 0.5073710073710074
+        },
+        "fresh_site_inspection": {
+          "recorded_seconds": 747.8571428571429,
+          "accuracy": 0.0,
+          "commitment_coverage": 0.24641833810888258,
+          "conditional_accuracy": 0.0,
+          "brier": 0.9173329579215154,
+          "time_coverage": 0.8574938574938574
+        },
+        "fresh_technology": {
+          "recorded_seconds": 214.28571428571433,
+          "accuracy": 0.0,
+          "commitment_coverage": 0.33000000000000024,
+          "conditional_accuracy": 0.0,
+          "brier": 0.9571306600444297,
+          "time_coverage": 0.24570024570024573
+        },
+        "no_fresh_relevant_evidence": {
+          "recorded_seconds": 279.64285714285717,
+          "accuracy": 0.0,
+          "commitment_coverage": 0.0,
+          "conditional_accuracy": null,
+          "brier": 0.7999999999999972,
+          "time_coverage": 0.32063882063882065
+        },
+        "opening/all": {
+          "recorded_seconds": 240.0,
+          "accuracy": 0.0,
+          "commitment_coverage": 0.0,
+          "conditional_accuracy": null,
+          "brier": 0.7999999999999978,
+          "time_coverage": 0.2751842751842752
+        },
+        "opening/fresh_site_inspection": {
+          "recorded_seconds": 129.64285714285714,
+          "accuracy": 0.0,
+          "commitment_coverage": 0.0,
+          "conditional_accuracy": null,
+          "brier": 0.7999999999999992,
+          "time_coverage": 0.14864864864864863
+        },
+        "opening/no_fresh_relevant_evidence": {
+          "recorded_seconds": 240.0,
+          "accuracy": 0.0,
+          "commitment_coverage": 0.0,
+          "conditional_accuracy": null,
+          "brier": 0.7999999999999978,
+          "time_coverage": 0.2751842751842752
+        }
+      },
+      "representative_errors": [
+        {
+          "time": 0.0,
+          "signature": [
+            "Unknown",
+            "Unknown",
+            [
+              false,
+              false,
+              false,
+              false,
+              false
+            ]
+          ],
+          "fact_presence": {
+            "fresh_army_contact": false,
+            "fresh_force": false,
+            "fresh_technology": false,
+            "fresh_expansion": false,
+            "fresh_site_inspection": false
+          },
+          "evidence": []
+        },
+        {
+          "time": 37.5,
+          "signature": [
+            "Unknown",
+            "Unknown",
+            [
+              false,
+              false,
+              false,
+              false,
+              true
+            ]
+          ],
+          "fact_presence": {
+            "fresh_army_contact": false,
+            "fresh_force": false,
+            "fresh_technology": false,
+            "fresh_expansion": false,
+            "fresh_site_inspection": true
+          },
+          "evidence": []
+        },
+        {
+          "time": 275.3571428571429,
+          "signature": [
+            "Unknown",
+            "Unknown",
+            [
+              true,
+              false,
+              false,
+              false,
+              true
+            ]
+          ],
+          "fact_presence": {
+            "fresh_army_contact": true,
+            "fresh_force": false,
+            "fresh_technology": false,
+            "fresh_expansion": false,
+            "fresh_site_inspection": true
+          },
+          "evidence": []
+        },
+        {
+          "time": 285.0,
+          "signature": [
+            "Unknown",
+            "Unknown",
+            [
+              true,
+              false,
+              false,
+              true,
+              true
+            ]
+          ],
+          "fact_presence": {
+            "fresh_army_contact": true,
+            "fresh_force": false,
+            "fresh_technology": false,
+            "fresh_expansion": true,
+            "fresh_site_inspection": true
+          },
+          "evidence": []
+        },
+        {
+          "time": 292.5,
+          "signature": [
+            "Unknown",
+            "Unknown",
+            [
+              true,
+              true,
+              false,
+              true,
+              true
+            ]
+          ],
+          "fact_presence": {
+            "fresh_army_contact": true,
+            "fresh_force": true,
+            "fresh_technology": false,
+            "fresh_expansion": true,
+            "fresh_site_inspection": true
+          },
+          "evidence": []
+        },
+        {
+          "time": 385.7142857142857,
+          "signature": [
+            "Unknown",
+            "Unknown",
+            [
+              true,
+              true,
+              false,
+              false,
+              true
+            ]
+          ],
+          "fact_presence": {
+            "fresh_army_contact": true,
+            "fresh_force": true,
+            "fresh_technology": false,
+            "fresh_expansion": false,
+            "fresh_site_inspection": true
+          },
+          "evidence": []
+        },
+        {
+          "time": 425.3571428571429,
+          "signature": [
+            "Power",
+            "Power",
+            [
+              true,
+              true,
+              false,
+              false,
+              true
+            ]
+          ],
+          "fact_presence": {
+            "fresh_army_contact": true,
+            "fresh_force": true,
+            "fresh_technology": false,
+            "fresh_expansion": false,
+            "fresh_site_inspection": true
+          },
+          "evidence": [
+            {
+              "supports": "Power",
+              "weight": 4,
+              "signal": "Substantial armored ground force",
+              "observed_at": 425.3571428571429
+            }
+          ]
+        },
+        {
+          "time": 428.5714285714286,
+          "signature": [
+            "Power",
+            "Power",
+            [
+              true,
+              true,
+              false,
+              true,
+              true
+            ]
+          ],
+          "fact_presence": {
+            "fresh_army_contact": true,
+            "fresh_force": true,
+            "fresh_technology": false,
+            "fresh_expansion": true,
+            "fresh_site_inspection": true
+          },
+          "evidence": [
+            {
+              "supports": "Power",
+              "weight": 4,
+              "signal": "Substantial armored ground force",
+              "observed_at": 428.5714285714286
+            }
+          ]
+        },
+        {
+          "time": 472.50000000000006,
+          "signature": [
+            "Power",
+            "Power",
+            [
+              false,
+              false,
+              false,
+              true,
+              true
+            ]
+          ],
+          "fact_presence": {
+            "fresh_army_contact": false,
+            "fresh_force": false,
+            "fresh_technology": false,
+            "fresh_expansion": true,
+            "fresh_site_inspection": true
+          },
+          "evidence": [
+            {
+              "supports": "Power",
+              "weight": 4,
+              "signal": "Substantial armored ground force",
+              "observed_at": 441.42857142857144
+            }
+          ]
+        },
+        {
+          "time": 484.28571428571433,
+          "signature": [
+            "Power",
+            "Power",
+            [
+              true,
+              false,
+              false,
+              true,
+              true
+            ]
+          ],
+          "fact_presence": {
+            "fresh_army_contact": true,
+            "fresh_force": false,
+            "fresh_technology": false,
+            "fresh_expansion": true,
+            "fresh_site_inspection": true
+          },
+          "evidence": [
+            {
+              "supports": "Power",
+              "weight": 4,
+              "signal": "Substantial armored ground force",
+              "observed_at": 484.28571428571433
+            }
+          ]
+        },
+        {
+          "time": 552.8571428571429,
+          "signature": [
+            "Unknown",
+            "Unknown",
+            [
+              true,
+              true,
+              false,
+              true,
+              false
+            ]
+          ],
+          "fact_presence": {
+            "fresh_army_contact": true,
+            "fresh_force": true,
+            "fresh_technology": false,
+            "fresh_expansion": true,
+            "fresh_site_inspection": false
+          },
+          "evidence": []
+        },
+        {
+          "time": 555.0,
+          "signature": [
+            "Unknown",
+            "Unknown",
+            [
+              true,
+              true,
+              false,
+              false,
+              false
+            ]
+          ],
+          "fact_presence": {
+            "fresh_army_contact": true,
+            "fresh_force": true,
+            "fresh_technology": false,
+            "fresh_expansion": false,
+            "fresh_site_inspection": false
+          },
+          "evidence": []
+        }
+      ]
+    },
+    {
+      "build": "Timing",
+      "repeats": 3,
+      "first_facts_mean_seconds": {
+        "fresh_army_contact": 193.92857142857144,
+        "fresh_expansion": 271.0714285714286,
+        "fresh_force": 247.50000000000003,
+        "fresh_site_inspection": 37.5,
+        "fresh_technology": 45.0
+      },
+      "strata": {
+        "all": {
+          "recorded_seconds": 642.5000000000001,
+          "accuracy": 0.4263253826524727,
+          "commitment_coverage": 0.4263253826524727,
+          "conditional_accuracy": 1.0,
+          "brier": 0.5682405414450483,
+          "time_coverage": 1.0
+        },
+        "fresh_army_contact": {
+          "recorded_seconds": 437.85714285714295,
+          "accuracy": 0.601108176070695,
+          "commitment_coverage": 0.601108176070695,
+          "conditional_accuracy": 1.0,
+          "brier": 0.42076068892455404,
+          "time_coverage": 0.6814771746704137
+        },
+        "fresh_expansion": {
+          "recorded_seconds": 235.71428571428567,
+          "accuracy": 0.5590909090909092,
+          "commitment_coverage": 0.5590909090909092,
+          "conditional_accuracy": 1.0,
+          "brier": 0.38447625502192395,
+          "time_coverage": 0.36688492969899994
+        },
+        "fresh_force": {
+          "recorded_seconds": 327.1428571428571,
+          "accuracy": 0.6292403514625737,
+          "commitment_coverage": 0.6292403514625737,
+          "conditional_accuracy": 1.0,
+          "brier": 0.3632079188521755,
+          "time_coverage": 0.5090539935674699
+        },
+        "fresh_site_inspection": {
+          "recorded_seconds": 522.5,
+          "accuracy": 0.5221862082906396,
+          "commitment_coverage": 0.5221862082906396,
+          "conditional_accuracy": 1.0,
+          "brier": 0.4936827291299711,
+          "time_coverage": 0.8132222176077816
+        },
+        "fresh_technology": {
+          "recorded_seconds": 156.0714285714286,
+          "accuracy": 0.5466123280692823,
+          "commitment_coverage": 0.5466123280692823,
+          "conditional_accuracy": 1.0,
+          "brier": 0.5561485929768526,
+          "time_coverage": 0.24288291780297264
+        },
+        "no_fresh_relevant_evidence": {
+          "recorded_seconds": 139.28571428571425,
+          "accuracy": 0.0769230769230766,
+          "commitment_coverage": 0.0769230769230766,
+          "conditional_accuracy": 1.0,
+          "brier": 0.85053549158127,
+          "time_coverage": 0.21679564027668177
+        },
+        "opening/all": {
+          "recorded_seconds": 240.0,
+          "accuracy": 0.0,
+          "commitment_coverage": 0.0,
+          "conditional_accuracy": null,
+          "brier": 0.9256419422158876,
+          "time_coverage": 0.3735555647844364
+        },
+        "opening/fresh_army_contact": {
+          "recorded_seconds": 46.071428571428555,
+          "accuracy": 0.0,
+          "commitment_coverage": 0.0,
+          "conditional_accuracy": null,
+          "brier": 0.9546362365734066,
+          "time_coverage": 0.07170932716844088
+        },
+        "opening/fresh_site_inspection": {
+          "recorded_seconds": 123.21428571428572,
+          "accuracy": 0.0,
+          "commitment_coverage": 0.0,
+          "conditional_accuracy": null,
+          "brier": 0.9452235960863299,
+          "time_coverage": 0.19178075870629546
+        },
+        "opening/fresh_technology": {
+          "recorded_seconds": 65.35714285714286,
+          "accuracy": 0.0,
+          "commitment_coverage": 0.0,
+          "conditional_accuracy": null,
+          "brier": 0.9546362365734066,
+          "time_coverage": 0.10172718505290455
+        },
+        "opening/no_fresh_relevant_evidence": {
+          "recorded_seconds": 128.57142857142858,
+          "accuracy": 0.0,
+          "commitment_coverage": 0.0,
+          "conditional_accuracy": null,
+          "brier": 0.9005135537727144,
+          "time_coverage": 0.20011905256309093
+        }
+      },
+      "representative_errors": [
+        {
+          "time": 0.0,
+          "signature": [
+            "Unknown",
+            "Unknown",
+            [
+              false,
+              false,
+              false,
+              false,
+              false
+            ]
+          ],
+          "fact_presence": {
+            "fresh_army_contact": false,
+            "fresh_force": false,
+            "fresh_technology": false,
+            "fresh_expansion": false,
+            "fresh_site_inspection": false
+          },
+          "evidence": []
+        },
+        {
+          "time": 37.5,
+          "signature": [
+            "Unknown",
+            "Unknown",
+            [
+              false,
+              false,
+              false,
+              false,
+              true
+            ]
+          ],
+          "fact_presence": {
+            "fresh_army_contact": false,
+            "fresh_force": false,
+            "fresh_technology": false,
+            "fresh_expansion": false,
+            "fresh_site_inspection": true
+          },
+          "evidence": []
+        },
+        {
+          "time": 45.0,
+          "signature": [
+            "Unknown",
+            "Rush",
+            [
+              false,
+              false,
+              true,
+              false,
+              true
+            ]
+          ],
+          "fact_presence": {
+            "fresh_army_contact": false,
+            "fresh_force": false,
+            "fresh_technology": true,
+            "fresh_expansion": false,
+            "fresh_site_inspection": true
+          },
+          "evidence": [
+            {
+              "supports": "Rush",
+              "weight": 2,
+              "signal": "Spawning Pool positively observed early",
+              "observed_at": 45.0
+            }
+          ]
+        },
+        {
+          "time": 100.71428571428572,
+          "signature": [
+            "Unknown",
+            "Rush",
+            [
+              false,
+              false,
+              true,
+              false,
+              false
+            ]
+          ],
+          "fact_presence": {
+            "fresh_army_contact": false,
+            "fresh_force": false,
+            "fresh_technology": true,
+            "fresh_expansion": false,
+            "fresh_site_inspection": false
+          },
+          "evidence": [
+            {
+              "supports": "Rush",
+              "weight": 2,
+              "signal": "Spawning Pool positively observed early",
+              "observed_at": 45.0
+            }
+          ]
+        },
+        {
+          "time": 110.35714285714286,
+          "signature": [
+            "Unknown",
+            "Rush",
+            [
+              false,
+              false,
+              false,
+              false,
+              false
+            ]
+          ],
+          "fact_presence": {
+            "fresh_army_contact": false,
+            "fresh_force": false,
+            "fresh_technology": false,
+            "fresh_expansion": false,
+            "fresh_site_inspection": false
+          },
+          "evidence": [
+            {
+              "supports": "Rush",
+              "weight": 2,
+              "signal": "Spawning Pool positively observed early",
+              "observed_at": 45.0
+            }
+          ]
+        },
+        {
+          "time": 180.0,
+          "signature": [
+            "Unknown",
+            "Rush",
+            [
+              false,
+              false,
+              false,
+              false,
+              true
+            ]
+          ],
+          "fact_presence": {
+            "fresh_army_contact": false,
+            "fresh_force": false,
+            "fresh_technology": false,
+            "fresh_expansion": false,
+            "fresh_site_inspection": true
+          },
+          "evidence": [
+            {
+              "supports": "Rush",
+              "weight": 2,
+              "signal": "Spawning Pool positively observed early",
+              "observed_at": 45.0
+            }
+          ]
+        },
+        {
+          "time": 193.92857142857144,
+          "signature": [
+            "Unknown",
+            "Rush",
+            [
+              true,
+              false,
+              false,
+              false,
+              true
+            ]
+          ],
+          "fact_presence": {
+            "fresh_army_contact": true,
+            "fresh_force": false,
+            "fresh_technology": false,
+            "fresh_expansion": false,
+            "fresh_site_inspection": true
+          },
+          "evidence": [
+            {
+              "supports": "Rush",
+              "weight": 2,
+              "signal": "Spawning Pool positively observed early",
+              "observed_at": 45.0
+            }
+          ]
+        },
+        {
+          "time": 253.92857142857144,
+          "signature": [
+            "Unknown",
+            "Timing",
+            [
+              true,
+              true,
+              false,
+              false,
+              false
+            ]
+          ],
+          "fact_presence": {
+            "fresh_army_contact": true,
+            "fresh_force": true,
+            "fresh_technology": false,
+            "fresh_expansion": false,
+            "fresh_site_inspection": false
+          },
+          "evidence": [
+            {
+              "supports": "Timing",
+              "weight": 4,
+              "signal": "First observed pressure between 3:30 and 7:00",
+              "observed_at": 247.5
+            },
+            {
+              "supports": "Rush",
+              "weight": 2,
+              "signal": "Spawning Pool positively observed early",
+              "observed_at": 45.0
+            },
+            {
+              "supports": "Power",
+              "weight": 4,
+              "signal": "Substantial armored ground force",
+              "observed_at": 253.92857142857144
+            }
+          ]
+        },
+        {
+          "time": 256.0714285714286,
+          "signature": [
+            "Unknown",
+            "Timing",
+            [
+              true,
+              true,
+              false,
+              false,
+              true
+            ]
+          ],
+          "fact_presence": {
+            "fresh_army_contact": true,
+            "fresh_force": true,
+            "fresh_technology": false,
+            "fresh_expansion": false,
+            "fresh_site_inspection": true
+          },
+          "evidence": [
+            {
+              "supports": "Timing",
+              "weight": 4,
+              "signal": "First observed pressure between 3:30 and 7:00",
+              "observed_at": 247.5
+            },
+            {
+              "supports": "Rush",
+              "weight": 2,
+              "signal": "Spawning Pool positively observed early",
+              "observed_at": 45.0
+            },
+            {
+              "supports": "Power",
+              "weight": 4,
+              "signal": "Substantial armored ground force",
+              "observed_at": 256.0714285714286
+            }
+          ]
+        },
+        {
+          "time": 271.0714285714286,
+          "signature": [
+            "Unknown",
+            "Timing",
+            [
+              true,
+              true,
+              false,
+              true,
+              true
+            ]
+          ],
+          "fact_presence": {
+            "fresh_army_contact": true,
+            "fresh_force": true,
+            "fresh_technology": false,
+            "fresh_expansion": true,
+            "fresh_site_inspection": true
+          },
+          "evidence": [
+            {
+              "supports": "Timing",
+              "weight": 4,
+              "signal": "First observed pressure between 3:30 and 7:00",
+              "observed_at": 247.5
+            },
+            {
+              "supports": "Rush",
+              "weight": 2,
+              "signal": "Spawning Pool positively observed early",
+              "observed_at": 45.0
+            },
+            {
+              "supports": "Power",
+              "weight": 4,
+              "signal": "Substantial armored ground force",
+              "observed_at": 271.0714285714286
+            }
+          ]
+        },
+        {
+          "time": 550.7142857142858,
+          "signature": [
+            "Unknown",
+            "Timing",
+            [
+              true,
+              true,
+              true,
+              true,
+              true
+            ]
+          ],
+          "fact_presence": {
+            "fresh_army_contact": true,
+            "fresh_force": true,
+            "fresh_technology": true,
+            "fresh_expansion": true,
+            "fresh_site_inspection": true
+          },
+          "evidence": [
+            {
+              "supports": "Timing",
+              "weight": 4,
+              "signal": "First observed pressure between 3:30 and 7:00",
+              "observed_at": 247.5
+            },
+            {
+              "supports": "Rush",
+              "weight": 2,
+              "signal": "Spawning Pool positively observed early",
+              "observed_at": 45.0
+            },
+            {
+              "supports": "Power",
+              "weight": 4,
+              "signal": "Substantial armored ground force",
+              "observed_at": 550.7142857142858
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

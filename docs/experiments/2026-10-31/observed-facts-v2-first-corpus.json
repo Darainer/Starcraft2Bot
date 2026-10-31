@@ -1,0 +1,21 @@
+{
+  "schema": "sc2-observed-facts-v2",
+  "manifest_sha256": "178b4897f842d34c5b656678280a20bae8c97581d0f8c04645c6760f745ab3de",
+  "extractor_sha256": {
+    "opponent_dataset.py": "9535a39c69bca4e135382a04b6ef4130b84eebb437e6ad8df5f60a9db6fd7dac",
+    "scouting_facts.py": "53f5852f13ec4908db3b2637f30245f402e90d74f55bfae66166e911e520f8b9",
+    "scouting_diagnostics.py": "b0c66849b61d34a4411fab83eaa7fc29012a0ea1834c116687dc1a4b20803bb7",
+    "opponent_strategy.py": "cb21f8dbd847b0db62dd90b99a3669442f46ed83631402c0eb6e24f418382f8c"
+  },
+  "episodes": 27,
+  "examples": 12929,
+  "split_groups": 1,
+  "archived_files": 299,
+  "archived_bytes": 3277646176,
+  "actor_source_commits": [
+    "2be052b",
+    "b3aff99"
+  ],
+  "scope": "27 terminal development games under seed20261025; one world splitgroup; observations/objective knownfacts only, weak auxiliarybuildlabels separate, no oracle state labels or trainedmodel",
+  "input_example": "docs/examples/sc2-observed-facts-v2.json"
+}

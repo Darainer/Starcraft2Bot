@@ -1,0 +1,98 @@
+{
+  "candidate": "zerg-scout-selector-v1-20261031",
+  "source_commit": "b3aff99",
+  "stage": "targeted",
+  "frozen_source_files_verified": 44,
+  "settings": "pressure, explicit VeryHard Zerg build, BelShirVestigeLE, game/Python seed20261025,step8,3600 game seconds,3repeats",
+  "ping": {
+    "game_version": "5.0.17.98310",
+    "base_build": 98310,
+    "data_build": 98310,
+    "data_version": "9C1F3D3D30CA252E33FC67CA05CBE1EA"
+  },
+  "map_sha256": "9cb078a287c76c0b55e3bc137b0e4590415231367d7c5724ab1bfd24a06a1d1e",
+  "results": {
+    "Result.Victory": 6
+  },
+  "scope": "Fixed-start reproducibility only, not independent held-out opponents or community elite acceptance",
+  "records": [
+    {
+      "build": "Macro",
+      "repeat": 1,
+      "result": "Result.Victory",
+      "sampled_game_seconds": 1145.4,
+      "recording": "runtime-20261031-145009-490463-a8825c4b4fe14ed7aa0d7d595cc15991-001.json",
+      "initial_state_sha256": "bdaab2bba2df0338b810b707166a9448fb54ba1a4fe26db7e01e02bea54025c7",
+      "runtime_difficulty": "VeryHard",
+      "game_info_computer_difficulty": "VeryHard",
+      "replay": "assistant-20261031-145009-490463-a8825c4b4fe14ed7aa0d7d595cc15991-001.SC2Replay",
+      "replay_bytes": 252423,
+      "replay_sha256": "bc556c784c73d0bd14ae9d227aea857d246bb9fadecfe6c9028521ec8856a04d"
+    },
+    {
+      "build": "Macro",
+      "repeat": 2,
+      "result": "Result.Victory",
+      "sampled_game_seconds": 1145.4,
+      "recording": "runtime-20261031-145009-490463-a8825c4b4fe14ed7aa0d7d595cc15991-002.json",
+      "initial_state_sha256": "bdaab2bba2df0338b810b707166a9448fb54ba1a4fe26db7e01e02bea54025c7",
+      "runtime_difficulty": "VeryHard",
+      "game_info_computer_difficulty": "VeryHard",
+      "replay": "assistant-20261031-145009-490463-a8825c4b4fe14ed7aa0d7d595cc15991-002.SC2Replay",
+      "replay_bytes": 252410,
+      "replay_sha256": "09e9a2bcf2aebb7ba63d68219c750a41eb20bc667f2b50ead401c17da3d66eaa"
+    },
+    {
+      "build": "Macro",
+      "repeat": 3,
+      "result": "Result.Victory",
+      "sampled_game_seconds": 1145.4,
+      "recording": "runtime-20261031-145009-490463-a8825c4b4fe14ed7aa0d7d595cc15991-003.json",
+      "initial_state_sha256": "bdaab2bba2df0338b810b707166a9448fb54ba1a4fe26db7e01e02bea54025c7",
+      "runtime_difficulty": "VeryHard",
+      "game_info_computer_difficulty": "VeryHard",
+      "replay": "assistant-20261031-145009-490463-a8825c4b4fe14ed7aa0d7d595cc15991-003.SC2Replay",
+      "replay_bytes": 252414,
+      "replay_sha256": "501162b7d5f32de078951861a36fddc20259b1133f92b5e59c42a5127e82c1ce"
+    },
+    {
+      "build": "Timing",
+      "repeat": 1,
+      "result": "Result.Victory",
+      "sampled_game_seconds": 1050.4,
+      "recording": "runtime-20261031-145020-935789-c62acd2a79e34d0d816718d10524b2ce-001.json",
+      "initial_state_sha256": "b5e9fed55f291afeaf3cbbc30e51723f634d9d5c8f5e5d23427f87bd10462762",
+      "runtime_difficulty": "VeryHard",
+      "game_info_computer_difficulty": "VeryHard",
+      "replay": "assistant-20261031-145020-935789-c62acd2a79e34d0d816718d10524b2ce-001.SC2Replay",
+      "replay_bytes": 167849,
+      "replay_sha256": "8125c15645586eff5d55ad9e3dac423255d5816d0ce18978c6f32ce713bab91b"
+    },
+    {
+      "build": "Timing",
+      "repeat": 2,
+      "result": "Result.Victory",
+      "sampled_game_seconds": 1050.4,
+      "recording": "runtime-20261031-145020-935789-c62acd2a79e34d0d816718d10524b2ce-002.json",
+      "initial_state_sha256": "b5e9fed55f291afeaf3cbbc30e51723f634d9d5c8f5e5d23427f87bd10462762",
+      "runtime_difficulty": "VeryHard",
+      "game_info_computer_difficulty": "VeryHard",
+      "replay": "assistant-20261031-145020-935789-c62acd2a79e34d0d816718d10524b2ce-002.SC2Replay",
+      "replay_bytes": 167921,
+      "replay_sha256": "1bc0f4b183dc9a1125bf1008fbcd41a33f7a97c2250fe6f0df07d0a530ce9ad7"
+    },
+    {
+      "build": "Timing",
+      "repeat": 3,
+      "result": "Result.Victory",
+      "sampled_game_seconds": 1050.4,
+      "recording": "runtime-20261031-145020-935789-c62acd2a79e34d0d816718d10524b2ce-003.json",
+      "initial_state_sha256": "b5e9fed55f291afeaf3cbbc30e51723f634d9d5c8f5e5d23427f87bd10462762",
+      "runtime_difficulty": "VeryHard",
+      "game_info_computer_difficulty": "VeryHard",
+      "replay": "assistant-20261031-145020-935789-c62acd2a79e34d0d816718d10524b2ce-003.SC2Replay",
+      "replay_bytes": 167845,
+      "replay_sha256": "d009cd83fd70924e3d967a16bb12569456bb79b28ed3cc364be26889d815143a"
+    }
+  ]
+}

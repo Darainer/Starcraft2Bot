@@ -1,0 +1,950 @@
+{
+  "kind": "Offline selector replay over historical observations; no new gameplay outcomes",
+  "selector_source_commit": "b3aff99",
+  "records": [
+    {
+      "frozen_trajectory": "R2",
+      "configured_build_evaluation_only": "Air",
+      "repeats": [
+        {
+          "repeat": 1,
+          "recording": "runtime-20261031-085138-596780-001.json",
+          "state_sha256": "a8da551df2453334f965fa7f78875c7369a3268c60b2916635515946643c745d",
+          "game_data_sha256": "b17347414bc19bd57666dd7ddfb39b5dd406aacc9ab19112d3e43dbe51733dd4",
+          "initial_state_sha256": "b7f0ead72442d65e32e97cf3132b6a3db0fc2da9338b21f7a810a0d61841552a",
+          "outcome_of_original_bot": "Result.Victory",
+          "variant": 0
+        },
+        {
+          "repeat": 2,
+          "recording": "runtime-20261031-085138-596780-002.json",
+          "state_sha256": "54fbc26e48d83e77e19e2230dc2b0b321a532367b61c64fd4d9d15df702289d3",
+          "game_data_sha256": "b17347414bc19bd57666dd7ddfb39b5dd406aacc9ab19112d3e43dbe51733dd4",
+          "initial_state_sha256": "b7f0ead72442d65e32e97cf3132b6a3db0fc2da9338b21f7a810a0d61841552a",
+          "outcome_of_original_bot": "Result.Victory",
+          "variant": 0
+        },
+        {
+          "repeat": 3,
+          "recording": "runtime-20261031-085138-596780-003.json",
+          "state_sha256": "430e7346cfbe1ff6dedef8e472419fe845a3a194d3f8c089dd31effcad37fba4",
+          "game_data_sha256": "b17347414bc19bd57666dd7ddfb39b5dd406aacc9ab19112d3e43dbe51733dd4",
+          "initial_state_sha256": "b7f0ead72442d65e32e97cf3132b6a3db0fc2da9338b21f7a810a0d61841552a",
+          "outcome_of_original_bot": "Result.Victory",
+          "variant": 0
+        }
+      ],
+      "observational_variants": [
+        {
+          "legacy_raw_contact_reconstruction": true,
+          "army_supply_caveat": "Legacy contacts reconstructed from visible armed non-worker raw units using the recording game-data supply; sampled contacts may miss transient sightings",
+          "first_completed_through_365": {},
+          "switches": [
+            {
+              "time": 0.0,
+              "response": "baseline",
+              "hypothesis": "unresolved",
+              "uncertainty": 1.0,
+              "valid_until": 0,
+              "first_pool_seen": null,
+              "first_warren_seen": null,
+              "first_expansion_seen": null,
+              "observed_army_supply": 0,
+              "observed_roach_path_supply": 0
+            }
+          ],
+          "horizons": {
+            "90": {
+              "sample_time": 85.4,
+              "response": "baseline",
+              "hypothesis": "unresolved",
+              "uncertainty": 1.0,
+              "observed_army_supply": 0,
+              "observed_roach_path_supply": 0,
+              "first_expansion_seen": null
+            },
+            "150": {
+              "sample_time": 145.4,
+              "response": "baseline",
+              "hypothesis": "unresolved",
+              "uncertainty": 1.0,
+              "observed_army_supply": 0,
+              "observed_roach_path_supply": 0,
+              "first_expansion_seen": null
+            },
+            "180": {
+              "sample_time": 175.4,
+              "response": "baseline",
+              "hypothesis": "unresolved",
+              "uncertainty": 1.0,
+              "observed_army_supply": 0,
+              "observed_roach_path_supply": 0,
+              "first_expansion_seen": null
+            },
+            "195": {
+              "sample_time": 190.4,
+              "response": "baseline",
+              "hypothesis": "unresolved",
+              "uncertainty": 1.0,
+              "observed_army_supply": 0,
+              "observed_roach_path_supply": 0,
+              "first_expansion_seen": null
+            },
+            "210": {
+              "sample_time": 205.4,
+              "response": "baseline",
+              "hypothesis": "unresolved",
+              "uncertainty": 1.0,
+              "observed_army_supply": 0,
+              "observed_roach_path_supply": 0,
+              "first_expansion_seen": null
+            },
+            "240": {
+              "sample_time": 235.4,
+              "response": "baseline",
+              "hypothesis": "unresolved",
+              "uncertainty": 1.0,
+              "observed_army_supply": 0,
+              "observed_roach_path_supply": 0,
+              "first_expansion_seen": null
+            },
+            "300": {
+              "sample_time": 295.4,
+              "response": "baseline",
+              "hypothesis": "unresolved",
+              "uncertainty": 1.0,
+              "observed_army_supply": 2.0,
+              "observed_roach_path_supply": 0,
+              "first_expansion_seen": 295.3571428571429
+            },
+            "360": {
+              "sample_time": 355.4,
+              "response": "baseline",
+              "hypothesis": "unresolved",
+              "uncertainty": 1.0,
+              "observed_army_supply": 10.0,
+              "observed_roach_path_supply": 2.0,
+              "first_expansion_seen": 295.3571428571429
+            }
+          }
+        }
+      ]
+    },
+    {
+      "frozen_trajectory": "R2",
+      "configured_build_evaluation_only": "Macro",
+      "repeats": [
+        {
+          "repeat": 1,
+          "recording": "runtime-20261031-084305-882772-001.json",
+          "state_sha256": "dd509a460d524abda182aa9db89e4cafd45882ef4abd935564916a0d41adc6df",
+          "game_data_sha256": "b17347414bc19bd57666dd7ddfb39b5dd406aacc9ab19112d3e43dbe51733dd4",
+          "initial_state_sha256": "72babdb1d60ea843037a0afe130cfbc7ef685aaac38e221d5f75d6eb1ef9a59d",
+          "outcome_of_original_bot": "Result.Victory",
+          "variant": 0
+        },
+        {
+          "repeat": 2,
+          "recording": "runtime-20261031-084305-882772-002.json",
+          "state_sha256": "59ece3536094611dbdea341aa87756ad469f2bd9d6acef94a4530728e3f7e7d4",
+          "game_data_sha256": "b17347414bc19bd57666dd7ddfb39b5dd406aacc9ab19112d3e43dbe51733dd4",
+          "initial_state_sha256": "72babdb1d60ea843037a0afe130cfbc7ef685aaac38e221d5f75d6eb1ef9a59d",
+          "outcome_of_original_bot": "Result.Victory",
+          "variant": 0
+        },
+        {
+          "repeat": 3,
+          "recording": "runtime-20261031-084305-882772-003.json",
+          "state_sha256": "e12a9db454b2119e36f9d31dce327cb7f9357073c2b1412d6360e26ac2462aa7",
+          "game_data_sha256": "b17347414bc19bd57666dd7ddfb39b5dd406aacc9ab19112d3e43dbe51733dd4",
+          "initial_state_sha256": "72babdb1d60ea843037a0afe130cfbc7ef685aaac38e221d5f75d6eb1ef9a59d",
+          "outcome_of_original_bot": "Result.Victory",
+          "variant": 0
+        }
+      ],
+      "observational_variants": [
+        {
+          "legacy_raw_contact_reconstruction": true,
+          "army_supply_caveat": "Legacy contacts reconstructed from visible armed non-worker raw units using the recording game-data supply; sampled contacts may miss transient sightings",
+          "first_completed_through_365": {},
+          "switches": [
+            {
+              "time": 0.0,
+              "response": "baseline",
+              "hypothesis": "unresolved",
+              "uncertainty": 1.0,
+              "valid_until": 0,
+              "first_pool_seen": null,
+              "first_warren_seen": null,
+              "first_expansion_seen": null,
+              "observed_army_supply": 0,
+              "observed_roach_path_supply": 0
+            },
+            {
+              "time": 305.4,
+              "response": "early_robotics",
+              "hypothesis": "observed_roach_path_force",
+              "uncertainty": 0.25,
+              "valid_until": 350.3571428571429,
+              "first_pool_seen": null,
+              "first_warren_seen": null,
+              "first_expansion_seen": 300.3571428571429,
+              "observed_army_supply": 15.0,
+              "observed_roach_path_supply": 8.0
+            },
+            {
+              "time": 360.4,
+              "response": "baseline",
+              "hypothesis": "unresolved",
+              "uncertainty": 1.0,
+              "valid_until": 0,
+              "first_pool_seen": null,
+              "first_warren_seen": null,
+              "first_expansion_seen": 300.3571428571429,
+              "observed_army_supply": 10.5,
+              "observed_roach_path_supply": 10.0
+            }
+          ],
+          "horizons": {
+            "90": {
+              "sample_time": 85.4,
+              "response": "baseline",
+              "hypothesis": "unresolved",
+              "uncertainty": 1.0,
+              "observed_army_supply": 0,
+              "observed_roach_path_supply": 0,
+              "first_expansion_seen": null
+            },
+            "150": {
+              "sample_time": 145.4,
+              "response": "baseline",
+              "hypothesis": "unresolved",
+              "uncertainty": 1.0,
+              "observed_army_supply": 0,
+              "observed_roach_path_supply": 0,
+              "first_expansion_seen": null
+            },
+            "180": {
+              "sample_time": 175.4,
+              "response": "baseline",
+              "hypothesis": "unresolved",
+              "uncertainty": 1.0,
+              "observed_army_supply": 0,
+              "observed_roach_path_supply": 0,
+              "first_expansion_seen": null
+            },
+            "195": {
+              "sample_time": 190.4,
+              "response": "baseline",
+              "hypothesis": "unresolved",
+              "uncertainty": 1.0,
+              "observed_army_supply": 0,
+              "observed_roach_path_supply": 0,
+              "first_expansion_seen": null
+            },
+            "210": {
+              "sample_time": 205.4,
+              "response": "baseline",
+              "hypothesis": "unresolved",
+              "uncertainty": 1.0,
+              "observed_army_supply": 0,
+              "observed_roach_path_supply": 0,
+              "first_expansion_seen": null
+            },
+            "240": {
+              "sample_time": 235.4,
+              "response": "baseline",
+              "hypothesis": "unresolved",
+              "uncertainty": 1.0,
+              "observed_army_supply": 0,
+              "observed_roach_path_supply": 0,
+              "first_expansion_seen": null
+            },
+            "300": {
+              "sample_time": 295.4,
+              "response": "baseline",
+              "hypothesis": "unresolved",
+              "uncertainty": 1.0,
+              "observed_army_supply": 2.0,
+              "observed_roach_path_supply": 0,
+              "first_expansion_seen": null
+            },
+            "360": {
+              "sample_time": 355.4,
+              "response": "early_robotics",
+              "hypothesis": "observed_roach_path_force",
+              "uncertainty": 0.25,
+              "observed_army_supply": 13.5,
+              "observed_roach_path_supply": 12.0,
+              "first_expansion_seen": 300.3571428571429
+            }
+          }
+        }
+      ]
+    },
+    {
+      "frozen_trajectory": "R2",
+      "configured_build_evaluation_only": "Power",
+      "repeats": [
+        {
+          "repeat": 1,
+          "recording": "runtime-20261031-085423-792713-004.json",
+          "state_sha256": "43166df0d6825a58303439356df6a3eb30516b2d3b114a0e64cf04c058742477",
+          "game_data_sha256": "b17347414bc19bd57666dd7ddfb39b5dd406aacc9ab19112d3e43dbe51733dd4",
+          "initial_state_sha256": "f7c793581141b8234fb405e6bd7e39064d8bc3a1ba6025638f9c134d1f85eff0",
+          "outcome_of_original_bot": "Result.Victory",
+          "variant": 0
+        },
+        {
+          "repeat": 2,
+          "recording": "runtime-20261031-085423-792713-005.json",
+          "state_sha256": "108eb726c40c12e5b326aca10670d21bb586d27bf917510e185545e708a7029d",
+          "game_data_sha256": "b17347414bc19bd57666dd7ddfb39b5dd406aacc9ab19112d3e43dbe51733dd4",
+          "initial_state_sha256": "f7c793581141b8234fb405e6bd7e39064d8bc3a1ba6025638f9c134d1f85eff0",
+          "outcome_of_original_bot": "Result.Victory",
+          "variant": 0
+        },
+        {
+          "repeat": 3,
+          "recording": "runtime-20261031-085423-792713-006.json",
+          "state_sha256": "e977e49d01d19c86f5bad0aa3c3d2863fb2c0c8ca142646625b1cbcbfb17d4e1",
+          "game_data_sha256": "b17347414bc19bd57666dd7ddfb39b5dd406aacc9ab19112d3e43dbe51733dd4",
+          "initial_state_sha256": "f7c793581141b8234fb405e6bd7e39064d8bc3a1ba6025638f9c134d1f85eff0",
+          "outcome_of_original_bot": "Result.Victory",
+          "variant": 0
+        }
+      ],
+      "observational_variants": [
+        {
+          "legacy_raw_contact_reconstruction": true,
+          "army_supply_caveat": "Legacy contacts reconstructed from visible armed non-worker raw units using the recording game-data supply; sampled contacts may miss transient sightings",
+          "first_completed_through_365": {
+            "ROBOTICSFACILITY": 340.4
+          },
+          "switches": [
+            {
+              "time": 0.0,
+              "response": "baseline",
+              "hypothesis": "unresolved",
+              "uncertainty": 1.0,
+              "valid_until": 0,
+              "first_pool_seen": null,
+              "first_warren_seen": null,
+              "first_expansion_seen": null,
+              "observed_army_supply": 0,
+              "observed_roach_path_supply": 0
+            },
+            {
+              "time": 315.4,
+              "response": "early_robotics",
+              "hypothesis": "observed_roach_path_force",
+              "uncertainty": 0.25,
+              "valid_until": 360,
+              "first_pool_seen": null,
+              "first_warren_seen": null,
+              "first_expansion_seen": 315.3571428571429,
+              "observed_army_supply": 23.5,
+              "observed_roach_path_supply": 16.0
+            },
+            {
+              "time": 360.4,
+              "response": "baseline",
+              "hypothesis": "unresolved",
+              "uncertainty": 1.0,
+              "valid_until": 0,
+              "first_pool_seen": null,
+              "first_warren_seen": null,
+              "first_expansion_seen": 315.3571428571429,
+              "observed_army_supply": 27.0,
+              "observed_roach_path_supply": 20.0
+            }
+          ],
+          "horizons": {
+            "90": {
+              "sample_time": 85.4,
+              "response": "baseline",
+              "hypothesis": "unresolved",
+              "uncertainty": 1.0,
+              "observed_army_supply": 0,
+              "observed_roach_path_supply": 0,
+              "first_expansion_seen": null
+            },
+            "150": {
+              "sample_time": 145.4,
+              "response": "baseline",
+              "hypothesis": "unresolved",
+              "uncertainty": 1.0,
+              "observed_army_supply": 0,
+              "observed_roach_path_supply": 0,
+              "first_expansion_seen": null
+            },
+            "180": {
+              "sample_time": 175.4,
+              "response": "baseline",
+              "hypothesis": "unresolved",
+              "uncertainty": 1.0,
+              "observed_army_supply": 0,
+              "observed_roach_path_supply": 0,
+              "first_expansion_seen": null
+            },
+            "195": {
+              "sample_time": 190.4,
+              "response": "baseline",
+              "hypothesis": "unresolved",
+              "uncertainty": 1.0,
+              "observed_army_supply": 0,
+              "observed_roach_path_supply": 0,
+              "first_expansion_seen": null
+            },
+            "210": {
+              "sample_time": 205.4,
+              "response": "baseline",
+              "hypothesis": "unresolved",
+              "uncertainty": 1.0,
+              "observed_army_supply": 0,
+              "observed_roach_path_supply": 0,
+              "first_expansion_seen": null
+            },
+            "240": {
+              "sample_time": 235.4,
+              "response": "baseline",
+              "hypothesis": "unresolved",
+              "uncertainty": 1.0,
+              "observed_army_supply": 0.5,
+              "observed_roach_path_supply": 0,
+              "first_expansion_seen": null
+            },
+            "300": {
+              "sample_time": 295.4,
+              "response": "baseline",
+              "hypothesis": "unresolved",
+              "uncertainty": 1.0,
+              "observed_army_supply": 0.5,
+              "observed_roach_path_supply": 0,
+              "first_expansion_seen": null
+            },
+            "360": {
+              "sample_time": 355.4,
+              "response": "early_robotics",
+              "hypothesis": "observed_roach_path_force",
+              "uncertainty": 0.25,
+              "observed_army_supply": 27.0,
+              "observed_roach_path_supply": 20.0,
+              "first_expansion_seen": 315.3571428571429
+            }
+          }
+        }
+      ]
+    },
+    {
+      "frozen_trajectory": "R2",
+      "configured_build_evaluation_only": "Rush",
+      "repeats": [
+        {
+          "repeat": 1,
+          "recording": "runtime-20261031-084744-659435-001.json",
+          "state_sha256": "5146b6e57c751c9da18c4644c70bc845f35004452658f59312299168e8cc3d7a",
+          "game_data_sha256": "b17347414bc19bd57666dd7ddfb39b5dd406aacc9ab19112d3e43dbe51733dd4",
+          "initial_state_sha256": "cfe99c67ff781071e4e264dfc5f56a0823d965b08575c0ce69077b696720b8c0",
+          "outcome_of_original_bot": "Result.Victory",
+          "variant": 0
+        },
+        {
+          "repeat": 2,
+          "recording": "runtime-20261031-084744-659435-002.json",
+          "state_sha256": "d25af21a8beb1e2649501181facb1a3d8335ba804f3de6e49d8f82e49dd3c7b4",
+          "game_data_sha256": "b17347414bc19bd57666dd7ddfb39b5dd406aacc9ab19112d3e43dbe51733dd4",
+          "initial_state_sha256": "cfe99c67ff781071e4e264dfc5f56a0823d965b08575c0ce69077b696720b8c0",
+          "outcome_of_original_bot": "Result.Victory",
+          "variant": 0
+        },
+        {
+          "repeat": 3,
+          "recording": "runtime-20261031-084744-659435-003.json",
+          "state_sha256": "92d2c3efe738864f7f4122051ef7f68af21a91b6c427ba5773ac7db9fc0d76f0",
+          "game_data_sha256": "b17347414bc19bd57666dd7ddfb39b5dd406aacc9ab19112d3e43dbe51733dd4",
+          "initial_state_sha256": "cfe99c67ff781071e4e264dfc5f56a0823d965b08575c0ce69077b696720b8c0",
+          "outcome_of_original_bot": "Result.Victory",
+          "variant": 0
+        }
+      ],
+      "observational_variants": [
+        {
+          "legacy_raw_contact_reconstruction": true,
+          "army_supply_caveat": "Legacy contacts reconstructed from visible armed non-worker raw units using the recording game-data supply; sampled contacts may miss transient sightings",
+          "first_completed_through_365": {
+            "ROBOTICSFACILITY": 255.4,
+            "IMMORTAL": 350.4
+          },
+          "switches": [
+            {
+              "time": 0.0,
+              "response": "baseline",
+              "hypothesis": "unresolved",
+              "uncertainty": 1.0,
+              "valid_until": 0,
+              "first_pool_seen": null,
+              "first_warren_seen": null,
+              "first_expansion_seen": null,
+              "observed_army_supply": 0,
+              "observed_roach_path_supply": 0
+            }
+          ],
+          "horizons": {
+            "90": {
+              "sample_time": 85.4,
+              "response": "baseline",
+              "hypothesis": "unresolved",
+              "uncertainty": 1.0,
+              "observed_army_supply": 0,
+              "observed_roach_path_supply": 0,
+              "first_expansion_seen": null
+            },
+            "150": {
+              "sample_time": 145.4,
+              "response": "baseline",
+              "hypothesis": "unresolved",
+              "uncertainty": 1.0,
+              "observed_army_supply": 1.5,
+              "observed_roach_path_supply": 0,
+              "first_expansion_seen": null
+            },
+            "180": {
+              "sample_time": 175.4,
+              "response": "baseline",
+              "hypothesis": "unresolved",
+              "uncertainty": 1.0,
+              "observed_army_supply": 1.0,
+              "observed_roach_path_supply": 0,
+              "first_expansion_seen": null
+            },
+            "195": {
+              "sample_time": 190.4,
+              "response": "baseline",
+              "hypothesis": "unresolved",
+              "uncertainty": 1.0,
+              "observed_army_supply": 0,
+              "observed_roach_path_supply": 0,
+              "first_expansion_seen": null
+            },
+            "210": {
+              "sample_time": 205.4,
+              "response": "baseline",
+              "hypothesis": "unresolved",
+              "uncertainty": 1.0,
+              "observed_army_supply": 0,
+              "observed_roach_path_supply": 0,
+              "first_expansion_seen": null
+            },
+            "240": {
+              "sample_time": 235.4,
+              "response": "baseline",
+              "hypothesis": "unresolved",
+              "uncertainty": 1.0,
+              "observed_army_supply": 0,
+              "observed_roach_path_supply": 0,
+              "first_expansion_seen": null
+            },
+            "300": {
+              "sample_time": 295.4,
+              "response": "baseline",
+              "hypothesis": "unresolved",
+              "uncertainty": 1.0,
+              "observed_army_supply": 0,
+              "observed_roach_path_supply": 0,
+              "first_expansion_seen": 295.3571428571429
+            },
+            "360": {
+              "sample_time": 355.4,
+              "response": "baseline",
+              "hypothesis": "unresolved",
+              "uncertainty": 1.0,
+              "observed_army_supply": 2.5,
+              "observed_roach_path_supply": 0,
+              "first_expansion_seen": 295.3571428571429
+            }
+          }
+        }
+      ]
+    },
+    {
+      "frozen_trajectory": "R2",
+      "configured_build_evaluation_only": "Timing",
+      "repeats": [
+        {
+          "repeat": 1,
+          "recording": "runtime-20261031-085423-792713-001.json",
+          "state_sha256": "9083c85e729a7e64de06d434db1fef3e7057d0b04766711c58923f67563d3023",
+          "game_data_sha256": "b17347414bc19bd57666dd7ddfb39b5dd406aacc9ab19112d3e43dbe51733dd4",
+          "initial_state_sha256": "e57eea8f51fc2cc985d91a12447b9cd9b67e471e1af96c12913c4eb385e0d6d1",
+          "outcome_of_original_bot": "Result.Defeat",
+          "variant": 0
+        },
+        {
+          "repeat": 2,
+          "recording": "runtime-20261031-085423-792713-002.json",
+          "state_sha256": "89dd5106ae23c974e44c9f682109386e291913eae0e51381d15c0441a70ba165",
+          "game_data_sha256": "b17347414bc19bd57666dd7ddfb39b5dd406aacc9ab19112d3e43dbe51733dd4",
+          "initial_state_sha256": "e57eea8f51fc2cc985d91a12447b9cd9b67e471e1af96c12913c4eb385e0d6d1",
+          "outcome_of_original_bot": "Result.Defeat",
+          "variant": 0
+        },
+        {
+          "repeat": 3,
+          "recording": "runtime-20261031-085423-792713-003.json",
+          "state_sha256": "08a69f03ee288b573c894edbfa41a0dc785129007575cd034eba36bce7bcff33",
+          "game_data_sha256": "b17347414bc19bd57666dd7ddfb39b5dd406aacc9ab19112d3e43dbe51733dd4",
+          "initial_state_sha256": "e57eea8f51fc2cc985d91a12447b9cd9b67e471e1af96c12913c4eb385e0d6d1",
+          "outcome_of_original_bot": "Result.Defeat",
+          "variant": 0
+        }
+      ],
+      "observational_variants": [
+        {
+          "legacy_raw_contact_reconstruction": true,
+          "army_supply_caveat": "Legacy contacts reconstructed from visible armed non-worker raw units using the recording game-data supply; sampled contacts may miss transient sightings",
+          "first_completed_through_365": {},
+          "switches": [
+            {
+              "time": 0.0,
+              "response": "baseline",
+              "hypothesis": "unresolved",
+              "uncertainty": 1.0,
+              "valid_until": 0,
+              "first_pool_seen": null,
+              "first_warren_seen": null,
+              "first_expansion_seen": null,
+              "observed_army_supply": 0,
+              "observed_roach_path_supply": 0
+            },
+            {
+              "time": 45.4,
+              "response": "early_robotics",
+              "hypothesis": "early_ground_technology",
+              "uncertainty": 0.65,
+              "valid_until": 225.35714285714286,
+              "first_pool_seen": 45.35714285714286,
+              "first_warren_seen": null,
+              "first_expansion_seen": null,
+              "observed_army_supply": 0,
+              "observed_roach_path_supply": 0
+            },
+            {
+              "time": 225.4,
+              "response": "baseline",
+              "hypothesis": "early_ground_technology",
+              "uncertainty": 0.65,
+              "valid_until": 0,
+              "first_pool_seen": 45.35714285714286,
+              "first_warren_seen": null,
+              "first_expansion_seen": null,
+              "observed_army_supply": 0.5,
+              "observed_roach_path_supply": 0
+            },
+            {
+              "time": 230.4,
+              "response": "baseline",
+              "hypothesis": "unresolved",
+              "uncertainty": 1.0,
+              "valid_until": 0,
+              "first_pool_seen": 45.35714285714286,
+              "first_warren_seen": null,
+              "first_expansion_seen": null,
+              "observed_army_supply": 0.5,
+              "observed_roach_path_supply": 0
+            },
+            {
+              "time": 250.4,
+              "response": "early_robotics",
+              "hypothesis": "observed_roach_path_force",
+              "uncertainty": 0.25,
+              "valid_until": 295.3571428571429,
+              "first_pool_seen": 45.35714285714286,
+              "first_warren_seen": null,
+              "first_expansion_seen": null,
+              "observed_army_supply": 14.5,
+              "observed_roach_path_supply": 14.0
+            },
+            {
+              "time": 340.4,
+              "response": "baseline",
+              "hypothesis": "observed_roach_path_force",
+              "uncertainty": 0.25,
+              "valid_until": 0,
+              "first_pool_seen": 45.35714285714286,
+              "first_warren_seen": null,
+              "first_expansion_seen": null,
+              "observed_army_supply": 8.5,
+              "observed_roach_path_supply": 8.0
+            },
+            {
+              "time": 345.4,
+              "response": "baseline",
+              "hypothesis": "unresolved",
+              "uncertainty": 1.0,
+              "valid_until": 0,
+              "first_pool_seen": 45.35714285714286,
+              "first_warren_seen": null,
+              "first_expansion_seen": null,
+              "observed_army_supply": 0.5,
+              "observed_roach_path_supply": 0
+            }
+          ],
+          "horizons": {
+            "90": {
+              "sample_time": 85.4,
+              "response": "early_robotics",
+              "hypothesis": "early_ground_technology",
+              "uncertainty": 0.65,
+              "observed_army_supply": 0,
+              "observed_roach_path_supply": 0,
+              "first_expansion_seen": null
+            },
+            "150": {
+              "sample_time": 145.4,
+              "response": "early_robotics",
+              "hypothesis": "early_ground_technology",
+              "uncertainty": 0.65,
+              "observed_army_supply": 0,
+              "observed_roach_path_supply": 0,
+              "first_expansion_seen": null
+            },
+            "180": {
+              "sample_time": 175.4,
+              "response": "early_robotics",
+              "hypothesis": "early_ground_technology",
+              "uncertainty": 0.65,
+              "observed_army_supply": 0,
+              "observed_roach_path_supply": 0,
+              "first_expansion_seen": null
+            },
+            "195": {
+              "sample_time": 190.4,
+              "response": "early_robotics",
+              "hypothesis": "early_ground_technology",
+              "uncertainty": 0.65,
+              "observed_army_supply": 0,
+              "observed_roach_path_supply": 0,
+              "first_expansion_seen": null
+            },
+            "210": {
+              "sample_time": 205.4,
+              "response": "early_robotics",
+              "hypothesis": "early_ground_technology",
+              "uncertainty": 0.65,
+              "observed_army_supply": 0.5,
+              "observed_roach_path_supply": 0,
+              "first_expansion_seen": null
+            },
+            "240": {
+              "sample_time": 235.4,
+              "response": "baseline",
+              "hypothesis": "unresolved",
+              "uncertainty": 1.0,
+              "observed_army_supply": 0.5,
+              "observed_roach_path_supply": 0,
+              "first_expansion_seen": null
+            },
+            "300": {
+              "sample_time": 295.4,
+              "response": "early_robotics",
+              "hypothesis": "observed_roach_path_force",
+              "uncertainty": 0.25,
+              "observed_army_supply": 27.0,
+              "observed_roach_path_supply": 26.0,
+              "first_expansion_seen": null
+            },
+            "360": {
+              "sample_time": 355.4,
+              "response": "baseline",
+              "hypothesis": "unresolved",
+              "uncertainty": 1.0,
+              "observed_army_supply": 0.5,
+              "observed_roach_path_supply": 0,
+              "first_expansion_seen": null
+            }
+          }
+        }
+      ]
+    },
+    {
+      "frozen_trajectory": "RoboticsV2",
+      "configured_build_evaluation_only": "Timing",
+      "repeats": [
+        {
+          "repeat": 1,
+          "recording": "runtime-20261031-094645-071742-8c2889ccf2a1467fb3ed2418206fe1ff-001.json",
+          "state_sha256": "bd52ff9ea3ebe6e3173eafd507ff503d8202ed1bc0e147dc805fa16fc3b8946b",
+          "game_data_sha256": "b17347414bc19bd57666dd7ddfb39b5dd406aacc9ab19112d3e43dbe51733dd4",
+          "initial_state_sha256": "b5e9fed55f291afeaf3cbbc30e51723f634d9d5c8f5e5d23427f87bd10462762",
+          "outcome_of_original_bot": "Result.Victory",
+          "variant": 0
+        },
+        {
+          "repeat": 2,
+          "recording": "runtime-20261031-094645-071742-8c2889ccf2a1467fb3ed2418206fe1ff-002.json",
+          "state_sha256": "9e584b1192f077e141e9b92d2d4d143a8c6c63d1583bc893b6facea77ab1ae62",
+          "game_data_sha256": "b17347414bc19bd57666dd7ddfb39b5dd406aacc9ab19112d3e43dbe51733dd4",
+          "initial_state_sha256": "b5e9fed55f291afeaf3cbbc30e51723f634d9d5c8f5e5d23427f87bd10462762",
+          "outcome_of_original_bot": "Result.Victory",
+          "variant": 0
+        },
+        {
+          "repeat": 3,
+          "recording": "runtime-20261031-094645-071742-8c2889ccf2a1467fb3ed2418206fe1ff-003.json",
+          "state_sha256": "2084a80d1ab16dda5ec3fc070d5440e0a4cb25f35720691f93e7940fadad614a",
+          "game_data_sha256": "b17347414bc19bd57666dd7ddfb39b5dd406aacc9ab19112d3e43dbe51733dd4",
+          "initial_state_sha256": "b5e9fed55f291afeaf3cbbc30e51723f634d9d5c8f5e5d23427f87bd10462762",
+          "outcome_of_original_bot": "Result.Victory",
+          "variant": 0
+        }
+      ],
+      "observational_variants": [
+        {
+          "legacy_raw_contact_reconstruction": false,
+          "army_supply_caveat": null,
+          "first_completed_through_365": {
+            "ROBOTICSFACILITY": 195.4,
+            "IMMORTAL": 265.4
+          },
+          "switches": [
+            {
+              "time": 0.0,
+              "response": "baseline",
+              "hypothesis": "unresolved",
+              "uncertainty": 1.0,
+              "valid_until": 0,
+              "first_pool_seen": null,
+              "first_warren_seen": null,
+              "first_expansion_seen": null,
+              "observed_army_supply": 0,
+              "observed_roach_path_supply": 0
+            },
+            {
+              "time": 45.4,
+              "response": "early_robotics",
+              "hypothesis": "early_ground_technology",
+              "uncertainty": 0.65,
+              "valid_until": 225.0,
+              "first_pool_seen": 45.0,
+              "first_warren_seen": null,
+              "first_expansion_seen": null,
+              "observed_army_supply": 0,
+              "observed_roach_path_supply": 0
+            },
+            {
+              "time": 230.4,
+              "response": "baseline",
+              "hypothesis": "unresolved",
+              "uncertainty": 1.0,
+              "valid_until": 0,
+              "first_pool_seen": 45.0,
+              "first_warren_seen": null,
+              "first_expansion_seen": null,
+              "observed_army_supply": 0.5,
+              "observed_roach_path_supply": 0
+            },
+            {
+              "time": 240.4,
+              "response": "early_robotics",
+              "hypothesis": "observed_roach_path_force",
+              "uncertainty": 0.25,
+              "valid_until": 285.0,
+              "first_pool_seen": 45.0,
+              "first_warren_seen": null,
+              "first_expansion_seen": null,
+              "observed_army_supply": 8.5,
+              "observed_roach_path_supply": 8.0
+            },
+            {
+              "time": 355.4,
+              "response": "baseline",
+              "hypothesis": "unresolved",
+              "uncertainty": 1.0,
+              "valid_until": 0,
+              "first_pool_seen": 45.0,
+              "first_warren_seen": null,
+              "first_expansion_seen": 270.3571428571429,
+              "observed_army_supply": 0.5,
+              "observed_roach_path_supply": 0
+            }
+          ],
+          "horizons": {
+            "90": {
+              "sample_time": 85.4,
+              "response": "early_robotics",
+              "hypothesis": "early_ground_technology",
+              "uncertainty": 0.65,
+              "observed_army_supply": 0,
+              "observed_roach_path_supply": 0,
+              "first_expansion_seen": null
+            },
+            "150": {
+              "sample_time": 145.4,
+              "response": "early_robotics",
+              "hypothesis": "early_ground_technology",
+              "uncertainty": 0.65,
+              "observed_army_supply": 0,
+              "observed_roach_path_supply": 0,
+              "first_expansion_seen": null
+            },
+            "180": {
+              "sample_time": 175.4,
+              "response": "early_robotics",
+              "hypothesis": "early_ground_technology",
+              "uncertainty": 0.65,
+              "observed_army_supply": 0,
+              "observed_roach_path_supply": 0,
+              "first_expansion_seen": null
+            },
+            "195": {
+              "sample_time": 190.4,
+              "response": "early_robotics",
+              "hypothesis": "early_ground_technology",
+              "uncertainty": 0.65,
+              "observed_army_supply": 0,
+              "observed_roach_path_supply": 0,
+              "first_expansion_seen": null
+            },
+            "210": {
+              "sample_time": 205.4,
+              "response": "early_robotics",
+              "hypothesis": "early_ground_technology",
+              "uncertainty": 0.65,
+              "observed_army_supply": 0.5,
+              "observed_roach_path_supply": 0,
+              "first_expansion_seen": null
+            },
+            "240": {
+              "sample_time": 235.4,
+              "response": "baseline",
+              "hypothesis": "unresolved",
+              "uncertainty": 1.0,
+              "observed_army_supply": 0.5,
+              "observed_roach_path_supply": 0,
+              "first_expansion_seen": null
+            },
+            "300": {
+              "sample_time": 295.4,
+              "response": "early_robotics",
+              "hypothesis": "observed_roach_path_force",
+              "uncertainty": 0.25,
+              "observed_army_supply": 21.0,
+              "observed_roach_path_supply": 20.0,
+              "first_expansion_seen": 270.3571428571429
+            },
+            "360": {
+              "sample_time": 355.4,
+              "response": "baseline",
+              "hypothesis": "unresolved",
+              "uncertainty": 1.0,
+              "observed_army_supply": 0.5,
+              "observed_roach_path_supply": 0,
+              "first_expansion_seen": 270.3571428571429
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

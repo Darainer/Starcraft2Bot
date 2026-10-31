@@ -1,5 +1,6 @@
 """Assign an opening Probe and a persistent Observer patrol for enemy-force warnings."""
 
+from sc2.data import Race
 from sc2.ids.unit_typeid import UnitTypeId as U
 from sc2.position import Point2
 
@@ -7,13 +8,16 @@ from source.combat_assessment import home_threats, observed_supply, visible_thre
 from source.composition import composition_targets
 from source.endgame_sweep import BASE_TYPES, DEFENSE_TYPES
 from source.expansion_intel import expansion_sites, is_expansion
+from source.opponent_beliefs import OpponentBeliefModel
 from source.opponent_strategy import OpponentStrategyModel
+from source.scouting_costs import ScoutCosts
+from source.zerg_responses import ZergResponseSelector
 
 WORKERS = {U.PROBE, U.SCV, U.DRONE}
 
 
 class ScoutController:
-    def __init__(self):
+    def __init__(self, revisit=False):
         self.worker_tag = None
         self.last_assignment = -120
         self.worker_route_index = 0
@@ -28,6 +32,14 @@ class ScoutController:
         self.observer_blocked = {}
         self.observer_goal = None
         self.opponent_model = OpponentStrategyModel()
+        self.belief_model = OpponentBeliefModel()
+        self.zerg_responses = ZergResponseSelector()
+        self.revisit = revisit
+        self.revisit_started = False
+        self.revisit_active = False
+        self.revisit_until = 0
+        self.revisit_health = None
+        self.costs = ScoutCosts()
 
     def _rush_warning(self, bot, combat, buildings, report):
         """Short-lived opening alerts from visible evidence, never opponent settings."""
@@ -159,6 +171,8 @@ class ScoutController:
             if all_observers:
                 return {"phase": "human_owned", "unit_tag": all_observers.first.tag}
             return {"phase": "waiting_for_observer" if bot.settings.scouting else "disabled"}
+
+        self.costs.register(bot, observer, "observer")
 
         home = (
             bot.townhalls.ready.closest_to(bot.start_location).position
@@ -340,7 +354,19 @@ class ScoutController:
 
         worker_status = self._worker_scout(bot, enemies, report)
         report["opponent_strategy"] = self.opponent_model.observe(bot.time, report)
+        report["opponent_beliefs"] = self.belief_model.observe(bot.time, report, bot.supply_army).to_dict()
+        if bot.enemy_race == Race.Zerg:
+            report["zerg_opening_response"] = self.zerg_responses.observe(bot.time, report)
+        else:
+            report.pop("zerg_opening_response", None)
         observer_status = self._observer_tick(bot) if bot.settings.scouting else {"phase": "disabled"}
+        report["scouting_costs"] = self.costs.observe(bot, self.worker_tag)
+        report["scout_revisit"] = {
+            "enabled": self.revisit,
+            "started": self.revisit_started,
+            "active": self.revisit_active,
+            "until": self.revisit_until,
+        }
         return {"phase": worker_status, "observer": observer_status, "intel": report}
 
     def _remember(self, bot, combat, buildings, report):
@@ -390,6 +416,11 @@ class ScoutController:
             if tag not in dead and bot.time - value[1] <= 180
         }
         report["known_enemy_tech"] = sorted({value[0] for value in self.tech_memory.values()})
+        report["known_enemy_tech_evidence"] = [
+            {"tag": str(tag), "kind": kind, "seen_seconds": seen}
+            for tag, (kind, seen) in self.tech_memory.items()
+        ]
+        report["enemy_unit_evidence"] = [{"tag": str(tag), **info} for tag, info in self.unit_memory.items()]
 
     def _worker_scout(self, bot, enemies, report):
         if not bot.settings.enabled or not bot.settings.attack or not bot.settings.scouting:
@@ -399,7 +430,9 @@ class ScoutController:
         if scout is None:
             bot.scout_tag = None
             if self.opening_complete:
-                return "opening_complete"
+                if not self._begin_revisit(bot, enemies, report):
+                    return "opening_complete"
+                scout = bot.workers.find_by_tag(self.worker_tag)
             if bot.supply_workers >= 12 and bot.time - self.last_assignment >= 90:
                 candidates = bot.workers.filter(
                     lambda unit: bot.available(unit) and (unit.is_idle or unit.is_gathering)
@@ -408,29 +441,105 @@ class ScoutController:
                     scout = candidates.closest_to(bot.game_info.map_center)
                     self.worker_tag = bot.scout_tag = scout.tag
                     self.last_assignment = bot.time
+                    self.costs.register(bot, scout, "worker")
         if scout is None:
             return "observing" if report.get("enemy_seen") else "waiting_for_scout"
         if not bot.control.eligible(scout):
             return "human_owned"
-        threatened = enemies.filter(lambda unit: unit.can_attack_ground and unit.distance_to(scout) < 8)
-        self.returning |= bool(threatened) or scout.health + scout.shield < 30
+        threatened = enemies.filter(
+            lambda unit: (
+                unit.can_attack_ground
+                and unit.distance_to(scout) < 8
+                and (not self.revisit_active or unit.type_id not in WORKERS)
+            )
+        )
+        health = scout.health + scout.shield
+        worker_pressure = False
+        damaged = False
+        if self.revisit_active:
+            worker_pressure = (
+                len(
+                    enemies.filter(
+                        lambda unit: (
+                            unit.type_id in WORKERS and unit.can_attack_ground and unit.distance_to(scout) < 8
+                        )
+                    )
+                )
+                >= 2
+            )
+            damaged = self.revisit_health is not None and health < self.revisit_health - 0.001
+            self.revisit_health = health
+        self.returning |= bool(threatened) or worker_pressure or damaged or health < 30
         route = self._worker_route(bot)
+        if self.revisit_active:
+            route = route[:1]
+            self.returning |= bot.time >= self.revisit_until or bool(bot.units(U.OBSERVER).ready)
         if not route and not self.returning:
             self.returning = True
             return "no_known_start"
-        if not self.returning and scout.distance_to(route[self.worker_route_index % len(route)]) < 6:
+        if (
+            not self.returning
+            and scout.distance_to(route[self.worker_route_index % len(route)]) < 6
+            and (not self.revisit_active or bot.is_visible(route[self.worker_route_index % len(route)]))
+        ):
             self.worker_route_index += 1
             self.returning = self.worker_route_index >= len(route)
         if self.returning:
             target = bot.start_location
             if scout.distance_to(target) <= 6:
+                self.costs.release(scout.tag)
                 self.worker_tag = bot.scout_tag = None
                 self.opening_complete = True
+                self.revisit_active = False
                 return "returned"
             phase = "returning"
         else:
             target = route[self.worker_route_index % len(route)]
-            phase = "scouting_enemy_start"
+            phase = "revisiting_enemy_natural" if self.revisit_active else "scouting_enemy_start"
         if not isinstance(scout.order_target, Point2) or scout.order_target.distance_to(target) > 2:
             bot.issue(scout.move(target), scout_order=True)
         return phase
+
+    def _begin_revisit(self, bot, enemies, report):
+        """One existing Probe, one natural inspection, bounded by time and safety."""
+        if (
+            not self.revisit
+            or self.revisit_started
+            or not 150 <= bot.time <= 210
+            or bot.supply_workers < 16
+            or bot.economic_emergency
+            or bot.settings.strategy != "auto"
+            or bot.settings.strategy_script
+            or bot.units(U.OBSERVER).ready
+            or enemies.filter(
+                lambda unit: unit.can_attack_ground and unit.distance_to(bot.start_location) < 32
+            )
+        ):
+            return False
+        route = self._worker_route(bot)
+        if len(route) < 2:
+            return False
+        if any(
+            route[0].distance_to(Point2(site["position"])) < 8 and 0 <= bot.time - site["last_checked"] < 45
+            for site in report.get("expansion_sites", [])
+        ):
+            return False
+        workers = bot.workers.filter(
+            lambda unit: (
+                bot.available(unit)
+                and (unit.is_idle or unit.is_gathering)
+                and unit.health + unit.shield >= 0.85 * (unit.health_max + unit.shield_max)
+            )
+        )
+        if not workers:
+            return False
+        worker = workers.closest_to(route[0])
+        self.worker_tag = bot.scout_tag = worker.tag
+        self.last_assignment = bot.time
+        self.worker_route_index = 0
+        self.returning = False
+        self.revisit_started = self.revisit_active = True
+        self.revisit_until = bot.time + 60
+        self.revisit_health = worker.health + worker.shield
+        self.costs.register(bot, worker, "worker")
+        return True

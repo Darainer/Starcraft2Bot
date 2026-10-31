@@ -1,0 +1,24 @@
+{
+  "base_revision": "9fd64a1",
+  "candidates": [
+    "retreat-v1",
+    "income-v1",
+    "opening-v1",
+    "opening-v2",
+    "opening-v3",
+    "raid-response-v1",
+    "pressure-repair-v1",
+    "pressure-repair-v2",
+    "pressure-repair-v3",
+    "pressure-repair-v4",
+    "pressure-fight-v5",
+    "pressure-damage-v5",
+    "integrated-v1",
+    "integrated-v2",
+    "integrated-v3",
+    "integrated-v4",
+    "integrated-v5"
+  ],
+  "status": "Experimental checkpoint, not a promoted policy; patches apply to a separate clean base checkout.",
+  "unfinished": "integrated-v5 gas arbitration has one failing focused test and was never launched."
+}

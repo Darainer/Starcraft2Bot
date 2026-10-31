@@ -1,0 +1,271 @@
+--- a/source/evaluate_matches.py
++++ b/source/evaluate_matches.py
+@@ -3,0 +4 @@
++import hashlib
+@@ -12,0 +14,51 @@
++
++
++def configuration_identity(settings):
++    """Hash resolved playable settings, not a pathname or hidden opponent label."""
++    if settings is None:
++        return None  # Legacy recordings may lack configuration evidence.
++    return hashlib.sha256(json.dumps(settings, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
++
++
++def evaluation_manifest(matches, revision, comparison_group_id=None):
++    groups = defaultdict(list)
++    for match in matches:
++        key = json.dumps(
++            [match["scenario"], match["configuration_id"]], sort_keys=True, separators=(",", ":")
++        )
++        groups[key].append(match)
++    return {
++        "schema_version": 1,
++        "gameplay_revision": revision,
++        "comparison_group_id": comparison_group_id,
++        "games": len(matches),
++        "scenario_count": len(groups),
++        "configuration_ids": sorted({m["configuration_id"] for m in matches if m["configuration_id"]}),
++        "scenarios": [
++            {
++                "scenario": group[0]["scenario"],
++                "configuration_id": group[0]["configuration_id"],
++                "repeats": len(group),
++                "loop_zero": all(m["initial_game_loop"] == 0 for m in group),
++                "starting_fingerprints": sorted({m["initial_state_sha256"] for m in group}),
++                "recordings": [m["recording"] for m in group],
++            }
++            for group in groups.values()
++        ],
++    }
++
++
++def validate_suite(manifest, repeats, scenarios=None):
++    """Fail closed on incomplete or unmatched matrices instead of dropping games."""
++    if scenarios is not None and manifest["scenario_count"] != scenarios:
++        raise ValueError(f"Expected {scenarios} scenarios; found {manifest['scenario_count']}")
++    for group in manifest["scenarios"]:
++        if group["repeats"] != repeats:
++            raise ValueError(f"Expected {repeats} repeats: {group['scenario']}")
++        if not group["loop_zero"] or len(group["starting_fingerprints"]) != 1:
++            raise ValueError(f"Missing loop-zero sample or mismatched starts: {group['scenario']}")
++        if group["configuration_id"] is None:
++            raise ValueError("Missing resolved configuration evidence")
++        scenario = group["scenario"]
++        if scenario.get("random_seed") is None or scenario.get("opponent_build") not in LABELS:
++            raise ValueError("Controlled suites require fixed seeds and explicit opponent builds")
+@@ -73,0 +126,2 @@
++    if result["error"] or result["result"] not in {"Result.Victory", "Result.Defeat", "Result.Tie"}:
++        raise ValueError(f"Recording has no valid terminal outcome: {path}")
+@@ -104,0 +159,3 @@
++        "configuration_id": configuration_identity(result["initial_state"]["settings"]),
++        "scenario": result["initial_state"]["scenario"],
++        "initial_game_loop": result["initial_state"]["game_loop"],
+@@ -107,0 +165 @@
++        "first_completed_seconds": result["first_completed_seconds"],
+@@ -121 +179 @@
+-def evaluate(reports, revision):
++def evaluate(reports, revision, comparison_group_id=None):
+@@ -137,0 +196 @@
++        "schema_version": 2,
+@@ -138,0 +198 @@
++        "manifest": evaluation_manifest(matches, revision, comparison_group_id),
+@@ -169,0 +230,6 @@
++    manifest = review.get("manifest", {})
++    baseline_manifest = (baseline or {}).get("manifest", {})
++    group_id = manifest.get("comparison_group_id")
++    baseline_group_id = baseline_manifest.get("comparison_group_id")
++    if group_id and baseline_group_id and group_id != baseline_group_id:
++        raise ValueError("Comparison-group identifiers differ")
+@@ -175,0 +242,2 @@
++        "",
++        f"Comparison group: `{group_id or 'unrecorded (legacy)'}`. Configuration identities: `{', '.join(manifest.get('configuration_ids', [])) or 'unrecorded (legacy)'}`.",
+@@ -199 +267,19 @@
+-        "Values in the table use the first recording of each matchup to avoid repeating identical trajectories; all recording results remain in JSON. These observations suggest mechanisms to investigate, not causal proof of why a game was won.",
++        "Values in the table use the first recording of each matchup; all recording results remain in JSON. Matching starts do not guarantee identical trajectories, so these representative values are not averages over independent games. These observations suggest mechanisms to investigate, not causal proof of why a game was won.",
++        "",
++        "## Opening and spending evidence",
++        "",
++        "Workers are observed Probe disappearances by 240 seconds with no later reappearance, not verified kills. Temporary absences (including gas harvesting) are retracted when the tag returns; loaded passengers remain tracked. Absences near the recording end can remain ambiguous. Completion times and idle/supply-block durations are sampled estimates; idle time sums across production facilities. The first costly army window is a replay-inspection candidate, not proof of the decisive engagement.",
++        "",
++        "| Race / build | Workers lost by 240s | First Zealot / Stalker | First costly army window | Supply block seconds | Idle facility seconds |",
++        "| --- | ---: | --- | --- | ---: | ---: |",
++    ]
++    for (race, build), matches in groups.items():
++        match = matches[0]
++        perf = match["performance"]
++        completed = match.get("first_completed_seconds", {})
++        window = perf.get("first_bad_trade_window")
++        window_text = f"{window['start']}-{window['end']}s" if window else "not recorded"
++        lines.append(
++            f"| {race} / {build} | {perf.get('worker_disappearances_by_240_seconds', 'n/a')} | {seconds(completed.get('ZEALOT'))} / {seconds(completed.get('STALKER'))} | {window_text} | {perf['sampled_supply_block_seconds']:.1f} | {perf['sampled_idle_facility_seconds']:.1f} |"
++        )
++    lines += [
+@@ -283,0 +370,7 @@
++            else:
++                lines.append(f"| {race} / {build} | **Unmatched starting fingerprint** | n/a | n/a | n/a |")
++        if not baseline_manifest:
++            lines += [
++                "",
++                "Legacy baseline: configuration/group identity was not recorded separately; matching still requires the full starting fingerprint.",
++            ]
+@@ -295,0 +389,5 @@
++    parser.add_argument("--comparison-group", help="Stable identifier for this controlled comparison")
++    parser.add_argument(
++        "--expected-repeats", type=int, help="Reject incomplete or mismatched scenario groups"
++    )
++    parser.add_argument("--expected-scenarios", type=int)
+@@ -306 +404,7 @@
+-        review = evaluate(reports, args.revision)
++        if args.expected_scenarios is not None and args.expected_repeats is None:
++            raise ValueError("--expected-scenarios requires --expected-repeats")
++        if args.expected_repeats is not None and args.expected_repeats < 1:
++            raise ValueError("Expected repeats must be positive")
++        review = evaluate(reports, args.revision, args.comparison_group)
++        if args.expected_repeats is not None:
++            validate_suite(review["manifest"], args.expected_repeats, args.expected_scenarios)
+@@ -307,0 +412 @@
++        rendered = markdown(review, baseline)
+@@ -310 +415 @@
+-        args.output.write_text(markdown(review, baseline), encoding="utf-8")
++        args.output.write_text(rendered, encoding="utf-8")
+@@ -311,0 +417,3 @@
++        args.json_output.with_suffix(".manifest.json").write_text(
++            json.dumps(review["manifest"], indent=2) + "\n", encoding="utf-8"
++        )
+--- a/source/missions.py
++++ b/source/missions.py
+@@ -3,0 +4 @@
++from math import atan2, ceil, cos, pi, sin
+@@ -12,0 +14,68 @@
++
++
++def retreat_waypoint(bot, unit, goal, contacts):
++    """Choose a short traversable escape using only currently visible weapons."""
++    origin = unit.position
++    threats = contacts.filter(
++        lambda enemy: (
++            (enemy.can_attack_air if unit.is_flying else enemy.can_attack_ground or enemy.type_id == U.BUNKER)
++            and enemy.distance_to(unit) < max(enemy.ground_range, enemy.air_range) + 18
++        )
++    )
++
++    def traversable(point):
++        area = getattr(bot.game_info, "playable_area", None)
++        if area and not (
++            area.x <= point.x < area.x + area.width and area.y <= point.y < area.y + area.height
++        ):
++            return False
++        if unit.is_flying:
++            return True
++        distance = origin.distance_to(point)
++        return all(
++            bot.in_pathing_grid(origin.towards(point, distance * i / max(1, ceil(distance))))
++            for i in range(1, max(1, ceil(distance)) + 1)
++        )
++
++    if not threats and traversable(goal):
++        return goal
++
++    def danger(point):
++        return sum(
++            max(24 if enemy.type_id == U.BUNKER else 1, enemy.air_dps if unit.is_flying else enemy.ground_dps)
++            * max(
++                0,
++                (
++                    6
++                    if enemy.type_id == U.BUNKER
++                    else enemy.air_range
++                    if unit.is_flying
++                    else enemy.ground_range
++                )
++                + enemy.radius
++                + unit.radius
++                + 3
++                - enemy.distance_to(point),
++            )
++            for enemy in threats
++        )
++
++    direction = atan2(goal.y - origin.y, goal.x - origin.x)
++    distance = min(10, origin.distance_to(goal))
++    candidates = [origin]
++    for i in range(16):
++        angle = direction + i * pi / 8
++        point = origin.offset((cos(angle) * distance, sin(angle) * distance))
++        if traversable(point):
++            candidates.append(point)
++
++    def cost(point):
++        distance = origin.distance_to(point)
++        if distance == 0:
++            return danger(origin) * 8 + origin.distance_to(goal) * 0.15
++        exposure = sum(
++            danger(origin.towards(point, distance * fraction)) for fraction in (0.25, 0.5, 0.75, 1)
++        )
++        return exposure + danger(point) * 4 + point.distance_to(goal) * 0.15
++
++    return min(candidates, key=cost)
+@@ -31 +100 @@
+-        destinations, assignments, records = {}, {}, {}
++        destinations, assignments, records, retreat_goals = {}, {}, {}, {}
+@@ -101 +170,5 @@
+-            if abort or (old.get("phase") == "recover" and bot.time < old.get("recover_until", 0)):
++            if (
++                abort
++                or (spec.role == "main" and plan.objective == "recover")
++                or (old.get("phase") == "recover" and bot.time < old.get("recover_until", 0))
++            ):
+@@ -102,0 +176,9 @@
++                goal = Point2(old.get("retreat_goal", state.home))
++                if (
++                    old.get("phase") != "recover"
++                    or not bot.townhalls.ready.closer_than(2, goal)
++                    or contacts.closer_than(14, goal)
++                ):
++                    safe_bases = bot.townhalls.ready.filter(lambda base: not contacts.closer_than(14, base))
++                    goal = safe_bases.closest_to(anchor).position if safe_bases else Point2(state.home)
++                record["retreat_goal"] = list(goal)
+@@ -115 +197,2 @@
+-                    destinations[unit.tag] = ("move", Point2(state.home))
++                    retreat_goals[unit.tag] = goal
++                    destinations[unit.tag] = ("move", retreat_waypoint(bot, unit, goal, contacts))
+@@ -169 +252,2 @@
+-                mode, target = "move", Point2(state.home)
++                goal = retreat_goals.get(tag, Point2(state.home))
++                mode, target = "move", retreat_waypoint(bot, unit, goal, contacts)
+--- a/source/session_review.py
++++ b/source/session_review.py
+@@ -21,0 +22 @@
++        self.missing_workers = {}
+@@ -59,0 +61,8 @@
++        # Gas harvesting can temporarily hide a Probe from raw observations.
++        # Retract that apparent loss if its tag returns in any later sample.
++        for tag in present & self.missing_workers.keys():
++            disappeared_at = self.missing_workers.pop(tag)
++            counts = self.windows[int(disappeared_at // 15)]["own_economy_disappearances"]
++            counts["PROBE"] -= 1
++            if not counts["PROBE"]:
++                del counts["PROBE"]
+@@ -75,0 +85,3 @@
++        for unit in missing:
++            if unit.get("unit_type") == U.PROBE.value:
++                self.missing_workers[str(unit["tag"])] = now
+@@ -185,0 +198,7 @@
++            "first_bad_trade_window": min(windows, key=lambda w: w["start"], default=None),
++            "worker_disappearances_by_240_seconds": sum(
++                round(time, 6) <= 240 for time in self.missing_workers.values()
++            ),
++            "first_worker_disappearance_seconds": round(min(self.missing_workers.values()), 6)
++            if self.missing_workers
++            else None,
+--- a/source/trials.py
++++ b/source/trials.py
+@@ -100 +100 @@
+-        help="Concurrent games (1-5); may overlap scenarios when greater than repeat count",
++        help="Concurrent games (1-8); may overlap scenarios when greater than repeat count",
+@@ -121,2 +121,2 @@
+-    if not 1 <= args.parallel <= 5:
+-        parser.error("Parallel games must be 1-5")
++    if not 1 <= args.parallel <= 8:
++        parser.error("Parallel games must be 1-8")

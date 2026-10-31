@@ -1,0 +1,496 @@
+--- a/source/action_intents.py
++++ b/source/action_intents.py
+@@ -67,0 +68,13 @@
++                and (
++                    unit.is_flying
++                    or (
++                        (
++                            area is None
++                            or (
++                                area.x <= unit.order_target.x < area.x + area.width
++                                and area.y <= unit.order_target.y < area.y + area.height
++                            )
++                        )
++                        and bot.in_pathing_grid(unit.order_target)
++                    )
++                )
+--- a/source/army_waves.py
++++ b/source/army_waves.py
+@@ -3,0 +4 @@
++from math import ceil, cos, pi, sin
+@@ -22,0 +24,48 @@
++
++
++def terrain_destination(bot, unit, point, goal):
++    """Use engine pathfinding to a real goal when a geometric slot crosses terrain."""
++    area = getattr(bot.game_info, "playable_area", None)
++
++    def inside(position):
++        return area is None or (
++            area.x <= position.x < area.x + area.width and area.y <= position.y < area.y + area.height
++        )
++
++    if unit.is_flying:
++        if inside(point):
++            return point
++        if inside(goal):
++            return goal
++        return Point2(
++            (
++                min(max(goal.x, area.x), area.x + area.width - 0.001),
++                min(max(goal.y, area.y), area.y + area.height - 0.001),
++            )
++        )
++
++    def walkable(position):
++        return (
++            area is None
++            or (area.x <= position.x < area.x + area.width and area.y <= position.y < area.y + area.height)
++        ) and bot.in_pathing_grid(position)
++
++    origin = unit.position
++    steps = max(1, ceil(origin.distance_to(point)))
++    if all(
++        walkable(
++            Point2((origin.x + (point.x - origin.x) * i / steps, origin.y + (point.y - origin.y) * i / steps))
++        )
++        for i in range(1, steps + 1)
++    ):
++        return point
++    # The engine can route around the obstruction to this destination. Do not
++    # substitute another straight-line intermediate on the same blocked ray.
++    if walkable(goal):
++        return goal
++    for radius in (2, 4, 6, 8):
++        candidates = [goal.offset((cos(i * pi / 8) * radius, sin(i * pi / 8) * radius)) for i in range(16)]
++        valid = [candidate for candidate in candidates if walkable(candidate)]
++        if valid:
++            return min(valid, key=lambda candidate: (unit.distance_to(candidate), candidate.x, candidate.y))
++    return origin
+@@ -175,0 +225,16 @@
++        # Never leave an army attacking an unreachable geometric formation
++        # slot: short points on a cliff can strand it beside the intended route.
++        by_tag = {unit.tag: unit for unit in units}
++        for tag, (mode, point) in list(destinations.items()):
++            goal = (
++                rally
++                if self.phase == "assemble"
++                else self.regroup_anchor or rally
++                if self.phase == "regroup"
++                else objective
++                if tag in self.members
++                else self.center or objective
++                if tag in self.reinforcements
++                else rally
++            )
++            destinations[tag] = (mode, terrain_destination(bot, by_tag[tag], point, goal))
+--- a/source/economy_assistant.py
++++ b/source/economy_assistant.py
+@@ -16,0 +17 @@
++from source.strategy_profiles import PROFILES
+@@ -208 +209 @@
+-    async def safe_expansion_location(self, reference):
++    async def safe_expansion_location(self, reference, require_minerals=False):
+@@ -213,0 +215,4 @@
++            if require_minerals and not self.mineral_field.closer_than(10, location).filter(
++                lambda patch: patch.mineral_contents > 0
++            ):
++                continue
+@@ -325,0 +331,27 @@
++        contacts = visible_threats(self)
++        early_contact = self.time < 180 and any(
++            any(enemy.distance_to(base) < 32 for base in bases) for enemy in contacts
++        )
++        completed_supply = sum(
++            self.calculate_supply_cost(unit.type_id)
++            for unit in self.units.of_type(set(ARMY_TARGETS)).ready
++            if unit.can_attack
++        )
++        requested_supply = sum(
++            production_target(self, name) * self.calculate_supply_cost(kind)
++            for kind, name in ARMY_TARGETS.items()
++            if kind in {U.ZEALOT, U.STALKER}
++        )
++        first_defender = (
++            s.attack
++            and s.production
++            and self.time < 180
++            and requested_supply > 0
++            and (completed_supply < min(6, requested_supply) or early_contact)
++        )
++        self.opening_phase = (
++            "defend" if first_defender and early_contact else "first_force" if first_defender else "complete"
++        )
++        self._opening_reserve = 0
++        if not first_defender:
++            self.opening_defense_anchor = None
+@@ -338,0 +371,2 @@
++        if first_defender and self.produce_opening_defender():
++            return
+@@ -339,0 +374,2 @@
++            if first_defender and s.construction and await self.opening_battery(home, contacts):
++                return
+@@ -346 +382 @@
+-            if self.economic_emergency and s.production and self.produce(0):
++            if not first_defender and self.economic_emergency and s.production and self.produce(0):
+@@ -353,0 +390 @@
++                and not first_defender
+@@ -364,0 +402,25 @@
++        # Saturation falls as mineral patches disappear. Saving for a replacement
++        # mineral line must not require training up to the normal expansion gate:
++        # that same depleted saturation also prevents producing more workers.
++        depleted_income = (
++            self.time >= 360
++            and any(base.ideal_harvesters < 8 for base in safe_bases)
++            and sum(base.ideal_harvesters for base in safe_bases) < max(8, self.supply_workers * 0.6)
++        )
++        if (
++            depleted_income
++            and s.expansion
++            and self.townhalls.amount < base_target
++            and not self.already_pending(U.NEXUS)
++            and self.supply_workers >= 14
++            and not self.economic_emergency
++            and (self.strategic_plan is None or self.strategic_plan.expand)
++            and (not s.attack or self.supply_army >= 12)
++        ):
++            location = await self.safe_expansion_location(home.position, require_minerals=True)
++            if location and self.builder(location):
++                self._macro_reserve = 400
++                if not self.affordable(U.NEXUS):
++                    return  # Retain the remaining bank instead of spending the recovery fund.
++                if await self.build_structure(U.NEXUS, location, max_distance=2):
++                    return
+@@ -380,0 +443,15 @@
++        if first_defender and s.construction:
++            gateways = self.structures(U.GATEWAY) | self.structures(U.WARPGATE)
++            count = len(gateways) + sum(
++                kind == U.GATEWAY and expiry > self.time and not gateways.closer_than(2, point)
++                for kind, point, expiry in self.construction_reservations.values()
++            )
++            if count == 1 and self.structures(U.PYLON).ready:
++                self._macro_reserve = 150
++                if self.affordable(U.GATEWAY):
++                    pylons = self.structures(U.PYLON).ready.filter(lambda p: self.safe_at(p.position))
++                    if pylons:
++                        await self.build_structure(
++                            U.GATEWAY, pylons.closest_to(home).position, allow_pending=True
++                        )
++                return  # Complete parallel capacity before Core/worker/natural investment.
+@@ -395 +472 @@
+-        if self.economic_emergency:
++        if self.economic_emergency and not first_defender:
+@@ -409 +486 @@
+-                    and self.affordable(U.PROBE)
++                    and self.affordable(U.PROBE, self._opening_reserve)
+@@ -413,0 +491 @@
++        active_gases = self.gas_buildings.filter(lambda gas: not gas.is_ready or gas.vespene_contents > 0)
+@@ -417,2 +495,2 @@
+-            and len(self.gas_buildings) < gas_limit
+-            and (not self.gas_buildings or self.vespene < max(300, self.minerals))
++            and len(active_gases) < gas_limit
++            and (not active_gases or self.vespene < max(300, self.minerals))
+@@ -431,0 +510,14 @@
++        if first_defender:
++            if s.construction and await self.opening_battery(home, contacts):
++                return
++            if (
++                early_contact
++                and s.construction
++                and len(self.structures(U.GATEWAY) | self.structures(U.WARPGATE)) < 2
++                and not self.already_pending(U.GATEWAY)
++                and self.affordable(U.GATEWAY, self._opening_reserve)
++            ):
++                pylons = self.structures(U.PYLON).ready.filter(lambda p: self.safe_at(p.position))
++                if pylons:
++                    await self.build_structure(U.GATEWAY, pylons.closest_to(home).position)
++            return  # Retain the defense fund; do not buy technology or a natural.
+@@ -444,0 +537 @@
++            and not first_defender
+@@ -473,0 +567,65 @@
++
++    def produce_opening_defender(self):
++        """A legal first force; avoid spending its Stalker gas on support units."""
++        gateways = self.structures(U.GATEWAY).ready.idle.filter(
++            lambda gateway: (
++                gateway.is_powered
++                and self.available(gateway)
++                and self._blocked_producers.get(gateway.tag, 0) <= self.time
++            )
++        )
++        if not gateways:
++            return False
++        kinds = [U.STALKER, U.ZEALOT] if self.structures(U.CYBERNETICSCORE).ready else [U.ZEALOT]
++        for kind in kinds:
++            target = production_target(self, ARMY_TARGETS[kind])
++            if target <= self.units(kind).amount + self.already_pending(kind):
++                continue
++            if self.tech_requirement_progress(kind) < 1:
++                continue
++            self._opening_reserve = self.calculate_cost(kind).minerals
++            if self.affordable(kind) and self.issue(gateways.first.train(kind), paid=True, supply=True):
++                self._last_production = self.time
++                return True
++            return False  # Preserve this legal defender's budget instead of buying a Sentry.
++        return False
++
++    async def opening_battery(self, home, contacts):
++        """Protected powered placements; the front Pylon need not hug the Nexus."""
++        batteries = self.structures(U.SHIELDBATTERY).closer_than(14, home)
++        ready = batteries.ready.filter(lambda battery: battery.is_powered)
++        if ready:
++            battery = ready.closest_to(home)
++            if battery.distance_to(home) <= 6 + home.radius:
++                anchor = battery.position.towards(home.position, min(3, battery.distance_to(home)))
++                if self.in_pathing_grid(anchor) and self.is_visible(anchor):
++                    self.opening_defense_anchor = tuple(anchor)
++        if batteries or self.already_pending(U.SHIELDBATTERY):
++            return False
++        direction = contacts.closest_to(home).position if contacts else self.game_info.map_center
++        hold = home.position.towards(
++            self.game_info.map_center, max(8, PROFILES[self.settings.profile]["rally_distance"])
++        )
++        forward = self.structures(U.PYLON).ready.closest_to(hold) if self.structures(U.PYLON).ready else None
++        anchors = [home.position.towards(forward.position, 3.5)] if forward else []
++        anchors += [home.position.offset(offset) for offset in ((6, 0), (-6, 0), (0, 6), (0, -6))]
++        anchors.sort(key=lambda point: max(point.distance_to(home), point.distance_to(hold)))
++        if self.structures(U.CYBERNETICSCORE).ready and self.affordable(
++            U.SHIELDBATTERY, self._opening_reserve
++        ):
++            for anchor in anchors:
++                point = await find_spaced_placement(self, U.SHIELDBATTERY, anchor, 4)
++                if (
++                    point is not None
++                    and self.state.psionic_matrix.covers(point)
++                    and point.distance_to(home) <= 6 + home.radius
++                    and self.safe_at(point)
++                    and await self.build_structure(U.SHIELDBATTERY, point, max_distance=0)
++                ):
++                    return True
++        # Protect a location before contact makes the exposed front power unusable.
++        if self.settings.supply and not self.already_pending(U.PYLON):
++            rear = home.position.towards(direction, -8)
++            if not self.state.psionic_matrix.covers(rear) and self.affordable(U.PYLON, self._opening_reserve):
++                return await self.build_structure(U.PYLON, rear, max_distance=4)
++        return False
+--- a/source/game_assessment.py
++++ b/source/game_assessment.py
+@@ -4,0 +5 @@
++from sc2.ids.unit_typeid import UnitTypeId as U
+@@ -37,0 +39,3 @@
++        # Search travel is paid by the army, which may already be across the
++        # map. Home-relative costs repeatedly send it back to stale nearby sites.
++        travel_origin = fighters.center if fighters else front
+@@ -40,0 +45,20 @@
++        opening_hold = None
++        opening_phase = getattr(bot, "opening_phase", None)
++        if (
++            bot.settings.enabled
++            and bot.settings.attack
++            and bot.settings.production
++            and bot.settings.strategy == "auto"
++            and bot.time < 180
++            and opening_phase in {"first_force", "defend"}
++        ):
++            rally = home.towards(bot.game_info.map_center, 3.5)
++            opening_anchor = getattr(bot, "opening_defense_anchor", None)
++            if opening_anchor:
++                point = Point2(opening_anchor)
++                batteries = bot.structures(U.SHIELDBATTERY).ready.filter(
++                    lambda battery: battery.is_powered and battery.distance_to(point) <= 5.5
++                )
++                if batteries and bot.in_pathing_grid(point) and bot.is_visible(point):
++                    home = rally = point
++            opening_hold = tuple(rally)
+@@ -57 +81,3 @@
+-            if sum(bot.calculate_supply_cost(u.type_id) for u in friends) < min(8, army_supply * 0.3):
++            if sum(bot.calculate_supply_cost(u.type_id) for u in friends) < min(
++                army_supply, max(8, army_supply * 0.3)
++            ):
+@@ -63,0 +90,16 @@
++        response_tags, response_supply = [], 0
++        response = fighters.tags_in(set())
++        budget = min(army_supply * 0.3, max(8, sum(observed_supply(bot, e) for e in incoming) * 1.5))
++        # A projected remote response is distinct from defenders already nearby.
++        # Require every selected actor to hit all observed attacking domains.
++        if incoming and threat is not None:
++            capable = fighters.filter(
++                lambda u: all(u.can_attack_air if e.is_flying else u.can_attack_ground for e in incoming)
++            )
++            for unit in capable.sorted_by_distance_to(threat):
++                cost = bot.calculate_supply_cost(unit.type_id)
++                if response_supply + cost <= budget:
++                    response_tags.append(unit.tag)
++                    response_supply += cost
++            response = fighters.tags_in(response_tags)
++        response_advantage = ratio(response, incoming) if response else 0
+@@ -131 +173 @@
+-                        front.distance_to(point),
++                        travel_origin.distance_to(point),
+@@ -161 +203 @@
+-                    front.distance_to(site),
++                    travel_origin.distance_to(site),
+@@ -193,0 +236,4 @@
++            raid_response_tags=tuple(response_tags),
++            raid_response_supply=response_supply,
++            raid_response_advantage=response_advantage,
++            opening_hold=opening_hold,
+--- a/source/missions.py
++++ b/source/missions.py
+@@ -3,0 +4 @@
++from math import atan2, ceil, cos, hypot, pi, sin
+@@ -12,0 +14,66 @@
++
++
++def retreat_geometry(contacts):
++    """Cache SDK weapon data once per observation, outside the route search."""
++    return tuple(
++        (
++            e.position.x,
++            e.position.y,
++            e.radius,
++            max(6 if e.type_id == U.BUNKER else 0, e.ground_range),
++            e.air_range,
++            max(24 if e.type_id == U.BUNKER else 1, e.ground_dps),
++            max(1, e.air_dps),
++            e.can_attack_ground or e.type_id == U.BUNKER,
++            e.can_attack_air,
++        )
++        for e in contacts
++    )
++
++
++def retreat_waypoint(bot, unit, goal, contacts, geometry=None):
++    """Choose a short traversable escape using only currently visible weapons."""
++    origin = unit.position
++    ox, oy = origin
++    flying, radius = unit.is_flying, unit.radius
++    geometry = retreat_geometry(contacts) if geometry is None else geometry
++    threats = [
++        (x, y, (ar if flying else gr) + er + radius + 3, ad if flying else gd)
++        for x, y, er, gr, ar, gd, ad, ground, air in geometry
++        if (air if flying else ground) and hypot(x - ox, y - oy) < max(gr, ar) + 18
++    ]
++    area = getattr(bot.game_info, "playable_area", None)
++
++    def traversable(point):
++        x, y = point
++        if area and not (area.x <= x < area.x + area.width and area.y <= y < area.y + area.height):
++            return False
++        if flying:
++            return True
++        steps = max(1, ceil(hypot(x - ox, y - oy)))
++        return all(
++            bot.in_pathing_grid(Point2((ox + (x - ox) * i / steps, oy + (y - oy) * i / steps)))
++            for i in range(1, steps + 1)
++        )
++
++    if not threats and traversable(goal):
++        return goal
++
++    def danger(x, y):
++        return sum(dps * max(0, reach - hypot(ex - x, ey - y)) for ex, ey, reach, dps in threats)
++
++    direction = atan2(goal.y - oy, goal.x - ox)
++    distance = 10 if threats else min(10, hypot(goal.x - ox, goal.y - oy))
++    candidates = [origin]
++    for i in range(16):
++        angle = direction + i * pi / 8
++        point = Point2((ox + cos(angle) * distance, oy + sin(angle) * distance))
++        if traversable(point):
++            candidates.append(point)
++
++    def cost(point):
++        x, y = point
++        exposure = sum(danger(ox + (x - ox) * f, oy + (y - oy) * f) for f in (0.25, 0.5, 0.75, 1))
++        return exposure + danger(x, y) * 4 + hypot(x - goal.x, y - goal.y) * 0.15
++
++    return min(candidates, key=cost)
+@@ -29,0 +97 @@
++        geometry = retreat_geometry(contacts)
+@@ -31 +99 @@
+-        destinations, assignments, records = {}, {}, {}
++        destinations, assignments, records, retreat_goals = {}, {}, {}, {}
+@@ -48,0 +117,8 @@
++            if (
++                spec.role == "defend"
++                and state.raid_response_schema_version == 1
++                and state.raid_response_tags
++                and state.raid_response_advantage >= 1.2
++                and state.raid_response_supply == spec.supply_budget
++            ):
++                candidates = candidates.tags_in(state.raid_response_tags)
+@@ -101 +177,5 @@
+-            if abort or (old.get("phase") == "recover" and bot.time < old.get("recover_until", 0)):
++            if (
++                abort
++                or (spec.role == "main" and plan.objective == "recover")
++                or (old.get("phase") == "recover" and bot.time < old.get("recover_until", 0))
++            ):
+@@ -102,0 +183,11 @@
++                goal = Point2(old.get("retreat_goal", state.home))
++                if spec.target_id == "script" and plan.objective == "recover":
++                    goal = target
++                elif (
++                    old.get("phase") != "recover"
++                    or not bot.townhalls.ready.closer_than(2, goal)
++                    or contacts.closer_than(14, goal)
++                ):
++                    safe_bases = bot.townhalls.ready.filter(lambda base: not contacts.closer_than(14, base))
++                    goal = safe_bases.closest_to(anchor).position if safe_bases else Point2(state.home)
++                record["retreat_goal"] = list(goal)
+@@ -115 +206,2 @@
+-                    destinations[unit.tag] = ("move", Point2(state.home))
++                    retreat_goals[unit.tag] = goal
++                    destinations[unit.tag] = ("move", retreat_waypoint(bot, unit, goal, contacts, geometry))
+@@ -168,2 +260,2 @@
+-            if critical:
+-                mode, target = "move", Point2(state.home)
++            if critical and tag not in retreat_goals:
++                mode, target = "move", retreat_waypoint(bot, unit, Point2(state.home), contacts, geometry)
+--- a/source/strategic_plan.py
++++ b/source/strategic_plan.py
+@@ -52,0 +53,5 @@
++    raid_response_schema_version: int = 1
++    raid_response_tags: tuple[int, ...] = ()
++    raid_response_supply: float = 0
++    raid_response_advantage: float = 0
++    opening_hold: Point | None = None
+--- a/source/strategy_policies.py
++++ b/source/strategy_policies.py
+@@ -66,0 +67,6 @@
++    projected_response = (
++        state.raid_response_schema_version == 1
++        and bool(state.raid_response_tags)
++        and 2 <= state.raid_response_supply <= min(remaining * 0.3, max(8, state.threat_supply * 1.5))
++        and state.raid_response_advantage >= 1.2
++    )
+@@ -73 +79 @@
+-        and state.home_advantage >= 1.2
++        and (state.home_advantage >= 1.2 or projected_response)
+@@ -76 +82,5 @@
+-        budget = min(remaining * 0.3, max(8, state.threat_supply * 1.5))
++        budget = (
++            state.raid_response_supply
++            if projected_response
++            else min(remaining * 0.3, max(8, state.threat_supply * 1.5))
++        )
+@@ -92,0 +103,5 @@
++    if objective == "stabilize" and state.opening_hold is not None:
++        point, mode = tuple(state.opening_hold), "move"
++        choice = Candidate(
++            "stabilize", "rally", choice.score, "Hold opening defenders together near protected power"
++        )
+--- a/source/tactics.py
++++ b/source/tactics.py
+@@ -13 +13 @@
+-from source.missions import MissionPlanner
++from source.missions import MissionPlanner, retreat_geometry, retreat_waypoint
+@@ -275,0 +276 @@
++        geometry = None
+@@ -290 +291,4 @@
+-                command, reason = unit.move(home), "individual_retreat"
++                if geometry is None:
++                    geometry = retreat_geometry(contacts)
++                waypoint = retreat_waypoint(bot, unit, home, contacts, geometry)
++                command, reason = unit.move(waypoint), "individual_retreat"

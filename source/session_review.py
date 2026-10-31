@@ -19,6 +19,7 @@ class SessionReview:
         self.moves = {}
         self.movement = Counter()
         self.own_units = {}
+        self.missing_workers = {}
 
     def observe(self, row):
         now = row["game_loop"] / 22.4
@@ -57,6 +58,14 @@ class SessionReview:
         raw_units = observation.get("raw_data", {}).get("units", [])
         present = {str(u["tag"]) for u in raw_units if "tag" in u}
         present.update(str(p["tag"]) for u in raw_units for p in u.get("passengers", []) if "tag" in p)
+        # Gas harvesting can temporarily hide a Probe from raw observations.
+        # Retract that apparent loss if its tag returns in any later sample.
+        for tag in present & self.missing_workers.keys():
+            disappeared_at = self.missing_workers.pop(tag)
+            counts = self.windows[int(disappeared_at // 15)]["own_economy_disappearances"]
+            counts["PROBE"] -= 1
+            if not counts["PROBE"]:
+                del counts["PROBE"]
         units = {
             str(u["tag"]): u
             for u in observation.get("raw_data", {}).get("units", [])
@@ -73,6 +82,9 @@ class SessionReview:
             for u in missing
             if u.get("unit_type") in {U.PROBE.value, U.NEXUS.value, U.ASSIMILATOR.value}
         )
+        for unit in missing:
+            if unit.get("unit_type") == U.PROBE.value:
+                self.missing_workers[str(unit["tag"])] = now
         for order in decision.get("orders", []):
             tag = str(order["unit_tag"])
             unit = units.get(tag)
@@ -183,6 +195,13 @@ class SessionReview:
                 self.high_water.get("killed_army", 0) / max(1, self.high_water.get("lost_army", 0)), 3
             ),
             "bad_trade_window_count": len(windows),
+            "first_bad_trade_window": min(windows, key=lambda w: w["start"], default=None),
+            "worker_disappearances_by_240_seconds": sum(
+                round(time, 6) <= 240 for time in self.missing_workers.values()
+            ),
+            "first_worker_disappearance_seconds": round(min(self.missing_workers.values()), 6)
+            if self.missing_workers
+            else None,
             "corroborated_bad_trade_window_count": sum(bool(w["own_army_disappearances"]) for w in windows),
             "worst_trade_windows": windows[:5],
             "worst_economy_loss_windows": sorted(

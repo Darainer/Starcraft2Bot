@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "ontology_id": "sc2-public-beliefs-v1",
+  "reviewed_on": "2026-10-31",
+  "patch_scope": "5.0.17; numerical runtime data takes precedence",
+  "sources": {
+    "protocol": {"title": "Blizzard SC2 unit-data protocol", "url": "https://github.com/Blizzard/s2client-proto/blob/master/s2clientprotocol/data.proto", "kind": "primary_specification"},
+    "archon_micro": {"title": "Sharky Archon combat controller", "url": "https://github.com/sharknice/Sharky/blob/2628ba1c5c2083aeeddf9f13c25bf6f218820a05/Sharky/MicroControllers/Protoss/ArchonMicroController.cs", "kind": "primary_bot_implementation_curated_splash_role_not_engine_geometry"},
+    "unit_ids": {"title": "Blizzard unit and ability enumeration", "url": "https://github.com/Blizzard/s2client-api/blob/master/include/sc2api/sc2_typeenums.h", "kind": "primary_specification"},
+    "patch": {"title": "Blizzard 5.0.17 patch notes", "url": "https://news.blizzard.com/en-gb/article/24309308/starcraft-ii-5-0-17-patch-notes", "kind": "primary_patch_notes"},
+    "scouting": {"title": "Blizzard Game Guide: Scouting", "url": "https://news.blizzard.com/en-us/article/4488316/game-guide-scouting", "kind": "primary_guide_principles_only"},
+    "attacks": {"title": "Blizzard Game Guide: Protoss Attacks", "url": "https://news.blizzard.com/en-us/article/5963107/game-guide-protoss-attacks", "kind": "primary_guide_principles_only"},
+    "purpose": {"title": "Max: Scouting basics", "url": "https://terrancraft.com/2014/09/14/scouting-basics/", "kind": "author_strategy_guide_principles_only"},
+    "reconnaissance": {"title": "Hostetler et al.: Inferring Strategies from Limited Reconnaissance", "url": "https://arxiv.org/abs/1210.4880", "kind": "primary_research_brood_war"},
+    "defogging": {"title": "Synnaeve et al.: A StarCraft Defogger", "url": "https://arxiv.org/abs/1812.00054", "kind": "primary_research_brood_war"}
+  },
+  "epistemic_states": ["observed", "remembered", "inferred", "unknown"],
+  "belief_dimensions": [
+    {"id": "aggression", "meaning": "Observed offensive commitment, not the complement of economy", "question": "commitment", "sources": ["scouting", "purpose", "reconnaissance"]},
+    {"id": "economy", "meaning": "Positive expansion and economic investment evidence", "question": "expansions", "sources": ["scouting", "purpose"]},
+    {"id": "air", "meaning": "Possible or observed air production; mixed armies remain possible", "question": "technology", "sources": ["protocol", "unit_ids"]},
+    {"id": "armored_ground", "meaning": "Ground armor investment or observed armored force", "question": "technology", "sources": ["protocol", "unit_ids"]},
+    {"id": "light_ground", "meaning": "Observed massed light ground force", "question": "army", "sources": ["protocol", "patch"]},
+    {"id": "cloak", "meaning": "Positive evidence of a potential detection requirement", "question": "technology", "sources": ["protocol", "unit_ids"]},
+    {"id": "enemy_army", "meaning": "Visible supply lower bound and an uncertain retained-force estimate", "question": "army", "sources": ["protocol", "defogging"]},
+    {"id": "relative_army", "meaning": "Relative supply range; separate from local weapon-aware combat evidence", "question": "army", "sources": ["protocol", "defogging"]}
+  ],
+  "technology_signals": [
+    {"id": "tech.air", "dimension": "air", "structures": ["SPIRE", "GREATERSPIRE", "STARGATE", "FLEETBEACON", "STARPORT", "FUSIONCORE"], "relation": "permits_production", "epistemic_state": "inferred", "sources": ["unit_ids", "protocol"]},
+    {"id": "tech.armored_ground", "dimension": "armored_ground", "structures": ["ROACHWARREN", "FACTORY", "ROBOTICSFACILITY", "ULTRALISKCAVERN"], "relation": "permits_production", "epistemic_state": "inferred", "sources": ["unit_ids", "protocol"]},
+    {"id": "tech.cloak", "dimension": "cloak", "structures": ["DARKSHRINE", "GHOSTACADEMY", "LURKERDENMP"], "relation": "permits_detection_threat", "epistemic_state": "inferred", "sources": ["unit_ids", "protocol"]}
+  ],
+  "early_production_signals": ["GATEWAY", "WARPGATE", "BARRACKS", "ROACHWARREN", "SPAWNINGPOOL"],
+  "unit_roles": [
+    {"name": "zealots", "unit": "ZEALOT", "supply": 2, "domains": ["ground"], "roles": ["ground", "light_ground"], "producers": ["GATEWAY", "WARPGATE"], "prerequisites": [], "sources": ["protocol", "unit_ids", "attacks"], "status": "curated_counter_role_hypothesis"},
+    {"name": "stalkers", "unit": "STALKER", "supply": 2, "domains": ["ground", "air"], "roles": ["ground", "air", "armored_ground"], "producers": ["GATEWAY", "WARPGATE"], "prerequisites": ["CYBERNETICSCORE"], "sources": ["protocol", "unit_ids", "attacks"], "status": "curated_counter_role_hypothesis"},
+    {"name": "sentries", "unit": "SENTRY", "supply": 2, "domains": ["ground", "air"], "roles": ["ground", "air"], "producers": ["GATEWAY", "WARPGATE"], "prerequisites": ["CYBERNETICSCORE"], "sources": ["protocol", "unit_ids"], "status": "weapon_domain_only_not_spell_credit"},
+    {"name": "immortals", "unit": "IMMORTAL", "supply": 4, "domains": ["ground"], "roles": ["ground", "armored_ground"], "producers": ["ROBOTICSFACILITY"], "prerequisites": ["CYBERNETICSCORE"], "sources": ["protocol", "unit_ids", "attacks"], "status": "curated_counter_role_hypothesis"},
+    {"name": "colossi", "unit": "COLOSSUS", "supply": 6, "domains": ["ground"], "roles": ["ground", "light_ground"], "producers": ["ROBOTICSFACILITY"], "prerequisites": ["ROBOTICSBAY"], "sources": ["protocol", "unit_ids", "patch"], "status": "curated_counter_role_hypothesis"},
+    {"name": "voidrays", "unit": "VOIDRAY", "supply": 4, "domains": ["ground", "air"], "roles": ["ground", "air", "armored_ground"], "producers": ["STARGATE"], "prerequisites": ["CYBERNETICSCORE"], "sources": ["protocol", "unit_ids"], "status": "curated_counter_role_hypothesis_alignment_not_assumed"},
+    {"name": "high_templar", "unit": "HIGHTEMPLAR", "supply": 2, "domains": ["ground"], "roles": ["ground", "light_ground"], "producers": ["GATEWAY", "WARPGATE"], "prerequisites": ["TEMPLARARCHIVE"], "requires_opt_in": "storm", "sources": ["protocol", "unit_ids", "patch"], "status": "conditional_spell_role_requires_research_and_energy"},
+    {"name": "archons", "unit": "ARCHON", "supply": 4, "domains": ["ground", "air"], "roles": ["ground", "air", "light_ground"], "producers": ["HIGHTEMPLAR"], "prerequisites": ["TEMPLARARCHIVE"], "sources": ["protocol", "unit_ids", "archon_micro"], "status": "curated_short_range_splash_role; production_requires_two_templars_and_archon_merge_opt_in; no_automatic_splash_dps_multiplier"}
+  ],
+  "scouting_questions": [
+    {"id": "commitment", "observables": ["forward_production", "approaching_force", "natural_occupancy"], "methods": ["worker", "observer"], "sources": ["scouting", "purpose"]},
+    {"id": "technology", "observables": ["production_types", "tech_buildings", "new_unit_types"], "methods": ["observer", "worker"], "sources": ["scouting", "purpose"]},
+    {"id": "army", "observables": ["army_location", "visible_supply", "composition", "movement"], "methods": ["observer", "worker"], "sources": ["scouting", "defogging"]},
+    {"id": "expansions", "observables": ["occupied_sites", "positively_inspected_empty_sites"], "methods": ["worker", "observer"], "sources": ["scouting", "purpose"]}
+  ],
+  "inference_parameters": {
+    "status": "experimental_heuristics_not_sourced_calibration",
+    "army_memory_seconds": 90,
+    "tech_memory_seconds": 180,
+    "confidence_decay_seconds": 90,
+    "minimum_signal_uncertainty": 0.15,
+    "counter_maximum_uncertainty": 0.4,
+    "counter_minimum_support": 0.8,
+    "counter_reallocation_supply": 8,
+    "worker_loss_budget_minerals": 50,
+    "worker_opportunity_budget_seconds": 90,
+    "worker_income_cost_per_second": 0.7,
+    "gas_resource_weight": 1.5,
+    "information_value_scale": 200,
+    "observer_loss_backoff_seconds": 90
+  },
+  "safety_rules": [
+    "No hidden opponent build labels in playable beliefs or planning",
+    "Unknown or stale is not absent or safe",
+    "Distinct technology paths may coexist",
+    "Refresh each fact independently and do not count one sighting repeatedly",
+    "Counters are conditional on domain, tech, position, numbers and execution",
+    "No combat ability credit or use without its explicit opt-in",
+    "Runtime costs and weapon metadata override offline numerical fallbacks"
+  ]
+}

@@ -67,6 +67,18 @@ def test_launch_is_one_shared_participant_paused_on_request(installed):
     assert kwargs == {"probe": False, "attach_port": 5001}
 
 
+def test_composition_and_individual_tactical_flags_can_be_enabled_and_revoked(installed):
+    flags = ("oracle_harass", "oracle_beam", "archon_merge", "defend_assets", "local_regroup")
+    run_assistant.main(
+        ["--composition-policy", "scouted", *("--" + name.replace("_", "-") for name in flags)]
+    )
+    settings = installed.call_args.args[2][0].ai.settings
+    assert settings.composition_policy == "scouted"
+    assert all(getattr(settings, name) for name in flags)
+    run_assistant.main([*("--no-" + name.replace("_", "-") for name in flags)])
+    assert all(not getattr(installed.call_args.args[2][0].ai.settings, name) for name in flags)
+
+
 def test_doctor_does_not_launch(installed, capsys):
     run_assistant.main(["--doctor"])
     result = json.loads(capsys.readouterr().out)
@@ -121,6 +133,27 @@ def test_fast_test_has_explicit_bounded_runtime(installed):
     settings = installed.call_args.args[2][0].ai.settings
     assert settings.attack and settings.voidrays == 14
     assert installed.call_args.args[4].data["fast_test"]
+
+
+def test_collection_options_preserve_all_log_rotations_and_enable_only_requested_revisit(
+    installed, monkeypatch
+):
+    add = Mock(wraps=run_assistant.logger.add)
+    monkeypatch.setattr(run_assistant.logger, "add", add)
+    run_assistant.main(["--snapshot-interval", "1", "--scout-revisit"])
+    assistant = installed.call_args.args[2][0].ai
+    assert assistant.scouting.revisit
+    assert assistant.report.data["snapshot_interval"] == 1
+    assert assistant.report.data["log_retention"] == "all_rotations"
+    assert add.call_args.kwargs["retention"] is None
+
+
+@pytest.mark.parametrize("interval", ["0", "31"])
+def test_invalid_recording_interval_does_not_launch(installed, interval):
+    with pytest.raises(SystemExit) as exc:
+        run_assistant.main(["--snapshot-interval", interval])
+    assert exc.value.code == 2
+    installed.assert_not_called()
 
 
 def test_repeatable_game_records_and_passes_seed_and_build(installed, monkeypatch):

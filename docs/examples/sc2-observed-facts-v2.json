@@ -1,0 +1,203 @@
+{
+  "schema_version": "sc2-observed-facts-v2",
+  "public_map_context": {
+    "own_start": [
+      114.5,
+      25.5
+    ],
+    "possible_enemy_starts": [
+      [
+        29.5,
+        134.5
+      ]
+    ],
+    "playable_area": {
+      "p0": {
+        "x": 8,
+        "y": 8
+      },
+      "p1": {
+        "x": 136,
+        "y": 152
+      }
+    },
+    "scope": "Public possible starting locations; multiple candidates are not confirmed enemy positions"
+  },
+  "time_seconds": 175.35714285714286,
+  "own": {
+    "food_army": 8,
+    "food_workers": 19,
+    "food_cap": 39,
+    "minerals": 20,
+    "vespene": 48
+  },
+  "enemy_contacts": [
+    {
+      "kind": "DRONE",
+      "visible_count": 0,
+      "recent_30s_count": 1,
+      "remembered_count": 1,
+      "newest_age_seconds": 15.0,
+      "oldest_age_seconds": 15.0,
+      "supply_per_unit": 1.0,
+      "combat_nonworker": false
+    },
+    {
+      "kind": "HATCHERY",
+      "visible_count": 0,
+      "recent_30s_count": 0,
+      "remembered_count": 1,
+      "newest_age_seconds": 127.14285714285714,
+      "oldest_age_seconds": 127.14285714285714,
+      "supply_per_unit": 0.0,
+      "combat_nonworker": false
+    },
+    {
+      "kind": "SPAWNINGPOOL",
+      "visible_count": 0,
+      "recent_30s_count": 0,
+      "remembered_count": 1,
+      "newest_age_seconds": 126.07142857142857,
+      "oldest_age_seconds": 126.07142857142857,
+      "supply_per_unit": 0.0,
+      "combat_nonworker": false
+    }
+  ],
+  "technology_history": [
+    {
+      "kind": "HATCHERY",
+      "first_recorded_seen": 45.35714285714286,
+      "first_observed_progress": 1.0,
+      "first_progress_recorded_at": 45.35714285714286,
+      "last_recorded_seen": 48.214285714285715,
+      "last_observed_progress": 1.0,
+      "last_progress_recorded_at": 45.35714285714286
+    },
+    {
+      "kind": "SPAWNINGPOOL",
+      "first_recorded_seen": 45.0,
+      "first_observed_progress": 0.100961566,
+      "last_recorded_seen": 49.28571428571429,
+      "first_progress_recorded_at": 45.35714285714286,
+      "last_observed_progress": 0.100961566,
+      "last_progress_recorded_at": 45.35714285714286
+    }
+  ],
+  "expansion_history": [],
+  "site_inspections": [
+    {
+      "position": [
+        23.5,
+        55.5
+      ],
+      "status": "unknown",
+      "last_checked": null,
+      "age_seconds": null,
+      "scope": "Site center visible; empty does not certify the entire expansion area",
+      "distance_to_own_start": 95.81753492967766,
+      "distance_to_enemy_start_candidate": 79.22752047110903,
+      "closer_to_enemy_start_candidate": true
+    },
+    {
+      "position": [
+        28.5,
+        96.5
+      ],
+      "status": "unknown",
+      "last_checked": null,
+      "age_seconds": null,
+      "scope": "Site center visible; empty does not certify the entire expansion area",
+      "distance_to_own_start": 111.5212984142491,
+      "distance_to_enemy_start_candidate": 38.01315561749642,
+      "closer_to_enemy_start_candidate": true
+    },
+    {
+      "position": [
+        45.5,
+        20.5
+      ],
+      "status": "unknown",
+      "last_checked": null,
+      "age_seconds": null,
+      "scope": "Site center visible; empty does not certify the entire expansion area",
+      "distance_to_own_start": 69.18092222571191,
+      "distance_to_enemy_start_candidate": 115.11733144926528,
+      "closer_to_enemy_start_candidate": false
+    },
+    {
+      "position": [
+        61.5,
+        136.5
+      ],
+      "status": "empty",
+      "last_checked": 40.714285714285715,
+      "age_seconds": 134.64285714285714,
+      "scope": "Site center visible; empty does not certify the entire expansion area",
+      "distance_to_own_start": 123.00406497347964,
+      "distance_to_enemy_start_candidate": 32.0624390837628,
+      "closer_to_enemy_start_candidate": true
+    },
+    {
+      "position": [
+        82.5,
+        23.5
+      ],
+      "status": "unknown",
+      "last_checked": null,
+      "age_seconds": null,
+      "scope": "Site center visible; empty does not certify the entire expansion area",
+      "distance_to_own_start": 32.0624390837628,
+      "distance_to_enemy_start_candidate": 123.00406497347964,
+      "closer_to_enemy_start_candidate": false
+    },
+    {
+      "position": [
+        98.5,
+        138.5
+      ],
+      "status": "unknown",
+      "last_checked": null,
+      "age_seconds": null,
+      "scope": "Site center visible; empty does not certify the entire expansion area",
+      "distance_to_own_start": 114.12712210513327,
+      "distance_to_enemy_start_candidate": 69.1158447825099,
+      "closer_to_enemy_start_candidate": true
+    },
+    {
+      "position": [
+        115.5,
+        63.5
+      ],
+      "status": "unknown",
+      "last_checked": null,
+      "age_seconds": null,
+      "scope": "Site center visible; empty does not certify the entire expansion area",
+      "distance_to_own_start": 38.01315561749642,
+      "distance_to_enemy_start_candidate": 111.5212984142491,
+      "closer_to_enemy_start_candidate": false
+    },
+    {
+      "position": [
+        120.5,
+        104.5
+      ],
+      "status": "unknown",
+      "last_checked": null,
+      "age_seconds": null,
+      "scope": "Site center visible; empty does not certify the entire expansion area",
+      "distance_to_own_start": 79.22752047110903,
+      "distance_to_enemy_start_candidate": 95.81753492967766,
+      "closer_to_enemy_start_candidate": false
+    }
+  ],
+  "recent_observed_enemy_combat_supply": 0,
+  "observed_supply_ratio": 0.0,
+  "fact_presence": {
+    "fresh_army_contact": false,
+    "fresh_force": false,
+    "fresh_technology": false,
+    "fresh_expansion": false,
+    "fresh_site_inspection": false,
+    "fresh_enemy_side_inspection": false
+  }
+}

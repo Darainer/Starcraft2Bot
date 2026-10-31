@@ -1,0 +1,68 @@
+{
+  "scope": "36 completed final games,12 conditions weighted equally after averaging3 repeats. Conditional accuracy averages only conditions with positive exposure; coverage includes all12. Fact strata overlap. Configured build is a weak label, Unknown incorrect. These are observational diagnostics, not causal information-vs-logic error percentages.",
+  "summary": {
+    "opening/all": {
+      "eligible_conditions": 12,
+      "condition_mean_time_coverage": 1.0,
+      "accuracy": 0.019717261904761894,
+      "commitment_coverage": 0.019717261904761894,
+      "brier": 0.7918491229566793
+    },
+    "opening/no_fresh_relevant_evidence": {
+      "eligible_conditions": 12,
+      "condition_mean_time_coverage": 0.7198660714285714,
+      "accuracy": 0.0,
+      "commitment_coverage": 0.0,
+      "brier": 0.8080967351008193
+    },
+    "opening/fresh_force": {
+      "eligible_conditions": 2,
+      "condition_mean_time_coverage": 0.019717261904761894,
+      "accuracy": 1.0,
+      "commitment_coverage": 1.0,
+      "brier": 0.11528113528962369
+    },
+    "opening/fresh_technology": {
+      "eligible_conditions": 5,
+      "condition_mean_time_coverage": 0.10788690476190478,
+      "accuracy": 0.0,
+      "commitment_coverage": 0.0,
+      "brier": 0.8309272473146809
+    },
+    "opening/fresh_expansion": {
+      "eligible_conditions": 5,
+      "condition_mean_time_coverage": 0.0911458333333333,
+      "accuracy": 0.0,
+      "commitment_coverage": 0.0,
+      "brier": 0.7536335766498896
+    },
+    "fresh_force": {
+      "eligible_conditions": 12,
+      "condition_mean_time_coverage": 0.5668178265293286,
+      "accuracy": 0.22931860177801172,
+      "commitment_coverage": 0.3134400797806651,
+      "brier": 0.5689647338138949
+    },
+    "fresh_technology": {
+      "eligible_conditions": 12,
+      "condition_mean_time_coverage": 0.3128758991535733,
+      "accuracy": 0.25014759510455986,
+      "commitment_coverage": 0.315609729553157,
+      "brier": 0.5758864356968797
+    },
+    "fresh_expansion": {
+      "eligible_conditions": 12,
+      "condition_mean_time_coverage": 0.5891466362020602,
+      "accuracy": 0.20334448123845414,
+      "commitment_coverage": 0.2701127960407372,
+      "brier": 0.5860720560379703
+    },
+    "no_fresh_relevant_evidence": {
+      "eligible_conditions": 12,
+      "condition_mean_time_coverage": 0.23742263590947746,
+      "accuracy": 0.04128528610423996,
+      "commitment_coverage": 0.04128528610423996,
+      "brier": 0.7753811134897312
+    }
+  }
+}

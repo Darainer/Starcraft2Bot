@@ -1,0 +1,537 @@
+{
+  "scope": "Assigned scouts only, last sampled state. Missing does not mean dead. Worker time is an opportunity proxy, not measured income. Losses require native dead tags while assigned; losses after release are outside this ledger.",
+  "summary": {
+    "games": 36,
+    "worker_opportunity_seconds_sum": 5512.5,
+    "worker_opportunity_seconds_mean_per_game": 153.125,
+    "scout_status_counts": {
+      "worker/returned": 72,
+      "observer/missing": 12,
+      "observer/present": 33,
+      "observer/confirmed_dead": 6
+    },
+    "confirmed_lost_minerals": 150,
+    "confirmed_lost_gas": 450
+  },
+  "records": [
+    {
+      "matrix": "portfolio-final-main",
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-001.json",
+      "race": "Terran",
+      "build": "Rush",
+      "seed": 20261025,
+      "worker_opportunity_seconds": 156.42857142857142,
+      "scout_status_counts": {
+        "worker/returned": 2,
+        "observer/missing": 1,
+        "observer/present": 1
+      },
+      "confirmed_lost_minerals": 0,
+      "confirmed_lost_gas": 0
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-002.json",
+      "race": "Terran",
+      "build": "Rush",
+      "seed": 20261025,
+      "worker_opportunity_seconds": 156.42857142857142,
+      "scout_status_counts": {
+        "worker/returned": 2,
+        "observer/missing": 1,
+        "observer/present": 1
+      },
+      "confirmed_lost_minerals": 0,
+      "confirmed_lost_gas": 0
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-003.json",
+      "race": "Terran",
+      "build": "Rush",
+      "seed": 20261025,
+      "worker_opportunity_seconds": 156.42857142857142,
+      "scout_status_counts": {
+        "worker/returned": 2,
+        "observer/missing": 1,
+        "observer/present": 1
+      },
+      "confirmed_lost_minerals": 0,
+      "confirmed_lost_gas": 0
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-004.json",
+      "race": "Terran",
+      "build": "Timing",
+      "seed": 20261025,
+      "worker_opportunity_seconds": 155.3571428571429,
+      "scout_status_counts": {
+        "worker/returned": 2,
+        "observer/missing": 1,
+        "observer/confirmed_dead": 1
+      },
+      "confirmed_lost_minerals": 25,
+      "confirmed_lost_gas": 75
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-005.json",
+      "race": "Terran",
+      "build": "Timing",
+      "seed": 20261025,
+      "worker_opportunity_seconds": 155.3571428571429,
+      "scout_status_counts": {
+        "worker/returned": 2,
+        "observer/missing": 1,
+        "observer/confirmed_dead": 1
+      },
+      "confirmed_lost_minerals": 25,
+      "confirmed_lost_gas": 75
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-006.json",
+      "race": "Terran",
+      "build": "Timing",
+      "seed": 20261025,
+      "worker_opportunity_seconds": 155.3571428571429,
+      "scout_status_counts": {
+        "worker/returned": 2,
+        "observer/missing": 1,
+        "observer/confirmed_dead": 1
+      },
+      "confirmed_lost_minerals": 25,
+      "confirmed_lost_gas": 75
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-007.json",
+      "race": "Terran",
+      "build": "Power",
+      "seed": 20261025,
+      "worker_opportunity_seconds": 155.35714285714283,
+      "scout_status_counts": {
+        "worker/returned": 2,
+        "observer/present": 1
+      },
+      "confirmed_lost_minerals": 0,
+      "confirmed_lost_gas": 0
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-008.json",
+      "race": "Terran",
+      "build": "Power",
+      "seed": 20261025,
+      "worker_opportunity_seconds": 155.35714285714283,
+      "scout_status_counts": {
+        "worker/returned": 2,
+        "observer/present": 1
+      },
+      "confirmed_lost_minerals": 0,
+      "confirmed_lost_gas": 0
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-009.json",
+      "race": "Terran",
+      "build": "Power",
+      "seed": 20261025,
+      "worker_opportunity_seconds": 155.35714285714283,
+      "scout_status_counts": {
+        "worker/returned": 2,
+        "observer/present": 1
+      },
+      "confirmed_lost_minerals": 0,
+      "confirmed_lost_gas": 0
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-010.json",
+      "race": "Terran",
+      "build": "Macro",
+      "seed": 20261025,
+      "worker_opportunity_seconds": 155.35714285714283,
+      "scout_status_counts": {
+        "worker/returned": 2,
+        "observer/present": 1
+      },
+      "confirmed_lost_minerals": 0,
+      "confirmed_lost_gas": 0
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-011.json",
+      "race": "Terran",
+      "build": "Macro",
+      "seed": 20261025,
+      "worker_opportunity_seconds": 155.35714285714283,
+      "scout_status_counts": {
+        "worker/returned": 2,
+        "observer/present": 1
+      },
+      "confirmed_lost_minerals": 0,
+      "confirmed_lost_gas": 0
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-012.json",
+      "race": "Terran",
+      "build": "Macro",
+      "seed": 20261025,
+      "worker_opportunity_seconds": 155.35714285714283,
+      "scout_status_counts": {
+        "worker/returned": 2,
+        "observer/present": 1
+      },
+      "confirmed_lost_minerals": 0,
+      "confirmed_lost_gas": 0
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-013.json",
+      "race": "Terran",
+      "build": "Air",
+      "seed": 20261025,
+      "worker_opportunity_seconds": 160.7142857142857,
+      "scout_status_counts": {
+        "worker/returned": 2,
+        "observer/present": 1
+      },
+      "confirmed_lost_minerals": 0,
+      "confirmed_lost_gas": 0
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-014.json",
+      "race": "Terran",
+      "build": "Air",
+      "seed": 20261025,
+      "worker_opportunity_seconds": 160.7142857142857,
+      "scout_status_counts": {
+        "worker/returned": 2,
+        "observer/present": 1
+      },
+      "confirmed_lost_minerals": 0,
+      "confirmed_lost_gas": 0
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-015.json",
+      "race": "Terran",
+      "build": "Air",
+      "seed": 20261025,
+      "worker_opportunity_seconds": 160.7142857142857,
+      "scout_status_counts": {
+        "worker/returned": 2,
+        "observer/present": 1
+      },
+      "confirmed_lost_minerals": 0,
+      "confirmed_lost_gas": 0
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-016.json",
+      "race": "Zerg",
+      "build": "Rush",
+      "seed": 20261025,
+      "worker_opportunity_seconds": 148.92857142857147,
+      "scout_status_counts": {
+        "worker/returned": 2,
+        "observer/present": 1
+      },
+      "confirmed_lost_minerals": 0,
+      "confirmed_lost_gas": 0
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-017.json",
+      "race": "Zerg",
+      "build": "Rush",
+      "seed": 20261025,
+      "worker_opportunity_seconds": 148.92857142857147,
+      "scout_status_counts": {
+        "worker/returned": 2,
+        "observer/present": 1
+      },
+      "confirmed_lost_minerals": 0,
+      "confirmed_lost_gas": 0
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-018.json",
+      "race": "Zerg",
+      "build": "Rush",
+      "seed": 20261025,
+      "worker_opportunity_seconds": 148.92857142857147,
+      "scout_status_counts": {
+        "worker/returned": 2,
+        "observer/present": 1
+      },
+      "confirmed_lost_minerals": 0,
+      "confirmed_lost_gas": 0
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-019.json",
+      "race": "Zerg",
+      "build": "Timing",
+      "seed": 20261025,
+      "worker_opportunity_seconds": 133.92857142857142,
+      "scout_status_counts": {
+        "worker/returned": 2,
+        "observer/missing": 1,
+        "observer/present": 1
+      },
+      "confirmed_lost_minerals": 0,
+      "confirmed_lost_gas": 0
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-020.json",
+      "race": "Zerg",
+      "build": "Timing",
+      "seed": 20261025,
+      "worker_opportunity_seconds": 133.92857142857142,
+      "scout_status_counts": {
+        "worker/returned": 2,
+        "observer/missing": 1,
+        "observer/present": 1
+      },
+      "confirmed_lost_minerals": 0,
+      "confirmed_lost_gas": 0
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-021.json",
+      "race": "Zerg",
+      "build": "Timing",
+      "seed": 20261025,
+      "worker_opportunity_seconds": 133.92857142857142,
+      "scout_status_counts": {
+        "worker/returned": 2,
+        "observer/missing": 1,
+        "observer/present": 1
+      },
+      "confirmed_lost_minerals": 0,
+      "confirmed_lost_gas": 0
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-022.json",
+      "race": "Zerg",
+      "build": "Power",
+      "seed": 20261025,
+      "worker_opportunity_seconds": 143.57142857142856,
+      "scout_status_counts": {
+        "worker/returned": 2,
+        "observer/present": 1
+      },
+      "confirmed_lost_minerals": 0,
+      "confirmed_lost_gas": 0
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-023.json",
+      "race": "Zerg",
+      "build": "Power",
+      "seed": 20261025,
+      "worker_opportunity_seconds": 143.57142857142856,
+      "scout_status_counts": {
+        "worker/returned": 2,
+        "observer/present": 1
+      },
+      "confirmed_lost_minerals": 0,
+      "confirmed_lost_gas": 0
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-024.json",
+      "race": "Zerg",
+      "build": "Power",
+      "seed": 20261025,
+      "worker_opportunity_seconds": 143.57142857142856,
+      "scout_status_counts": {
+        "worker/returned": 2,
+        "observer/present": 1
+      },
+      "confirmed_lost_minerals": 0,
+      "confirmed_lost_gas": 0
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-025.json",
+      "race": "Zerg",
+      "build": "Macro",
+      "seed": 20261025,
+      "worker_opportunity_seconds": 156.42857142857142,
+      "scout_status_counts": {
+        "worker/returned": 2,
+        "observer/present": 1
+      },
+      "confirmed_lost_minerals": 0,
+      "confirmed_lost_gas": 0
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-026.json",
+      "race": "Zerg",
+      "build": "Macro",
+      "seed": 20261025,
+      "worker_opportunity_seconds": 156.42857142857142,
+      "scout_status_counts": {
+        "worker/returned": 2,
+        "observer/present": 1
+      },
+      "confirmed_lost_minerals": 0,
+      "confirmed_lost_gas": 0
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-027.json",
+      "race": "Zerg",
+      "build": "Macro",
+      "seed": 20261025,
+      "worker_opportunity_seconds": 156.42857142857142,
+      "scout_status_counts": {
+        "worker/returned": 2,
+        "observer/present": 1
+      },
+      "confirmed_lost_minerals": 0,
+      "confirmed_lost_gas": 0
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-028.json",
+      "race": "Zerg",
+      "build": "Air",
+      "seed": 20261025,
+      "worker_opportunity_seconds": 158.57142857142856,
+      "scout_status_counts": {
+        "worker/returned": 2,
+        "observer/present": 1
+      },
+      "confirmed_lost_minerals": 0,
+      "confirmed_lost_gas": 0
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-029.json",
+      "race": "Zerg",
+      "build": "Air",
+      "seed": 20261025,
+      "worker_opportunity_seconds": 158.57142857142856,
+      "scout_status_counts": {
+        "worker/returned": 2,
+        "observer/present": 1
+      },
+      "confirmed_lost_minerals": 0,
+      "confirmed_lost_gas": 0
+    },
+    {
+      "matrix": "portfolio-final-main",
+      "recording": "runtime-20261031-161655-940898-42012dd3347940f89ea74c58cf4f9536-030.json",
+      "race": "Zerg",
+      "build": "Air",
+      "seed": 20261025,
+      "worker_opportunity_seconds": 158.57142857142856,
+      "scout_status_counts": {
+        "worker/returned": 2,
+        "observer/present": 1
+      },
+      "confirmed_lost_minerals": 0,
+      "confirmed_lost_gas": 0
+    },
+    {
+      "matrix": "portfolio-final-known-failures",
+      "recording": "runtime-20261031-164446-850599-f72bf454e4c6417d8c9195073b5912c0-001.json",
+      "race": "Zerg",
+      "build": "Power",
+      "seed": 2026103102,
+      "worker_opportunity_seconds": 156.42857142857142,
+      "scout_status_counts": {
+        "worker/returned": 2,
+        "observer/missing": 1,
+        "observer/confirmed_dead": 1,
+        "observer/present": 1
+      },
+      "confirmed_lost_minerals": 25,
+      "confirmed_lost_gas": 75
+    },
+    {
+      "matrix": "portfolio-final-known-failures",
+      "recording": "runtime-20261031-164446-850599-f72bf454e4c6417d8c9195073b5912c0-002.json",
+      "race": "Zerg",
+      "build": "Power",
+      "seed": 2026103102,
+      "worker_opportunity_seconds": 156.42857142857142,
+      "scout_status_counts": {
+        "worker/returned": 2,
+        "observer/missing": 1,
+        "observer/confirmed_dead": 1,
+        "observer/present": 1
+      },
+      "confirmed_lost_minerals": 25,
+      "confirmed_lost_gas": 75
+    },
+    {
+      "matrix": "portfolio-final-known-failures",
+      "recording": "runtime-20261031-164446-850599-f72bf454e4c6417d8c9195073b5912c0-003.json",
+      "race": "Zerg",
+      "build": "Power",
+      "seed": 2026103102,
+      "worker_opportunity_seconds": 156.42857142857142,
+      "scout_status_counts": {
+        "worker/returned": 2,
+        "observer/missing": 1,
+        "observer/confirmed_dead": 1,
+        "observer/present": 1
+      },
+      "confirmed_lost_minerals": 25,
+      "confirmed_lost_gas": 75
+    },
+    {
+      "matrix": "portfolio-final-known-failures",
+      "recording": "runtime-20261031-164446-850599-f72bf454e4c6417d8c9195073b5912c0-004.json",
+      "race": "Zerg",
+      "build": "Macro",
+      "seed": 2026103102,
+      "worker_opportunity_seconds": 156.42857142857142,
+      "scout_status_counts": {
+        "worker/returned": 2,
+        "observer/present": 1
+      },
+      "confirmed_lost_minerals": 0,
+      "confirmed_lost_gas": 0
+    },
+    {
+      "matrix": "portfolio-final-known-failures",
+      "recording": "runtime-20261031-164446-850599-f72bf454e4c6417d8c9195073b5912c0-005.json",
+      "race": "Zerg",
+      "build": "Macro",
+      "seed": 2026103102,
+      "worker_opportunity_seconds": 156.42857142857142,
+      "scout_status_counts": {
+        "worker/returned": 2,
+        "observer/present": 1
+      },
+      "confirmed_lost_minerals": 0,
+      "confirmed_lost_gas": 0
+    },
+    {
+      "matrix": "portfolio-final-known-failures",
+      "recording": "runtime-20261031-164446-850599-f72bf454e4c6417d8c9195073b5912c0-006.json",
+      "race": "Zerg",
+      "build": "Macro",
+      "seed": 2026103102,
+      "worker_opportunity_seconds": 156.42857142857142,
+      "scout_status_counts": {
+        "worker/returned": 2,
+        "observer/present": 1
+      },
+      "confirmed_lost_minerals": 0,
+      "confirmed_lost_gas": 0
+    }
+  ]
+}

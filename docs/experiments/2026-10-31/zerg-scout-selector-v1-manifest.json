@@ -1,0 +1,90 @@
+{
+  "candidate": "zerg-scout-selector-v1-20261031",
+  "source_commit": "b3aff99",
+  "hypothesis": "Use positive early Zerg scouting to select first Robotics funding, retaining R2 spending when unresolved",
+  "frozen_source_config_sha256": {
+    "config/assistant.example.json": "69da82319d5a6c6c9f619a7f301d1be739d56968605fe66d74619fba14e3db44",
+    "pyproject.toml": "0d3b8c64157ed895a8e7dc0f16e0fafddb736a32f528dc100c984f2ad3cc872e",
+    "source/__init__.py": "85f308974fcb510a722756b2087cf4b7233d7643fb8d9c7e648386a9981e9dab",
+    "source/action_intents.py": "133e31cca221b0cc8fe904600f5e24dd49b99a63cc757bf2814da5bc9ba4a08c",
+    "source/analyze_session.py": "11523ce7b47aae0ddd6b697bf9d973c6536b626080b2fc901922bdfbad34cef3",
+    "source/army_waves.py": "04dc89b4eb827056c25300c0b363b78d28e9c9e39cc20f53657388f71737eda4",
+    "source/assistant_control.py": "7ad6498a2694edf9288116a3971345938cff2441946a894d9c09c2b178f09165",
+    "source/benchmark_controllers.py": "a2fa5594d8e8d06301b35df533c43ebbf197289a6b4b5a7095dae3b2bfcdedb6",
+    "source/combat_assessment.py": "db233bccfeaac8d8173ceb4eaa60782626002213b1b951d76dd6785018dfbdb3",
+    "source/composition.py": "df7e6d93e98478a9ba2dcefac58a059efeb508213922af0440fa49b5aa6bd8fa",
+    "source/control_cli.py": "7db29b956c9293f424b00442dbe417f5a7b27e301a86dc6d95d392adaf1aa049",
+    "source/data/game_ontology.v1.json": "1ff84b97139e7fa0f850f5c8b3c50e90c086152e5e52a84986a061f2df5eae76",
+    "source/economy_assistant.py": "4a175c1d9511503b1c260a64421259d0fdd0387d5e1672fdf16ffbbbcc79feca",
+    "source/endgame_sweep.py": "0e9104f1d98cb9eca02de1867b92c18a3361b6dc296b64c652bd458b0a5bdf3d",
+    "source/evaluate_matches.py": "f3f589c402903d65304a436f3522a8f58a447631a91671f3b496da3ad8262de0",
+    "source/expansion_intel.py": "1cfa53c22b743cb8a62452a28b0fa5704e6e4aa6f6aeb13b10b87bd381946abe",
+    "source/experimental_scouting.py": "081e26a016e4fe9529ac5d9db108f9bc8e92c4d647ef26f297bf7b240b1dfd11",
+    "source/game_assessment.py": "eb7a733710ccfe34565dc220cbe96a5bb67059183a87c30f5c1a3b631095a1a0",
+    "source/game_ontology.py": "682e90f282a4743d5e6e2f689a673618a800dd4c6b5365efe69c9330a3f042a9",
+    "source/layout.py": "90ad04a164e4a031230c93edaed4fd11bf56cdbab0935402765181559cba1871",
+    "source/local_control.py": "491e46fdb99e1c7bb268751bd2e278a6716b854a96d221d88439f9ffd7970ea1",
+    "source/missions.py": "943b3f5b56aa505329422bbb2f506b5efff8c23cd7be23d62e422c896132bc67",
+    "source/opponent_beliefs.py": "80bf3deff073141b36163a9839dfbb909e72ae5480a05e4a0891900717329293",
+    "source/opponent_strategy.py": "cb21f8dbd847b0db62dd90b99a3669442f46ed83631402c0eb6e24f418382f8c",
+    "source/replay_strategy.py": "6225ae775ad2d44f8bc0c78b77d7c40ce557873a543e3ee7c51c1b576d98370b",
+    "source/run_assistant.py": "aea08f8f5971f31ea2d2ebc570acac8aac24ea2146dc7c80aa86219d8e429988",
+    "source/run_SC2_game.py": "e73158a13334a2f9504aa3a68b3fcc0827989d6a9f39aa4d8642ebe6ddcd8fa7",
+    "source/runtime.py": "6fa7b046172e8fb294bae188aa29263bb0cc4c18568b8c2d1a3179e6dd4be822",
+    "source/scouting.py": "9416c2a8ad481829f28d2e80b6db10e5934dff288079f379e187287d54cfa1bf",
+    "source/scouting_value.py": "e981aad9de521a84d1e42023182ef8a8aa1fd4fcc611e2b95a0cef73a8ed76e3",
+    "source/session_review.py": "bdfb4da6420dab45ad948b8376fac928d362259783d67145805c05328aa41615",
+    "source/setup_sc2_bot.py": "d1e793af3edf16676c0382eb9b4186a3455ff446a5cf0ff565929bc290481af4",
+    "source/strategic_plan.py": "965e003c9ae4cd7f71417c030762cee56cc50797de63ad6577d61c0fc56743bd",
+    "source/strategy_director.py": "428c22d06fd79c64176a9a1ab505011208b2565350c92662e0a06261fa74ee8e",
+    "source/strategy_policies.py": "92b95035d5c19788a99e3d01f7a3ecd21248c5328cffeef15ecd405fe4689831",
+    "source/strategy_profiles.py": "710c8211be5e8575dbe5c10a8e074bffbe1b057fc172523d17b3024f3d04f757",
+    "source/strategy_review.py": "54a7ed96a528c75c56413bcbae95b6a9e930705b9c7e9f225ab7c976a03f1b43",
+    "source/strategy_scripts.py": "5805d683c678241a0c608456904c15292c47e95ca1cb00467658d815f14af986",
+    "source/tactics.py": "78147444779e0adb3477c3cfe008bfbebf56cea2d1abbb1aa5486cc4b884568f",
+    "source/ThreeBaseVoidRay.py": "d7b54d2db9e09336fad514f2446f630691a8c818096cd3bbb9a721e9e04b2c61",
+    "source/trials.py": "416d5e729650df326441a6727932fdf2cec52f81f221a88d903f2fa338bb5fb1",
+    "source/warp_reinforcement.py": "c51c66878abb4652cec5cd84e1ff6baa5d5bfe905b43ed461b60977ea3b38c68",
+    "source/zerg_responses.py": "21b6c987b69a9103305690e88973ad7c2ea13cbc4e8dc823aae37d70c83f72d4",
+    "uv.lock": "3ecbda6908bb8f3498435b64b71ea91749caf70269be68062ad7e4762e804b39"
+  },
+  "software_validation": "Locked sync, Ruff lint/format, configured Mypy scope, 526 synthetic tests, 88.72% coverage, wheel and sdist passed",
+  "human_control": "NOT_VERIFIED",
+  "live_validation": {
+    "execution_context": "danger-full-access; interactive user account verified, not sandbox account",
+    "setup_stages": "Tools and Configure completed; earlier manual first-launch handoff already fulfilled",
+    "preflight_attempts": [
+      {
+        "report": "runtime-20261031-142015-175721.json",
+        "phase": "failed",
+        "error": "RuntimeError: SC2 exited before API connection (exit 536936448).",
+        "installed_base_build": 98310,
+        "requested_version": "latest",
+        "ping_received": false
+      },
+      {
+        "report": "runtime-20261031-142044-840323.json",
+        "phase": "failed",
+        "error": "RuntimeError: SC2 exited before API connection (exit 536936448).",
+        "installed_base_build": 98310,
+        "requested_version": "latest",
+        "ping_received": false
+      }
+    ],
+    "gameplay_trials": "Completed frozen Zerg development suite: 15 victories, 0 defeats, 0 timeouts; all5builds3repeats, allsource/start/map/ping/difficulty/replaysverified; no global promotion",
+    "normal_client": "A Battle.net-launched client without API arguments was present and left untouched",
+    "hypothesis": "Normal-client coexistence may affect launch; preflight succeeded unchanged after user closed normal client, but causality is not isolated",
+    "successful_probe": {
+      "report": "runtime-20261031-145002-148241.json",
+      "phase": "probe_ok",
+      "ping": {
+        "game_version": "5.0.17.98310",
+        "base_build": 98310,
+        "data_build": 98310,
+        "data_version": "9C1F3D3D30CA252E33FC67CA05CBE1EA"
+      },
+      "normal_client_closed": "User confirmed and zero SC2 processes verified before preflight",
+      "human_control": "NOT_VERIFIED"
+    }
+  }
+}

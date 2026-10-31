@@ -19,7 +19,7 @@ class StrategicDirector:
         self.blocked_targets = {}
 
     def report_failure(self, target, now):
-        if target not in {"home", "rally", "threat"}:
+        if target not in {"home", "rally", "threat", "combat_window"}:
             self.blocked_targets[target] = now + 30
         self.committed_until = -1
 
