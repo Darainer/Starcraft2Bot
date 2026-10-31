@@ -161,6 +161,7 @@ class TacticalController:
                 int(state.army_supply // 4),
                 state.production,
                 state.response_policy,
+                state.playbook_id,
             )
             try:
                 validate_plan(self.director.active, state)

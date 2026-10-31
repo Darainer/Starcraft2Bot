@@ -4,6 +4,7 @@ from dataclasses import asdict, dataclass
 from math import isfinite
 
 from source.opponent_beliefs import OpponentBeliefs
+from source.strategy_portfolio import PLAYBOOKS
 
 Point = tuple[float, float]
 OBJECTIVES = {"stabilize", "develop", "pressure", "contain", "counterattack", "finish", "recover"}
@@ -66,6 +67,9 @@ class Assessment:
     response_policy_until: float = 0
     response_reason: str = "Retain baseline response"
     response_evidence: tuple[str, ...] = ()
+    playbook_id: str = "baseline"
+    playbook_uncertainty: float = 1
+    tactical_policy: str = "formation"
 
     def to_dict(self):
         return asdict(self)
@@ -102,6 +106,9 @@ class StrategicPlan:
     response_policy_until: float = 0
     response_reason: str = "Retain baseline response"
     response_evidence: tuple[str, ...] = ()
+    playbook_id: str = "baseline"
+    playbook_uncertainty: float = 1
+    tactical_policy: str = "formation"
 
     def to_dict(self):
         return asdict(self)
@@ -112,17 +119,29 @@ def validate_plan(plan, state, max_age=5):
     if not isinstance(plan, StrategicPlan) or plan.objective not in OBJECTIVES:
         raise ValueError("Unsupported strategic plan")
     if (
-        plan.response_policy not in {"baseline", "early_robotics"}
+        plan.response_policy not in {"baseline", "early_robotics", "counter_tech", "counter_completion"}
         or plan.response_policy != state.response_policy
     ):
         raise ValueError("Unsupported or superseded response policy")
-    if plan.response_policy == "early_robotics" and not (
+    if plan.response_policy != "baseline" and not (
         isfinite(plan.response_policy_until)
         and state.time < plan.response_policy_until <= state.response_policy_until
         and plan.response_evidence
         and plan.response_evidence == state.response_evidence
     ):
         raise ValueError("Expired or unsupported response evidence")
+    item = PLAYBOOKS.get(plan.playbook_id)
+    if (
+        item is None
+        or plan.playbook_id != state.playbook_id
+        or item.response != plan.response_policy
+        or item.tactic != plan.tactical_policy
+        or plan.tactical_policy != state.tactical_policy
+        or not isfinite(plan.playbook_uncertainty)
+        or not 0 <= plan.playbook_uncertainty <= 1
+        or plan.playbook_uncertainty != state.playbook_uncertainty
+    ):
+        raise ValueError("Unsupported or superseded playbook")
     if len(set(plan.scouting_requests)) != len(plan.scouting_requests) or any(
         request not in {"commitment", "technology", "army", "expansions"}
         for request in plan.scouting_requests

@@ -8,6 +8,7 @@ from dataclasses import asdict, dataclass, fields, replace
 from pathlib import Path
 from typing import Protocol
 
+from source.strategy_portfolio import PLAYBOOK_CHOICES
 from source.strategy_profiles import COMPOSITION, PROFILES
 
 COMBAT_POWERS = ("blink", "storm", "feedback", "guardian_shield", "voidray_alignment")
@@ -45,6 +46,7 @@ class AssistantSettings:
     strategy: str = "auto"
     profile: str = "balanced"
     strategy_script: str = ""
+    playbook: str = "auto"
     army_waves: bool = True
     scouting: bool = True
     warp_reinforcement: bool = True
@@ -73,6 +75,8 @@ class AssistantSettings:
                 raise ValueError("Unknown strategy; choose " + ", ".join(STRATEGIES))
             if field.name == "profile" and value not in PROFILES:
                 raise ValueError("Unknown profile; choose " + ", ".join(PROFILES))
+            if field.name == "playbook" and value not in PLAYBOOK_CHOICES:
+                raise ValueError("Unknown playbook; choose " + ", ".join(PLAYBOOK_CHOICES))
             if type(value) is int:
                 limit = 10000 if field.name.startswith("reserve_") else 200
                 minimum = 1 if field.name == "bases" else 0
@@ -109,7 +113,8 @@ class Control:
         return (
             f"{'RUNNING' if s.enabled else 'PAUSED'} | on: {', '.join(enabled)} | "
             f"reserve {s.reserve_minerals}m/{s.reserve_gas}g | bases {s.bases} | "
-            f"released {len(self.released)} | strategy {s.strategy} attack {s.attack} profile {s.profile}"
+            f"released {len(self.released)} | strategy {s.strategy} attack {s.attack} profile {s.profile} "
+            f"playbook {s.playbook}"
         )
 
     def command(self, text: str, selected_tags: Sequence[int] = ()) -> str | None:
@@ -125,6 +130,7 @@ class Control:
                 "reserve <minerals> <gas>; set <setting> <number>; release/claim/claim-all. "
                 "strategy auto/defend/regroup/push/retreat; attack on/off. "
                 "profile balanced/pressure/fortress/robotics/air; script <path|off>. "
+                "playbook " + "/".join(PLAYBOOK_CHOICES) + ". "
                 "Toggles: " + ", ".join(ECONOMY + ("chrono",) + COMBAT_POWERS + ("hud", "attack"))
             )
         if args in (["release"], ["claim"]):
@@ -142,6 +148,8 @@ class Control:
                 candidate.enabled = args[0] == "resume"
             elif len(args) == 2 and args[0] == "strategy":
                 candidate.strategy = args[1]
+            elif len(args) == 2 and args[0] == "playbook":
+                candidate.playbook = args[1]
             elif len(args) == 2 and args[0] == "profile":
                 if args[1] not in PROFILES:
                     raise ValueError("Unknown profile")

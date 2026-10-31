@@ -16,6 +16,7 @@ from sc2.data import AIBuild
 
 from source.analyze_session import summarize
 from source.run_assistant import game_seed
+from source.strategy_portfolio import PLAYBOOK_CHOICES
 from source.strategy_profiles import PROFILES
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -55,6 +56,7 @@ def run_trial(args, settings, profile, opponent, build, trial_id, stamp):
     ]
     environment = os.environ.copy()
     command += ["--snapshot-interval", str(getattr(args, "snapshot_interval", 5))]
+    command += ["--playbook", getattr(args, "playbook", "auto")]
     if getattr(args, "scout_revisit", False):
         command.append("--scout-revisit")
     if args.seed is not None:
@@ -86,6 +88,7 @@ def run_trial(args, settings, profile, opponent, build, trial_id, stamp):
         fast_step_size=None if args.realtime else args.fast_step_size,
         scout_revisit=getattr(args, "scout_revisit", False),
         snapshot_interval=getattr(args, "snapshot_interval", 5),
+        playbook=getattr(args, "playbook", "auto"),
         exit_code=completed.returncode,
         wall_seconds=round(perf_counter() - started, 3),
     )
@@ -111,6 +114,7 @@ def main(argv=None):
     parser.add_argument("--fast-step-size", type=int, default=32)
     parser.add_argument("--snapshot-interval", type=int, default=5)
     parser.add_argument("--scout-revisit", action="store_true")
+    parser.add_argument("--playbook", choices=PLAYBOOK_CHOICES, default="auto")
     parser.add_argument(
         "--difficulty",
         choices=["VeryEasy", "Easy", "Medium", "MediumHard", "Hard", "Harder", "VeryHard"],

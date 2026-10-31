@@ -215,4 +215,7 @@ def compose(state, choice, plan_id, ranked):
         response_policy_until=state.response_policy_until,
         response_reason=state.response_reason,
         response_evidence=state.response_evidence,
+        playbook_id=state.playbook_id,
+        playbook_uncertainty=state.playbook_uncertainty,
+        tactical_policy=state.tactical_policy,
     )

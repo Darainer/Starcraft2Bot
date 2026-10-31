@@ -16,6 +16,7 @@ from sc2.player import Bot, Computer
 
 from source.assistant_control import AssistantSettings
 from source.runtime import RuntimeAssistant, RuntimeReport, inspect_installation, resolve_map, run_session
+from source.strategy_portfolio import PLAYBOOK_CHOICES
 from source.strategy_profiles import COMPOSITION, PROFILES
 
 
@@ -47,6 +48,7 @@ def main(argv=None):
     parser.add_argument("--profile", choices=list(PROFILES), help="Army setup and tactical thresholds")
     parser.add_argument("--strategy", choices=["auto", "defend", "regroup", "push", "retreat"])
     parser.add_argument("--strategy-script", type=Path, help="Local Python JSON strategy script")
+    parser.add_argument("--playbook", choices=PLAYBOOK_CHOICES, help="Scouted repertoire or fixed experiment")
     parser.add_argument("--attack", action=argparse.BooleanOptionalAction, default=None)
     parser.add_argument("--fast-test", action="store_true", help="Accelerated local autonomous evaluation")
     parser.add_argument(
@@ -101,6 +103,8 @@ def main(argv=None):
                 setattr(settings, name, PROFILES[args.profile][name])
         if args.strategy:
             settings.strategy = args.strategy
+        if args.playbook:
+            settings.playbook = args.playbook
         if args.attack is not None:
             settings.attack = args.attack
         if args.strategy_script:
@@ -153,6 +157,7 @@ def main(argv=None):
         snapshot_interval=args.snapshot_interval,
         scout_revisit=args.scout_revisit,
         log_retention="all_rotations",
+        playbook=settings.playbook,
     )
     if args.seed is not None:
         random.seed(args.seed)

@@ -19,6 +19,8 @@ def assessment_from_dict(data):
         values[key] = tuple(data[key]) if data[key] is not None else None
     values["production"] = tuple(tuple(pair) for pair in data["production"])
     values["response_evidence"] = tuple(data.get("response_evidence", ()))
+    if "playbook_id" not in values and data.get("response_policy") == "early_robotics":
+        values["playbook_id"] = "zerg_early_robotics"
     values["opponent_beliefs"] = beliefs_from_dict(data.get("opponent_beliefs"))
     return Assessment(**values)
 

@@ -7,6 +7,8 @@ from statistics import median
 from sc2.ids.unit_typeid import UnitTypeId as U
 from sc2.position import Point2
 
+from source.strategy_portfolio import active_playbook
+
 
 def center(units):
     return Point2((median(u.position.x for u in units), median(u.position.y for u in units)))
@@ -175,6 +177,16 @@ class ArmyWaves:
             engaged = any(
                 u.is_visible and u.can_attack and u.distance_to(anchor) < 10 for u in bot.enemy_units
             )
+            close_range = active_playbook(bot).tactic == "local_range"
+            combat_targets = bot.enemy_units.filter(
+                lambda enemy: (
+                    close_range
+                    and enemy.is_visible
+                    and enemy.can_be_attacked
+                    and enemy.can_attack
+                    and enemy.distance_to(anchor) < 20
+                )
+            )
             self.phase = "engage" if engaged else "advance" if coherent else "regroup"
             if self.phase == "regroup":
                 self.regroup_anchor = gathering
@@ -205,6 +217,14 @@ class ArmyWaves:
                 slot = waypoint.offset(
                     (forward.x * depth - forward.y * lateral, forward.y * depth + forward.x * lateral)
                 )
+                if close_range and engaged and unit.can_attack:
+                    targets = combat_targets.filter(
+                        lambda enemy, unit=unit: (
+                            unit.can_attack_air if enemy.is_flying else unit.can_attack_ground
+                        )
+                    )
+                    if targets and not any(unit.target_in_range(enemy) for enemy in targets):
+                        slot = targets.closest_to(unit).position
                 destinations[unit.tag] = (
                     "attack" if (coherent or engaged) and unit.can_attack else "move",
                     slot,
