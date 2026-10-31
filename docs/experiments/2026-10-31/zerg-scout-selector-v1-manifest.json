@@ -71,7 +71,7 @@
         "ping_received": false
       }
     ],
-    "gameplay_trials": "Targeted Macro and Timing triplets completed with six victories; Rush/Power/Air retention running on the same source",
+    "gameplay_trials": "Completed frozen Zerg development suite: 15 victories, 0 defeats, 0 timeouts; all5builds3repeats, allsource/start/map/ping/difficulty/replaysverified; no global promotion",
     "normal_client": "A Battle.net-launched client without API arguments was present and left untouched",
     "hypothesis": "Normal-client coexistence may affect launch; preflight succeeded unchanged after user closed normal client, but causality is not isolated",
     "successful_probe": {

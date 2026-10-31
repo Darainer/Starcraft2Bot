@@ -137,6 +137,72 @@ Macro retains victory while taking 90 more sampled game seconds than R2;
 Timing matches the earlier unconditional RoboticsV2 winner. These games resolved
 before either the old or extended bound. The selector has therefore combined the
 two targeted winning outcomes on the development scenario, rather than merely
-extending a timeout. Rush, Power and Air retention is now running on the same
-frozen source, with three repeats each and at most eight actual SC2 clients.
-No global promotion or broader strength claim has been made.
+extending a timeout.
+
+## Completed Zerg development suite
+
+The unchanged candidate completed **15 victories / 0 defeats / 0 timeouts** across
+all five Zerg builds at the 3600-second bound. Concurrency peaked at eight actual
+SC2 clients. Every game verified its original loop-zero start, all 44 frozen
+source/config hashes, map/binary identity, actual VeryHard computer difficulty
+and a saved nonempty replay. All owned clients exited after the suite.
+
+| Build | Candidate | Sampled finish time, every repeat | R2 development reference |
+| --- | --- | --- | --- |
+| Rush | 3 victories | 685.4 s | 3 victories, 685.4 s |
+| Timing | 3 victories | 1050.4 s | 3 defeats, 1205.4 s at 3600 s bound |
+| Power | 3 victories | 1070.4 s | 3 victories, 1070.4 s |
+| Macro | 3 victories | 1145.4 s | 3 victories, 1055.4 s |
+| Air | 3 victories | 480.4 s | 3 victories, 480.4 s |
+
+R2's resolved wins above came from its original 1500-second suite; all candidate
+wins also finish before that bound. R2 Timing uses the matched extended run.
+These are retained resolved outcomes, not claims that a larger time limit made
+the policy stronger. The three repeats reproduce one map/seed condition per
+build. They are five development conditions, not fifteen independent scenarios.
+
+The [complete evaluation](evaluations/2026-10-31-zerg-scout-selector-v1-20261031-complete.md)
+contains trade, movement and recognition diagnostics. The
+[verified outcome artifact](experiments/2026-10-31/zerg-scout-selector-v1-20261031-zerg-suite-outcomes.json)
+retains all repeat fingerprints and replay hashes. The
+[decision evidence](experiments/2026-10-31/zerg-scout-selector-v1-20261031-decision-evidence.json)
+records response switches, observation horizons and actual tech completion.
+Rush and Air keep the baseline opening; Power's observed Roaches select a
+response around 315.4 seconds, with its first Robotics still completing at 340.4
+seconds. The candidate passes this Zerg development gate. Terran/Protoss coverage,
+map/seed holdouts and established community bots remain separate requirements;
+there is no global baseline promotion or completed elite milestone claim.
+
+## Recognition and build suitability metrics
+
+The [strategy-metric artifact](experiments/2026-10-31/zerg-scout-selector-v1-20261031-strategy-metrics.json)
+uses the existing `source.strategy_review` evaluator, with its ontology and
+evaluator hashes. Each match is time-weighted, then repeats and build conditions
+are averaged. Missing force evidence is excluded from suitability denominators
+and reported as coverage.
+
+| Diagnostic | Scenario mean | Interpretation |
+| --- | --- | --- |
+| Existing five-label strategy accuracy | 5.5% | Unknown counts as incorrect; configured build is the evaluation reference only |
+| Existing classifier commitment coverage | 19.6% | Fraction of recorded time assigned a non-Unknown label |
+| Existing multiclass Brier score | 0.803 | Uncalibrated forecasts; uniform five-class forecast scores 0.800 |
+| Planned counter-role fit | 93.5% | Ontology role capacity against freshly visible force |
+| Delivered counter-role readiness | 96.2% | Available completed controlled units versus that observed force |
+| Ready-tech target fraction | 90.7% | Planned supply with currently available prerequisites/producers |
+| Response evidence coverage | 30.8% | Recorded time with fresh visible-force evidence supporting suitability scoring |
+
+The generic classifier remains weak despite the wins. The new selector does not
+consume its labels or claim to identify the configured build. It chooses a
+bounded investment under uncertain opening evidence, then updates from observed
+forces. Role fit/readiness are capacity proxies, not combat simulation, whole-map
+army truth or calibrated win probabilities. Timing's delivered readiness is lower
+than the suite mean at 89.4%, so counter delivery remains a useful improvement
+target even in its winning games. Early expansion overrides still lack a live
+positive early-expansion case in this development suite.
+
+Next strength work should retain this frozen Zerg component while integrating
+and testing the separately successful Terran components behind explicit race
+guards. Recognition work should improve dimension-specific evidence and scouting
+coverage, validate action suitability separately from label accuracy, and use
+untouched maps/seeds before claiming generalization. The hardcoded and community
+acceptance gates still precede RL implementation or training.

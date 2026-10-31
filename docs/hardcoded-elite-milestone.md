@@ -64,11 +64,18 @@ branch at `b3aff99`. All six relevant historical winning games were verified as
 actual VeryHard computer opposition in runtime and game-info records. The
 candidate passed 526 synthetic tests and required software checks. Its frozen
 Macro/Timing gate completed with **six victories**: Macro 3/3 at 1145.4 seconds,
-Timing 3/3 at 1050.4. All starts, source hashes, map/binary identities, actual
+Timing 3/3 at 1050.4. Retention then completed on the same source with Rush,
+Power and Air all 3/3, for **15/15 Zerg development victories** at the 3600-second
+bound. All starts, source hashes, map/binary identities, actual
 VeryHard difficulty and replays were verified. Opening evidence selects Timing's
 early Robotics; Macro keeps baseline opening spending and responds later to
 observed Roaches. Macro is 90 seconds slower than R2 but retains victory.
-Rush/Power/Air retention is running on the same source before any promotion.
+Rush/Power/Air finish times match R2. This passes the Zerg development component;
+Terran/Protoss regression, holdouts and community opponents remain outstanding.
+The existing generic strategy classifier remains weak (5.5% time-weighted label
+accuracy across these five conditions); action selection success is not proof
+of accurate intent classification. The response and build-suitability diagnostics
+are recorded separately in the linked experiment report.
 Two initial preflights failed before connection with `0x20010000`; after the user
 closed the ordinary SC2 client, unchanged preflight passed. These launch failures
 remain separate from gameplay outcomes.
