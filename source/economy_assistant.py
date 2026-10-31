@@ -14,7 +14,7 @@ from sc2.unit_command import UnitCommand
 from source.assistant_control import Control, within_budget
 from source.combat_assessment import visible_threats
 from source.composition import composition_targets, production_target
-from source.layout import find_spaced_placement
+from source.layout import find_spaced_placement, layout_clear
 from source.strategy_profiles import PROFILES
 
 ARMY_TARGETS = {
@@ -499,6 +499,10 @@ class EconomyAssistant(BotAI):
             self._macro_reserve = self.calculate_cost(investment[1]).minerals
             self.produce(0)
             return
+        if await self.fund_first_robotics(home, completed_supply):
+            return
+        if await self.fund_first_robotics(home, completed_supply, U.ROBOTICSBAY):
+            return
         if self.economic_emergency and not first_defender:
             if s.production and self.produce(0):
                 return
@@ -668,6 +672,90 @@ class EconomyAssistant(BotAI):
                 return True
         return False
 
+    async def fund_first_robotics(self, home, completed_supply, kind=U.ROBOTICSFACILITY):
+        """Fund an attainable requested Robotics prerequisite before cheap fallbacks.
+
+        Reserve only with income, a safe powered placement and an eligible
+        reachable builder. Emergency defense and the opening force stay ahead.
+        """
+        prior = getattr(self, "_first_tech_reservation", None)
+        if prior is not None and prior[0] in {U.ROBOTICSFACILITY, U.ROBOTICSBAY}:
+            self._first_tech_reservation = None
+        if kind not in {U.ROBOTICSFACILITY, U.ROBOTICSBAY}:
+            raise ValueError("Unsupported Robotics investment")
+        s = self.settings
+        bay = kind == U.ROBOTICSBAY
+        if (
+            not (s.enabled and s.attack and s.production and s.construction)
+            or (self.economic_emergency and (not bay or completed_supply < 24))
+            or completed_supply < (12 if bay else 6)
+            or self.supply_workers < 16
+            or not self.structures(U.ROBOTICSFACILITY if bay else U.CYBERNETICSCORE).ready
+            or self.structures(kind)
+            or self.already_pending(kind)
+        ):
+            return False
+        targets = composition_targets(self)
+        if bay and production_target(self, "colossi") <= 0:
+            return False
+        if not bay and not (
+            targets["immortals"]
+            or targets["colossi"]
+            or (s.scouting and production_target(self, "observers") > 0)
+            or (s.warp_reinforcement and production_target(self, "warp_prisms") > 0)
+        ):
+            return False
+        cost = self.calculate_cost(kind)
+        if self.minerals < cost.minerals + s.reserve_minerals and not any(
+            base.ideal_harvesters > 0 and base.assigned_harvesters > 0 for base in self.townhalls.ready
+        ):
+            return False
+        if self.vespene < cost.vespene + s.reserve_gas and not (
+            s.gas
+            and any(
+                gas.vespene_contents > 0 and gas.assigned_harvesters > 0 for gas in self.gas_buildings.ready
+            )
+        ):
+            return False
+        pylons = self.structures(U.PYLON).ready.filter(lambda pylon: self.safe_at(pylon.position))
+        if not pylons:
+            return False
+        if not hasattr(self, "_robotics_sites"):
+            self._robotics_sites = {}
+        cached = self._robotics_sites.get(kind)
+        if cached is not None and cached[0] is None and cached[1] > self.time:
+            return False
+        placement = cached[0] if cached is not None and cached[1] > self.time else None
+        if placement is not None and not (
+            layout_clear(self, kind, placement)
+            and self.safe_at(placement)
+            and self.state.psionic_matrix.covers(placement)
+        ):
+            placement = None
+        if placement is None:
+            for pylon in pylons.sorted_by_distance_to(home):
+                placement = await find_spaced_placement(self, kind, pylon.position, 12)
+                if placement is not None and self.safe_at(placement):
+                    break
+            self._robotics_sites[kind] = (placement, self.time + 5)
+        if placement is None:
+            return False
+        worker = self.builder(placement)
+        if worker is None:
+            return False
+        query = getattr(self.client, "query_pathing", None)
+        if query is not None and worker.distance_to(placement) >= 3 and not await query(worker, placement):
+            return False
+        self._first_tech_reservation = (kind, cost.vespene)
+        self._macro_reserve = max(getattr(self, "_macro_reserve", 0), cost.minerals)
+        if self.affordable(kind):
+            if self.issue(worker.build(kind, placement), paid=True):
+                self.construction_reservations[worker.tag] = (kind, placement, self.time + 45)
+            else:
+                self._first_tech_reservation = None
+                return False
+        return True
+
     async def construct(self, home, reserve, army_only=False):
         s = self.settings
         targets = composition_targets(self)
@@ -719,7 +807,7 @@ class EconomyAssistant(BotAI):
         for kind, target, prerequisite in plan:
             if opening_defense and kind in {U.ROBOTICSFACILITY, U.STARGATE}:
                 continue
-            if army_only and kind not in {U.GATEWAY, U.ROBOTICSFACILITY, U.STARGATE}:
+            if army_only and kind not in {U.GATEWAY, U.ROBOTICSFACILITY, U.STARGATE, U.ROBOTICSBAY}:
                 continue
             count = self.structures(kind).amount
             if kind == U.GATEWAY:
@@ -753,7 +841,7 @@ class EconomyAssistant(BotAI):
         if not (self.settings.enabled and self.settings.attack and self.settings.production):
             return None
         seen = getattr(self, "_first_tech_combat_seen", set())
-        for kind in (U.STALKER, U.IMMORTAL, U.OBSERVER):
+        for kind in (U.STALKER, U.IMMORTAL, U.OBSERVER, U.COLOSSUS):
             if self.units(kind):
                 seen.add(kind)
         self._first_tech_combat_seen = seen
@@ -773,6 +861,7 @@ class EconomyAssistant(BotAI):
         if self.settings.scouting and production_target(self, "observers") > 0 and U.OBSERVER not in seen:
             choices.append((U.ROBOTICSFACILITY, U.OBSERVER))
         choices.append((U.ROBOTICSFACILITY, U.IMMORTAL))
+        choices.append((U.ROBOTICSFACILITY, U.COLOSSUS))
         for producer, kind in choices:
             if (
                 kind in seen
@@ -780,7 +869,13 @@ class EconomyAssistant(BotAI):
                 or production_target(self, PRODUCTION_TARGETS[kind]) <= 0
             ):
                 continue
-            prerequisite = U.CYBERNETICSCORE if kind == U.STALKER else U.ROBOTICSFACILITY
+            prerequisite = (
+                U.CYBERNETICSCORE
+                if kind == U.STALKER
+                else U.ROBOTICSBAY
+                if kind == U.COLOSSUS
+                else U.ROBOTICSFACILITY
+            )
             if not self.structures(prerequisite).ready or self.tech_requirement_progress(kind) < 1:
                 continue
             buildings = self.structures(producer).ready.idle.filter(

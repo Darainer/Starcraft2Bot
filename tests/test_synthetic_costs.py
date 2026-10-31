@@ -8,8 +8,10 @@ from sc2.ids.unit_typeid import UnitTypeId as U
     ("kind", "minerals", "gas", "supply"),
     [
         (U.ROBOTICSFACILITY, 150, 100, 0),
+        (U.ROBOTICSBAY, 150, 150, 0),
         (U.STARGATE, 150, 150, 0),
         (U.IMMORTAL, 275, 100, 4),
+        (U.COLOSSUS, 300, 200, 6),
         (U.WARPPRISM, 250, 0, 2),
         (U.OBSERVER, 25, 75, 1),
         (U.STALKER, 125, 50, 2),

@@ -72,11 +72,13 @@ def bot():
         U.GATEWAY: (150, 0, 0),
         U.CYBERNETICSCORE: (150, 0, 0),
         U.ROBOTICSFACILITY: (150, 100, 0),
+        U.ROBOTICSBAY: (150, 150, 0),
         U.STARGATE: (150, 150, 0),
         U.STALKER: (125, 50, 2),
         U.ZEALOT: (100, 0, 2),
         U.HIGHTEMPLAR: (50, 150, 2),
         U.IMMORTAL: (275, 100, 4),
+        U.COLOSSUS: (300, 200, 6),
         U.WARPPRISM: (250, 0, 2),
         U.OBSERVER: (25, 75, 1),
     }
