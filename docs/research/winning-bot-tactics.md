@@ -6,6 +6,8 @@ or report a newly executed match. Live improvement work continues separately.
 The [hardcoded milestone](../hardcoded-elite-milestone.md) requires built-in AI
 reliability first and established community opponents afterward. The separate
 [RL architecture](../rl-architecture.md) remains a later stage.
+The [training and environment plan](../rl-training-plan.md) explains how to use
+our accepted bot and isolated public bots for collection, training and evaluation.
 
 ## What the current failures imply
 

@@ -5,6 +5,9 @@ milestone before implementing or training the RL policy. The RL architecture
 remains a later-stage design. The rule bot can eventually supply teacher games,
 failure examples and a frozen training opponent; it is not yet an accepted expert.
 
+The separate [RL training plan](rl-training-plan.md) covers that later teacher
+pipeline, public opponents and the proposed headless container environment.
+
 ## Working benchmark
 
 The user selected **both built-in AI reliability and established community bots**,
