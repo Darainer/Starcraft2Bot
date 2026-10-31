@@ -248,3 +248,16 @@ and empty. A strict requirement for an Observer before funding Robotics would
 be circular: Robotics produces the Observer. Positive earlier worker/army evidence
 can motivate counters; missing tech observations cannot prove the opponent lacks
 that technology. No new evidence gate has been accepted yet.
+
+Current site scouting's "empty" label describes enemy-base occupancy at the
+center; it does not certify the mineral line, route or surrounding weapon coverage.
+Sharpy tracks center and mineral-line inspection separately, a useful precedent
+for the resource-site contract. Reuse an existing Observer or bound an eligible
+Probe's travel/loss budget before commissioning a new information unit.
+[Sharpy zone memory](https://github.com/DrInfy/sharpy-sc2/blob/d9577a00ee47634b56ff7ee0740c6ed3043659a2/sharpy/general/zone.py#L146)
+
+Counter-investment evidence should use each unit/technology observation's own
+timestamp. An aggregate composition timestamp can be refreshed by a different
+new contact and must not make older Roach evidence fresh again. Existing per-unit
+belief evidence supports this distinction; it does not itself validate a new
+production-control rule.
