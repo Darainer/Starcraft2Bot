@@ -19,6 +19,24 @@ from sc2.units import Units
 from source.assistant_control import AssistantSettings
 from source.economy_assistant import EconomyAssistant
 
+STRUCTURE_TYPES = {
+    U.NEXUS,
+    U.PYLON,
+    U.ASSIMILATOR,
+    U.GATEWAY,
+    U.WARPGATE,
+    U.CYBERNETICSCORE,
+    U.ROBOTICSFACILITY,
+    U.TWILIGHTCOUNCIL,
+    U.TEMPLARARCHIVE,
+    U.ROBOTICSBAY,
+    U.STARGATE,
+    U.FORGE,
+    U.BUNKER,
+    U.PHOTONCANNON,
+    U.SHIELDBATTERY,
+}
+
 
 @pytest.fixture
 def bot():
@@ -53,9 +71,14 @@ def bot():
         U.ASSIMILATOR: (75, 0, 0),
         U.GATEWAY: (150, 0, 0),
         U.CYBERNETICSCORE: (150, 0, 0),
+        U.ROBOTICSFACILITY: (150, 100, 0),
+        U.STARGATE: (150, 150, 0),
         U.STALKER: (125, 50, 2),
         U.ZEALOT: (100, 0, 2),
         U.HIGHTEMPLAR: (50, 150, 2),
+        U.IMMORTAL: (275, 100, 4),
+        U.WARPPRISM: (250, 0, 2),
+        U.OBSERVER: (25, 75, 1),
     }
     units = []
     kinds = set(creation) | {
@@ -72,7 +95,11 @@ def bot():
         U.PHOTONCANNON,
     }
     for kind in kinds:
-        m, g, supply = costs.get(kind, (100, 100, 2))
+        # Supply-consuming producers are interpreted as morph sources by the
+        # SDK. Giving a Robotics Facility the default two supply incorrectly
+        # subtracts its cost from every Robotics unit's training price.
+        default_supply = 0 if kind in STRUCTURE_TYPES or kind in {U.MINERALFIELD, U.VESPENEGEYSER} else 2
+        m, g, supply = costs.get(kind, (100, 100, default_supply))
         units.append(
             data_pb2.UnitTypeData(
                 unit_id=kind.value,
@@ -129,22 +156,7 @@ def make_unit(bot):
 @pytest.fixture
 def populate(bot):
     def apply(*units):
-        structures = {
-            U.NEXUS,
-            U.PYLON,
-            U.ASSIMILATOR,
-            U.GATEWAY,
-            U.WARPGATE,
-            U.CYBERNETICSCORE,
-            U.ROBOTICSFACILITY,
-            U.TWILIGHTCOUNCIL,
-            U.TEMPLARARCHIVE,
-            U.ROBOTICSBAY,
-            U.STARGATE,
-            U.FORGE,
-            U.BUNKER,
-            U.PHOTONCANNON,
-        }
+        structures = STRUCTURE_TYPES
         own = [u for u in units if u.is_mine]
         bot.all_own_units = Units(own, bot)
         bot.structures = Units([u for u in own if u.type_id in structures], bot)

@@ -21,7 +21,21 @@ def candidates(state: Assessment, continuing=False):
         result.append(Candidate("stabilize", "threat", 100, "Protect a threatened base"))
     elif state.rush_warning:
         result.append(Candidate("stabilize", "rally", 100, "Prepare defenders for scouted early aggression"))
-    if state.health < policy["retreat_health"] or state.local_advantage < 0.85 or state.trade_bad:
+    # Loss accounting describes the preceding 12 seconds, which may already
+    # have reversed. Heuristic override: at least 80% army health and 1.5x
+    # current main-force power allow fighting through that trailing score.
+    # Ten is also the no-contact sentinel, so it never proves a safe fight.
+    favorable_current_fight = (
+        state.engagement_evidence_schema_version == 1
+        and state.local_fight_observed
+        and state.health >= 0.8
+        and 1.5 <= state.local_advantage < 10
+    )
+    if (
+        state.health < policy["retreat_health"]
+        or state.local_advantage < 0.85
+        or (state.trade_bad and not favorable_current_fight)
+    ):
         result.append(Candidate("recover", "home", 120, "Recover from an unfavorable engagement"))
     if state.rush_warning:
         return result
@@ -64,16 +78,26 @@ def compose(state, choice, plan_id, ranked):
     defending = objective == "stabilize"
     # A small home raid can coexist with pressure only when the remaining army
     # and the allocated response can each do useful work.
+    projected_response = (
+        state.raid_response_schema_version == 1
+        and bool(state.raid_response_tags)
+        and 2 <= state.raid_response_supply <= min(remaining * 0.3, max(8, state.threat_supply * 1.5))
+        and state.raid_response_advantage >= 1.2
+    )
     split = (
         defending
         and not state.rush_warning
         and state.threat_supply > 0
         and state.threat_supply <= min(12, remaining * 0.2)
         and remaining >= 40
-        and state.home_advantage >= 1.2
+        and (state.home_advantage >= 1.2 or projected_response)
     )
     if split:
-        budget = min(remaining * 0.3, max(8, state.threat_supply * 1.5))
+        budget = (
+            state.raid_response_supply
+            if projected_response
+            else min(remaining * 0.3, max(8, state.threat_supply * 1.5))
+        )
         missions.append(MissionSpec("home-defense", "defend", "threat", state.threat, budget, 2, 90))
         remaining -= budget
         attacks = [c for c in ranked if c.objective in {"pressure", "counterattack", "finish"}]
@@ -90,6 +114,11 @@ def compose(state, choice, plan_id, ranked):
     if objective == "stabilize" and state.home_advantage < 0.85:
         point, mode = state.home, "move"
         choice = Candidate("stabilize", "home", choice.score, "Concentrate defenders at a safe base")
+    if objective == "stabilize" and state.opening_hold is not None:
+        point, mode = tuple(state.opening_hold), "move"
+        choice = Candidate(
+            "stabilize", "rally", choice.score, "Hold opening defenders together near protected power"
+        )
     if objective == "contain":
         # The mission executor chooses a safe offset; retain the evidence target.
         mode = "move"

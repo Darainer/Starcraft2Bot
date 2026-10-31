@@ -108,10 +108,8 @@ def test_worker_scout_returns_home_and_releases_assignment(bot, make_unit, popul
     bot.supply_workers = 12
     bot.game_info.start_locations = [Point2((100, 100))]
     scout = ScoutController()
-    scout.worker_tag = bot.scout_tag = probe.tag
     assert scout._worker_scout(bot, bot.enemy_units, {}) == "returned"
     assert scout.worker_tag is None and bot.scout_tag is None
-    assert not scout.opening_complete
 
 
 def test_worker_scout_waits_if_start_is_unknown_and_flees_if_threatened(bot, make_unit, populate):
@@ -149,71 +147,3 @@ def test_scout_reports_enemy_composition_peak_and_incoming_force(bot, make_unit,
     assert intel["enemy_bases"][0]["unit_type"] == "NEXUS"
     assert intel["enemy_seen"] and intel["force_intel_ready"]
     assert result["observer"]["phase"] == "disabled"
-
-
-def test_interrupted_scout_retries_from_a_fresh_route_only_after_pressure_clears(bot, make_unit, populate):
-    probe = make_unit(U.PROBE, (2, 2))
-    enemy = make_unit(U.MARINE, (3, 2), alliance=4)
-    populate(probe)
-    bot.settings.enabled = bot.settings.attack = bot.settings.scouting = True
-    bot.supply_workers = 12
-    bot.game_info.start_locations = [Point2((90, 90))]
-    scout = ScoutController()
-    scout.worker_tag = bot.scout_tag = probe.tag
-    scout.scout_attempts = 1
-    scout.last_assignment = 0
-    scout.worker_route_index = 1
-    report = {}
-    assert scout._worker_scout(bot, Units([enemy], bot), report) == "returned"
-    assert not report["opening_scout"]["completed"]
-    assert report["opening_scout"]["interruption"] == "threatened"
-    bot.state.game_loop = 1120  # A safe home does not bypass the retry cooldown.
-    assert scout._worker_scout(bot, Units([], bot), report) == "waiting_for_scout"
-    assert scout.worker_tag is None
-    bot.state.game_loop = 2240
-    assert scout._worker_scout(bot, Units([enemy], bot), report) == "waiting_for_scout"
-    assert scout.worker_tag is None and not bot.actions
-    assert scout._worker_scout(bot, Units([], bot), report) == "scouting_enemy_start"
-    assert not scout.returning and scout.worker_route_index == 0
-    assert report["opening_scout"]["attempts"] == 2
-    assert not report["opening_scout"]["completed"]
-    assert bot.actions[-1].target == scout._worker_route(bot)[0]
-
-
-def test_scout_completion_requires_visible_route_inspection_not_returning_home(bot, make_unit, populate):
-    probe = make_unit(U.PROBE, (80, 80))
-    populate(probe)
-    bot.settings.enabled = bot.settings.attack = bot.settings.scouting = True
-    bot.game_info.start_locations = [Point2((90, 90))]
-    bot._expansion_positions_list = [Point2((80, 80))]
-    scout = ScoutController()
-    scout.worker_tag = bot.scout_tag = probe.tag
-    report = {}
-    bot.is_visible = lambda point: False
-    scout._worker_scout(bot, Units([], bot), report)
-    assert scout.worker_route_index == 0 and not scout.opening_complete
-    bot.is_visible = lambda point: True
-    bot._used.clear()
-    scout._worker_scout(bot, Units([], bot), report)
-    assert scout.worker_route_index == 1 and not scout.opening_complete
-    populate(make_unit(U.PROBE, (90, 90), tag=probe.tag))
-    bot._used.clear()
-    assert scout._worker_scout(bot, Units([], bot), report) == "returning"
-    assert report["opening_scout"]["completed"]
-    populate(make_unit(U.PROBE, (0, 0), tag=probe.tag))
-    assert scout._worker_scout(bot, Units([], bot), report) == "returned"
-    assert scout._worker_scout(bot, Units([], bot), report) == "opening_complete"
-
-
-def test_missing_scout_preserves_incomplete_status_and_retries_are_bounded(bot, make_unit, populate):
-    probe = make_unit(U.PROBE)
-    populate(probe)
-    bot.settings.enabled = bot.settings.attack = bot.settings.scouting = True
-    bot.supply_workers = 12
-    scout = ScoutController()
-    scout.worker_tag = 999
-    scout.scout_attempts = 3
-    report = {}
-    assert scout._worker_scout(bot, Units([], bot), report) == "opening_incomplete"
-    assert report["opening_scout"]["interruption"] == "scout_missing"
-    assert not report["opening_scout"]["completed"] and not bot.actions

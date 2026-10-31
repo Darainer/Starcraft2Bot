@@ -65,6 +65,19 @@ class ActionExecutor:
                 unit.orders
                 and isinstance(unit.order_target, Point2)
                 and unit.order_target.distance_to(point) < 1
+                and (
+                    unit.is_flying
+                    or (
+                        (
+                            area is None
+                            or (
+                                area.x <= unit.order_target.x < area.x + area.width
+                                and area.y <= unit.order_target.y < area.y + area.height
+                            )
+                        )
+                        and bot.in_pathing_grid(unit.order_target)
+                    )
+                )
             ):
                 # Only suppress a matching action; retreat must replace attack-move.
                 current_move = unit.is_moving

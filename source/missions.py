@@ -91,7 +91,7 @@ class MissionPlanner:
         self.executor.assign({})
         self.sweep.active = False
 
-    def execute(self, bot, army, plan, state, waves, preserve_combat=True):
+    def execute(self, bot, army, plan, state, waves, preserve_combat=True, recovery_micro=False):
         available = army.filter(bot.control.eligible)
         contacts = visible_threats(bot)
         geometry = retreat_geometry(contacts)
@@ -114,6 +114,14 @@ class MissionPlanner:
             old = self.records.get(spec.id, {})
             target = Point2(spec.target)
             candidates = available.filter(lambda u: u.tag in remaining)
+            if (
+                spec.role == "defend"
+                and state.raid_response_schema_version == 1
+                and state.raid_response_tags
+                and state.raid_response_advantage >= 1.2
+                and state.raid_response_supply == spec.supply_budget
+            ):
+                candidates = candidates.tags_in(state.raid_response_tags)
             if spec.role == "deny":
                 candidates = candidates.of_type({U.ZEALOT, U.STALKER, U.ADEPT})
             if spec.role != "main":
@@ -251,6 +259,17 @@ class MissionPlanner:
             critical = unit.health + unit.shield < (unit.health_max + unit.shield_max) * 0.25
             if critical and tag not in retreat_goals:
                 mode, target = "move", retreat_waypoint(bot, unit, Point2(state.home), contacts, geometry)
+            # Automatic recovery micro alternates in-range volleys with escape
+            # moves. Give it this observation's actor budget; explicit manual
+            # retreat/regroup and critical/support actors retain movement here.
+            if (
+                assignments[tag].endswith(":True")
+                and recovery_micro
+                and bot.settings.strategy == "auto"
+                and unit.can_attack
+                and not critical
+            ):
+                continue
             # Preserve weapon execution between tactical updates.
             fighting = mode == "attack" or (
                 preserve_combat and not critical and not assignments[tag].endswith(":True")

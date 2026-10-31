@@ -91,7 +91,7 @@ def test_income_recovery_preserves_existing_expansion_boundaries(bot, make_unit,
     if blocked == "ceiling":
         bot.settings.bases = 2
     elif blocked == "strategy":
-        bot.strategic_plan = SimpleNamespace(expand=False)
+        bot.strategic_plan = SimpleNamespace(expand=False, expires_at=bot.time + 10)
     elif blocked == "emergency":
         bot.economic_emergency = True
     elif blocked == "pending":

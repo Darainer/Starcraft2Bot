@@ -73,10 +73,12 @@ class TacticalController:
         self._last_director = -999
         self._signature = None
         self._micro_allowed = True
+        self._automatic_recovery = False
 
     def tick(self, bot, observation=None, available_abilities=None):
         self.active_mode = "manual"
         self._micro_allowed = False
+        self._automatic_recovery = False
         if not bot.settings.enabled or not bot.settings.attack:
             self.missions.reset()
             self.waves.reset()
@@ -233,8 +235,15 @@ class TacticalController:
         bot.strategic_plan = plan
         bot.economic_emergency = requested == "auto" and (state.threat_supply >= 8 or state.rush_warning)
         self._micro_allowed = requested not in {"retreat", "regroup"}
+        self._automatic_recovery = requested == "auto"
         result = self.missions.execute(
-            bot, army, plan, state, self.waves, preserve_combat=self._micro_allowed
+            bot,
+            army,
+            plan,
+            state,
+            self.waves,
+            preserve_combat=self._micro_allowed,
+            recovery_micro=self._automatic_recovery,
         )
         for event in result["events"]:
             if event["time"] == bot.time and event["result"] == "unfavorable_fight":
@@ -267,7 +276,9 @@ class TacticalController:
             or bot.settings.strategy in {"retreat", "regroup"}
         ):
             return []
-        if self.active_mode not in {"push", "defend", "regroup"}:
+        if self.active_mode not in {"push", "defend", "regroup"} and not (
+            self.active_mode == "retreat" and self._automatic_recovery and bot.settings.strategy == "auto"
+        ):
             return []
         enemies = (bot.enemy_units | bot.enemy_structures).filter(
             lambda u: u.is_visible and u.can_be_attacked
@@ -275,23 +286,51 @@ class TacticalController:
         contacts = visible_threats(bot)
         geometry = None
         recovering = {
-            tag
+            tag: mission
             for mission in self.missions.records.values()
             if mission["phase"] == "recover"
             for tag in mission["members"]
         }
         decisions, assigned_damage = [], {}
         for unit in bot.units.of_type(set(ARMY_TARGETS)).ready:
-            if not bot.available(unit) or not unit.can_attack or unit.tag in recovering:
+            if not bot.available(unit) or not unit.can_attack:
                 continue
             targets = enemies.filter(lambda enemy, unit=unit: unit.target_in_range(enemy))
             command, reason = None, None
             if unit.health + unit.shield < (unit.health_max + unit.shield_max) * 0.25:
-                home = Point2(self.last_assessment.home) if self.last_assessment else bot.start_location
+                home = (
+                    Point2(recovering[unit.tag]["retreat_goal"])
+                    if unit.tag in recovering and "retreat_goal" in recovering[unit.tag]
+                    else (Point2(self.last_assessment.home) if self.last_assessment else bot.start_location)
+                )
                 if geometry is None:
                     geometry = retreat_geometry(contacts)
                 waypoint = retreat_waypoint(bot, unit, home, contacts, geometry)
                 command, reason = unit.move(waypoint), "individual_retreat"
+            elif unit.tag in recovering:
+                if bot.settings.strategy != "auto" or not self._automatic_recovery:
+                    continue
+                if targets and unit.weapon_cooldown == 0:
+                    target = min(
+                        targets,
+                        key=lambda enemy: (
+                            not enemy.can_attack,
+                            enemy.health + enemy.shield,
+                            unit.distance_to(enemy),
+                        ),
+                    )
+                    command, reason = unit.attack(target), "recovery_volley"
+                else:
+                    goal = Point2(
+                        recovering[unit.tag].get(
+                            "retreat_goal",
+                            self.last_assessment.home if self.last_assessment else bot.start_location,
+                        )
+                    )
+                    if geometry is None:
+                        geometry = retreat_geometry(contacts)
+                    command = unit.move(retreat_waypoint(bot, unit, goal, contacts, geometry))
+                    reason = "recovery_escape"
             elif targets and unit.weapon_cooldown == 0:
                 target = min(
                     targets,

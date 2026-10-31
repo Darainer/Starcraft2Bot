@@ -50,6 +50,13 @@ class Assessment:
     timing_ready: bool = False
     cleanup_ready: bool = False
     rush_warning: bool = False
+    engagement_evidence_schema_version: int = 1
+    local_fight_observed: bool = False
+    raid_response_schema_version: int = 1
+    raid_response_tags: tuple[int, ...] = ()
+    raid_response_supply: float = 0
+    raid_response_advantage: float = 0
+    opening_hold: Point | None = None
 
     def to_dict(self):
         return asdict(self)

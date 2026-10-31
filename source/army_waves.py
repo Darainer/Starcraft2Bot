@@ -1,6 +1,7 @@
 """Persistent army cohorts, assembly gates, role formations and reinforcement batches."""
 
 from collections import Counter
+from math import ceil, cos, pi, sin
 from statistics import median
 
 from sc2.ids.unit_typeid import UnitTypeId as U
@@ -20,6 +21,54 @@ def staging_slot(index, total, rally):
     column = index % columns
     row = index // columns
     return rally.offset(((column - (columns - 1) / 2) * 1.8, (row - (rows - 1) / 2) * 1.8))
+
+
+def terrain_destination(bot, unit, point, goal):
+    """Use engine pathfinding to a real goal when a geometric slot crosses terrain."""
+    area = getattr(bot.game_info, "playable_area", None)
+
+    def inside(position):
+        return area is None or (
+            area.x <= position.x < area.x + area.width and area.y <= position.y < area.y + area.height
+        )
+
+    if unit.is_flying:
+        if inside(point):
+            return point
+        if inside(goal):
+            return goal
+        return Point2(
+            (
+                min(max(goal.x, area.x), area.x + area.width - 0.001),
+                min(max(goal.y, area.y), area.y + area.height - 0.001),
+            )
+        )
+
+    def walkable(position):
+        return (
+            area is None
+            or (area.x <= position.x < area.x + area.width and area.y <= position.y < area.y + area.height)
+        ) and bot.in_pathing_grid(position)
+
+    origin = unit.position
+    steps = max(1, ceil(origin.distance_to(point)))
+    if all(
+        walkable(
+            Point2((origin.x + (point.x - origin.x) * i / steps, origin.y + (point.y - origin.y) * i / steps))
+        )
+        for i in range(1, steps + 1)
+    ):
+        return point
+    # The engine can route around the obstruction to this destination. Do not
+    # substitute another straight-line intermediate on the same blocked ray.
+    if walkable(goal):
+        return goal
+    for radius in (2, 4, 6, 8):
+        candidates = [goal.offset((cos(i * pi / 8) * radius, sin(i * pi / 8) * radius)) for i in range(16)]
+        valid = [candidate for candidate in candidates if walkable(candidate)]
+        if valid:
+            return min(valid, key=lambda candidate: (unit.distance_to(candidate), candidate.x, candidate.y))
+    return origin
 
 
 class ArmyWaves:
@@ -173,6 +222,22 @@ class ArmyWaves:
                 if coherent
                 else "Wait for stragglers before advancing"
             )
+        # Never leave an army attacking an unreachable geometric formation
+        # slot: short points on a cliff can strand it beside the intended route.
+        by_tag = {unit.tag: unit for unit in units}
+        for tag, (mode, point) in list(destinations.items()):
+            goal = (
+                rally
+                if self.phase == "assemble"
+                else self.regroup_anchor or rally
+                if self.phase == "regroup"
+                else objective
+                if tag in self.members
+                else self.center or objective
+                if tag in self.reinforcements
+                else rally
+            )
+            destinations[tag] = (mode, terrain_destination(bot, by_tag[tag], point, goal))
         state = {
             "id": self.wave_id,
             "phase": self.phase,
