@@ -281,3 +281,29 @@ trades alongside resolved outcomes. Desired quotas and queued commands do not
 prove successful tactical use. Reject poor candidates after the targeted
 triplets; expand to Terran Rush/Power and winning-build regressions only when
 the targeted failure or a clearly identified delivery defect improves.
+
+The first control (`425bca8`) lost all six games: Terran Timing at1258.9s and
+Zerg Power at1155.0s, three matching repeats each. Delivery v1 (`54154cd`)
+also lost all six: Timing at1285.7s, Power at1155.0s. Longer survival alone is
+not promotion evidence. See the sanitized
+[tactical results](experiments/2026-10-31/targeted-oracle-archon-results.json).
+
+Completed Power traces expose upstream failures. Archive readiness at541.1s
+does not create Archon inputs: all four Gateways have become Warpgates, while
+the milestone only funds Gateway training. A reconstructed Colossus gas
+reservation blocks15 of19 sampled nominally affordable Templar opportunities;
+this reconstruction is not a complete post-macro attribution. Oracle beam ON
+is available throughout its237 sampled observations, but distant singleton
+chases lose vision before reaching the six-unit activation gate. The closest
+sampled visible worker remains23.5 units away. Partial townhall observations
+also overwrite the earlier positive worker-line record with zero visible workers.
+
+Delivery v2 therefore adds a bounded first-input Warpgate investment after
+earlier counter milestones, paid through existing placement/ownership/reserve
+guards. Potential ability queries may ignore resources while saving; actual
+orders still require a current legal ability and affordability. A24-second
+reservation lease and8-second retry bound prevent permanent funding locks.
+Oracle inspection retains its own120-second positive worker-line memory and
+requires clustered workers for a long chase; nearby single-worker opportunities
+remain possible. Composition weights, unit caps and the comparison settings
+stay unchanged. Run the same two matched triplets before further tuning.

@@ -23,12 +23,26 @@ class OracleHarass:
         self.raids = {}
         self.blocked = {}
         self.history = deque(maxlen=128)
+        self.worker_lines = {}
 
     async def tick(self, bot):
         if not oracle_permitted(bot):
             self.raids.clear()
+            self.worker_lines.clear()
             return {"enabled": False, "orders": [], "raids": {}, "history": list(self.history)}
         contacts = visible_threats(bot)
+        # A visible townhall with zero currently visible workers does not erase
+        # the earlier worker-line sighting. Its own timestamp still expires.
+        for base in bot.scout_report.get("known_enemy_bases", []):
+            if base.get("workers_nearby", 0) >= 3 and 0 <= bot.time - base.get("seen_seconds", -999) <= 120:
+                key = str(base.get("tag", tuple(base["position"])))
+                if base["seen_seconds"] >= self.worker_lines.get(key, {}).get("seen_seconds", -999):
+                    self.worker_lines[key] = dict(base)
+        self.worker_lines = {
+            key: line
+            for key, line in self.worker_lines.items()
+            if 0 <= bot.time - line["seen_seconds"] <= 120
+        }
         anti_air = contacts.filter(lambda unit: unit.can_attack_air or unit.type_id == U.BUNKER)
         workers = bot.enemy_units.filter(
             lambda unit: unit.is_visible and not unit.is_hallucination and unit.type_id in WORKERS
@@ -70,7 +84,12 @@ class OracleHarass:
                     )
                 )
             )
-            target = safe_workers.closest_to(oracle) if safe_workers else None
+            clustered = safe_workers.filter(
+                lambda unit, oracle=oracle: (
+                    workers.closer_than(6, unit).amount >= 3 or unit.distance_to(oracle) <= 10
+                )
+            )
+            target = clustered.closest_to(oracle) if clustered else None
             if (
                 record["phase"] == "recover"
                 and target is None
@@ -81,7 +100,7 @@ class OracleHarass:
                 and not threatened
                 and not bot.economic_emergency
             ):
-                mission = oracle_inspection(bot, oracle, anti_air, self.blocked)
+                mission = oracle_inspection(bot, oracle, anti_air, self.blocked, self.worker_lines.values())
                 if mission is not None:
                     record.update(
                         phase="transit",

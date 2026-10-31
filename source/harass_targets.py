@@ -5,9 +5,9 @@ from math import isfinite
 from sc2.position import Point2
 
 
-def oracle_inspection(bot, oracle, anti_air, blocked):
+def oracle_inspection(bot, oracle, anti_air, blocked, worker_lines=None):
     choices = []
-    for base in bot.scout_report.get("known_enemy_bases", []):
+    for base in worker_lines if worker_lines is not None else bot.scout_report.get("known_enemy_bases", []):
         seen = base.get("seen_seconds", -999)
         if not isinstance(seen, (int, float)) or not isfinite(seen) or not 0 <= bot.time - seen <= 120:
             continue

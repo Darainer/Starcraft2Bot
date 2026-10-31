@@ -125,6 +125,42 @@ def test_scouted_worker_line_allows_beam_off_transit_then_current_vision_attack(
     assert any(event["action"] == "inspection_admitted" for event in result["history"])
 
 
+def test_positive_worker_line_survives_later_partial_townhall_vision(bot, make_unit, populate):
+    oracle, worker = setup(bot, make_unit, populate)
+    populate(bot.townhalls.first)  # Observe the line before the Oracle finishes.
+    bot.is_visible = lambda point: False
+    base = {
+        "tag": "line",
+        "position": [85, 40],
+        "worker_line_position": [88, 40],
+        "seen_seconds": bot.time,
+        "workers_nearby": 8,
+    }
+    bot.scout_report = {"known_enemy_bases": [base]}
+    controller = OracleHarass()
+    asyncio.run(controller.tick(bot))
+    bot.state.game_loop += 448
+    bot.scout_report = {
+        "known_enemy_bases": [
+            {**base, "seen_seconds": bot.time, "workers_nearby": 0, "worker_line_position": [85, 40]}
+        ]
+    }
+    populate(bot.townhalls.first, oracle)
+    result = asyncio.run(controller.tick(bot))
+    record = result["raids"][str(oracle.tag)]
+    assert record["phase"] == "transit" and record["mission"]["position"] == [88, 40]
+    assert record["mission"]["seen_seconds"] == 300
+
+
+def test_distant_singleton_worker_does_not_start_an_expensive_chase(bot, make_unit, populate):
+    oracle, worker = setup(bot, make_unit, populate)
+    worker._proto.pos.x = 100
+    populate(bot.townhalls.first, oracle, worker)
+    result = asyncio.run(OracleHarass().tick(bot))
+    assert result["raids"][str(oracle.tag)]["phase"] == "recover"
+    assert all(order["action"] != "approach_visible_workers" for order in result["orders"])
+
+
 @pytest.mark.parametrize(
     "blocked", ["stale", "future", "no_workers", "anti_air", "empty_arrival", "deadline"]
 )
