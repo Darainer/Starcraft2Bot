@@ -113,6 +113,23 @@ class ArmyWaves:
             anti_air = units.filter(lambda unit: unit.can_attack_air)
             composition_ok &= supply(anti_air) >= min(16, force_intel["air_supply"] * 0.6)
         enemy_gate = None
+        # A first counter unit is not evidence that a wave can fight a recently
+        # observed army. Deduplicated contacts age individually; never refresh
+        # the whole force merely because one unrelated unit was seen again.
+        evidence = intel.get("enemy_unit_evidence")
+        if evidence is not None:
+            recent = {
+                str(unit["tag"]): unit
+                for unit in evidence
+                if 0 <= bot.time - unit.get("seen_seconds", -999) <= 45
+            }
+            observed = sum(max(0, unit.get("supply", 0)) for unit in recent.values())
+        else:
+            force = intel.get("last_enemy_force") or {}
+            observed = force.get("supply", 0) if 0 <= bot.time - force.get("seen_seconds", -999) <= 30 else 0
+        if observed >= 8:
+            enemy_gate = min(80, observed * 1.25)
+            minimum_supply = max(minimum_supply, enemy_gate)
         scouting_timeout = bot.time >= 120
         scouted = not bot.settings.scouting or bool(intel.get("enemy_seen")) or scouting_timeout
         ordered_units = sorted(units, key=lambda u: u.tag)
