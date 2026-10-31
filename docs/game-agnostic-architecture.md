@@ -118,6 +118,14 @@ active heads and original likelihoods retained for training. The SC2 decoder
 continues to produce `StrategicPlan` for the existing controllers, which retain
 their independent authority to reject stale or impermissible commands.
 
+For example, the shared intent may be to withdraw while preserving force and
+useful supporting effects. The SC2 controller calculates whether ranges,
+cooldowns, closing speed, terrain and visible effects allow a firing opportunity
+with an exit; otherwise it uses the existing escape behavior. Another game's
+adapter supplies its own realization of the intent. This separates the reusable
+decision from the game mechanics; the proposed SC2 withdrawal tactic still needs
+its own targeted test before adoption.
+
 ## Ontology and module boundary
 
 Keep a portable decision ontology for COA, evidence, uncertainty, intent,
