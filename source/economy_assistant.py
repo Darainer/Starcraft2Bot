@@ -563,6 +563,11 @@ class EconomyAssistant(BotAI):
             if fighting_supply < 6 and self.produce(0):
                 return
         expansion_reserve = 0
+        # Mineral depletion can lower the worker-production ceiling below the
+        # normal third-base gate. Reserve the next Nexus while income remains,
+        # rather than waiting for a workforce we can no longer train.
+        normal_expansion_workers = 16 if len(bases) == 1 else 20 * len(bases) - 2
+        expansion_workers = min(normal_expansion_workers, max(16, worker_target - 2))
         if (
             s.expansion
             and self.townhalls.amount < base_target
@@ -571,10 +576,13 @@ class EconomyAssistant(BotAI):
             and not first_defender
             and (self.strategic_plan is None or self.strategic_plan.expand)
             and (self.structures(U.GATEWAY) or self.structures(U.CYBERNETICSCORE))
-            and self.supply_workers >= (16 if len(bases) == 1 else 20 * len(bases) - 2)
+            and self.supply_workers >= expansion_workers
             and (len(bases) == 1 or not s.attack or self.supply_army >= 12)
         ):
-            location = await self.safe_expansion_location(home.position)
+            location = await self.safe_expansion_location(
+                home.position,
+                require_minerals=depleted_income or expansion_workers < normal_expansion_workers,
+            )
             if location and self.builder(location):
                 expansion_reserve = self._macro_reserve = 400
                 if await self.build_structure(U.NEXUS, location, max_distance=2):
