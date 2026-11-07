@@ -49,10 +49,15 @@ def feature_vector(feature):
 
 
 class StarCraftPolicy(nn.Module):
+    model_version = MODEL_VERSION
+    feature_version = LIVE_FEATURE_VERSION
+    supported_features = (FEATURE_VERSION, LIVE_FEATURE_VERSION)
+    scalar_features = SCALAR_FEATURES
+
     def __init__(self):
         super().__init__()
         self.entity = nn.Sequential(nn.Linear(len(ENTITY_FEATURES) * 5, 64), nn.Tanh())
-        self.scalar = nn.Sequential(nn.Linear(len(SCALAR_FEATURES) * 5 + 6, 128), nn.Tanh())
+        self.scalar = nn.Sequential(nn.Linear(len(self.scalar_features) * 5 + 6, 128), nn.Tanh())
         self.core = RecurrentCore(512, 256)
         self.objective = nn.Linear(256, 7)
         self.target = nn.Sequential(nn.Linear(256 + 64, 64), nn.Tanh(), nn.Linear(64, 1))
@@ -62,11 +67,11 @@ class StarCraftPolicy(nn.Module):
 
     def forward(self, belief, memory):
         state = belief.shared
-        if state.feature_version not in {FEATURE_VERSION, LIVE_FEATURE_VERSION}:
+        if state.feature_version not in self.supported_features:
             raise ValueError("Unsupported neural feature schema")
         device = next(self.parameters()).device
         features = {f.name: f for f in state.features}
-        scalar = [v for name in SCALAR_FEATURES for v in feature_vector(features.get(name))]
+        scalar = [v for name in self.scalar_features for v in feature_vector(features.get(name))]
         capabilities = dict(state.capabilities)
         scalar += [state.time_seconds / 3600, state.elapsed_seconds / 2] + [
             float(capabilities.get(name, False))

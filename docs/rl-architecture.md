@@ -1,5 +1,11 @@
 # Belief-state reinforcement learning architecture
 
+Current implementation, 2026-11-07: the [independent strategy/economy revision](rl-independent-training.md)
+replaces the hybrid director contract with 53 logits for army intent, target,
+immediate macro action and gas staffing. It retains the two-layer GRU architecture
+and shared fact stream. The v0 contract below documents the original experiment;
+its checkpoints and results are preserved, not migrated into the new action space.
+
 Version 0.3 — 2026-10-31. **Two-layer prototype implemented; first trained checkpoint rejected for promotion.**
 
 Implementation update: the user authorized the offline foundation and then the

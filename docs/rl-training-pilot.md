@@ -1,5 +1,10 @@
 # Local recurrent PPO pilot
 
+This document records the original hybrid. Current work uses the
+[independent strategy/economy controller and Easy curriculum](rl-independent-training.md).
+The `train` command is the default path forward; `pilot` explicitly retains the
+historical rule-assisted director experiment described here.
+
 The user authorized implementing and running the remaining RL prototype on
 2026-10-31. This extends the [foundation](rl-implementation.md) with a small
 neural policy, richer player-view inputs, complete episode collection, an owned

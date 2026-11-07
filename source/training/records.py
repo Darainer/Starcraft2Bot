@@ -65,6 +65,15 @@ class TransitionV1:
         if type(self.decision_index) is not int or self.decision_index < 0:
             raise ValueError("Invalid decision index")
         before, after, sampled = self.before.assessment, self.after.assessment, self.decoded.sampled
+        if sampled.action_version == "strategy-economy-action-v1":
+            from source.games.starcraft2.learned_actions import DECODER_VERSION, FEATURE_VERSION
+
+            if (
+                self.before.shared.feature_version != FEATURE_VERSION
+                or self.after.shared.feature_version != FEATURE_VERSION
+                or self.decoded.decoder_version != DECODER_VERSION
+            ):
+                raise ValueError("Independent transition has incompatible feature/decoder versions")
         if (sampled.based_on, sampled.sampled_at) != (before.version, before.time):
             raise ValueError("Transition must retain the sampling observation")
         if sampled.target_ids != tuple(t.id if t else None for t in self.before.targets):

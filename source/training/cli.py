@@ -20,7 +20,7 @@ from source.games.starcraft2.environment import LocalEnvironment, live_client_co
 from source.games.starcraft2.model import StarCraftPolicy
 from source.runtime import inspect_installation, resolve_map
 from source.strategy_profiles import COMPOSITION, PROFILES
-from source.training.checkpoints import load_checkpoint, save_checkpoint
+from source.training.checkpoints import load_checkpoint, restore_optimizer, save_checkpoint
 from source.training.collector import EpisodeWriter, atomic_json, digest, load_episode
 from source.training.ppo import PPOConfig, update
 from source.training.records import Outcome, TransitionV1
@@ -77,16 +77,36 @@ def scenario_metadata(config, installation, map_path, policy_id, split):
     }
 
 
-def collect(config, installation, map_path, output, model, policy_id, split, controller="policy"):
+def collect(
+    config, installation, map_path, output, model, policy_id, split, controller="policy", *, resume=False
+):
     output = Path(output)
-    output.mkdir(parents=True, exist_ok=False)
+    output.mkdir(parents=True, exist_ok=resume)
     settings = AssistantSettings.load(ROOT / "config/assistant.example.json")
     settings.profile = config["profile"]
     for name in COMPOSITION:
         setattr(settings, name, PROFILES[settings.profile][name])
     metadata = scenario_metadata(config, installation, map_path, policy_id, split)
-    results = []
-    for repeat in range(config["repeats"]):
+    sampler = sample_action
+    if controller == "learned":
+        from source.games.starcraft2.learned_actions import sample_action as learned_sample
+
+        sampler = learned_sample
+    results = (
+        json.loads((output / "summary.json").read_text())
+        if resume and (output / "summary.json").exists()
+        else []
+    )
+    if len(results) > config["repeats"]:
+        raise ValueError("Saved collection exceeds the frozen repeat count")
+    for previous in results:
+        saved, _ = load_episode(output / previous["episode_id"] / "rollout", split=split)
+        if any(
+            saved.get(k) != v
+            for k, v in {**metadata, "game_seed": config["seed"], "python_seed": config["seed"]}.items()
+        ):
+            raise ValueError("Resume would mix frozen collection identities")
+    for repeat in range(len(results), config["repeats"]):
         random.seed(config["seed"])
         rng = random.Random(config["policy_seed"])
         env = LocalEnvironment(installation, map_path, output, settings=settings, controller=controller)
@@ -113,7 +133,7 @@ def collect(config, installation, map_path, output, model, policy_id, split, con
                 repeat + 1,
                 manifest["initial_state_sha256"],
             )
-            if controller == "policy":
+            if controller != "rule":
                 writer = EpisodeWriter(env.episode_directory / "rollout", manifest)
                 memory = model.core.initial()
                 model.eval()
@@ -122,10 +142,10 @@ def collect(config, installation, map_path, output, model, policy_id, split, con
             index = 0
             while True:
                 before = belief
-                sample = sample_action(logits.tolist(), belief, rng) if controller == "policy" else None
+                sample = sampler(logits.tolist(), belief, rng) if controller != "rule" else None
                 belief, _, terminated, truncated, event = env.step(sample)
                 outcome = event["outcome"]
-                if controller == "policy":
+                if controller != "rule":
                     next_value = None
                     if outcome.bootstrap:
                         began = time.perf_counter()
@@ -147,7 +167,14 @@ def collect(config, installation, map_path, output, model, policy_id, split, con
                         tuple(item["id"] for item in event["issued"]),
                         tuple(item["id"] for item in event["effects"]),
                     )
-                    writer.append(record, {"issued": event["issued"], "observed": event["effects"]})
+                    writer.append(
+                        record,
+                        {
+                            "issued": event["issued"],
+                            "observed": event["effects"],
+                            "macro": event.get("macro_feedback", []),
+                        },
+                    )
                     if outcome.reason == "running":
                         memory, logits, value, output_memory = (
                             output_memory,
@@ -188,7 +215,8 @@ def collect(config, installation, map_path, output, model, policy_id, split, con
                     error=str(exc),
                 )
             atomic_json(
-                output / "failure.json", {"error": f"{type(exc).__name__}: {exc}", "completed": results}
+                output / f"failure-{env.episode_id}.json",
+                {"error": f"{type(exc).__name__}: {exc}", "completed": results},
             )
             raise
         finally:
@@ -309,13 +337,14 @@ def pilot(config, installation, map_path, output):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=["pilot", "benchmark"])
-    parser.add_argument("--config", type=Path, default=ROOT / "config/training/pilot.json")
+    parser.add_argument("command", choices=["train", "pilot", "benchmark"])
+    parser.add_argument("--config", type=Path)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--sc2-path", type=Path)
     parser.add_argument("--map-file", type=Path)
     parser.add_argument("--checkpoint", type=Path)
     parser.add_argument("--episode", type=Path)
+    parser.add_argument("--resume", action="store_true", help="Resume the same frozen independent curriculum")
     args = parser.parse_args(argv)
     torch.set_num_threads(1)
     if args.command == "benchmark":
@@ -325,17 +354,161 @@ def main(argv=None):
         _, records = load_episode(args.episode)
         atomic_json(args.output, benchmark(model, records))
         return
-    config = validate_config(json.loads(args.config.read_text(encoding="utf-8")))
+    config_path = args.config or ROOT / "config/training" / (
+        "easy.json" if args.command == "train" else "pilot.json"
+    )
+    config = validate_config(json.loads(config_path.read_text(encoding="utf-8")))
     args.output.parent.mkdir(parents=True, exist_ok=True)
     logger.remove()
     logger.add(args.output.parent / (args.output.name + ".log"), level="INFO")
     try:
         install = inspect_installation(args.sc2_path)
         map_path = resolve_map(install, "BelShirVestigeLE", args.map_file)
-        pilot(config, install, map_path, args.output)
+        if args.command == "train":
+            train(config, install, map_path, args.output, resume=args.resume)
+        else:
+            pilot(config, install, map_path, args.output)
     except Exception as exc:
         logger.exception("Training pilot failed: {}", exc)
         raise SystemExit(str(exc)) from exc
+
+
+def train(config, installation, map_path, output, *, resume=False):
+    """Bounded Easy curriculum with separate development worlds and resumable Adam.
+
+    Completed episodes/checkpoints are immutable. Interrupted episodes stay
+    quarantined; resume collects only missing repeats under the original source.
+    There is no hardcoded-policy reference or promotion gate in this track.
+    """
+    from source.games.starcraft2.learned_model import LearnedPolicy
+
+    validate_config(config)
+    if (
+        config["opponent"]["difficulty"] != "Easy"
+        or config["repeats"] != 3
+        or type(config.get("iterations")) is not int
+        or not 1 <= config["iterations"] <= 100
+        or type(config.get("development_seed")) is not int
+        or not 0 <= config["development_seed"] <= 0xFFFFFFFF
+        or config["development_seed"] in range(config["seed"], config["seed"] + config["iterations"])
+        or config["seed"] + config["iterations"] > 0xFFFFFFFF
+        or config["policy_seed"] + 10000 + config["iterations"] > 0xFFFFFFFF
+    ):
+        raise ValueError(
+            "Independent curriculum requires Easy, three repeats, and separate explicit development seeds"
+        )
+    provenance = {"source_revision": repository_identity(), "lock_sha256": digest(ROOT / "uv.lock")}
+    output = Path(output)
+    output.mkdir(parents=True, exist_ok=resume)
+    frozen = output / "training-config.json"
+    context = {
+        "config": config,
+        "provenance": provenance,
+        "map_sha256": digest(map_path),
+        "executable_sha256": digest(installation.executable),
+    }
+    if frozen.exists():
+        if json.loads(frozen.read_text()) != context:
+            raise ValueError("Resume requires the original source, environment and curriculum configuration")
+    else:
+        atomic_json(frozen, context)
+    torch.set_num_threads(1)
+    initial_path = output / "initial"
+    if not initial_path.exists():
+        torch.manual_seed(config["model_seed"])
+        save_checkpoint(initial_path, LearnedPolicy(), seed=config["model_seed"], provenance=provenance)
+    model, checkpoint = load_checkpoint(initial_path)
+    optimizer = None
+    completed = []
+    ppo = PPOConfig(**config["ppo"])
+    for iteration in range(config["iterations"]):
+        directory = output / f"iteration-{iteration + 1:03d}"
+        directory.mkdir(exist_ok=True)
+        training_config = {
+            **config,
+            "seed": config["seed"] + iteration,
+            "policy_seed": config["policy_seed"] + iteration,
+        }
+        training_results = collect(
+            training_config,
+            installation,
+            map_path,
+            directory / "train",
+            model,
+            checkpoint["policy_id"],
+            "train",
+            "learned",
+            resume=resume,
+        )
+        episodes = [
+            load_episode(directory / "train" / r["episode_id"] / "rollout", split="train")
+            for r in training_results
+        ]
+        parent = checkpoint
+        trained_path = directory / "checkpoint"
+        if not trained_path.exists():
+            optimizer, metrics = update(
+                model,
+                episodes,
+                parent["policy_id"],
+                ppo,
+                seed=config["optimizer_seed"] + iteration,
+                optimizer=optimizer,
+            )
+            metrics.update(parent_policy_id=parent["policy_id"], iteration=iteration + 1)
+            save_checkpoint(
+                trained_path,
+                model,
+                seed=config["model_seed"],
+                optimizer_steps=parent["optimizer_steps"] + metrics["optimizer_steps"],
+                training=metrics,
+                optimizer=optimizer,
+                provenance=provenance,
+            )
+        model, checkpoint = load_checkpoint(trained_path)
+        if checkpoint["training"]["parent_policy_id"] != parent["policy_id"]:
+            raise ValueError("Resumed checkpoint does not descend from this frozen rollout policy")
+        optimizer = restore_optimizer(trained_path, model, ppo)
+        development_config = {
+            **config,
+            "seed": config["development_seed"],
+            "policy_seed": config["policy_seed"] + 10000,
+        }
+        development_results = collect(
+            development_config,
+            installation,
+            map_path,
+            directory / "development",
+            model,
+            checkpoint["policy_id"],
+            "development",
+            "learned",
+            resume=resume,
+        )
+        result = {
+            "iteration": iteration + 1,
+            "parent_policy_id": parent["policy_id"],
+            "policy_id": checkpoint["policy_id"],
+            "optimizer_steps": checkpoint["optimizer_steps"],
+            "training": training_results,
+            "development": development_results,
+            "metrics": checkpoint["training"],
+            "benchmark": benchmark(model, episodes[0][1]),
+            "human_control": "not_verified",
+        }
+        atomic_json(directory / "result.json", result)
+        completed.append(result)
+        atomic_json(
+            output / "progress.json",
+            {
+                "completed_iterations": completed,
+                "latest_checkpoint": str(trained_path.relative_to(output)),
+                "difficulty": "Easy",
+                "scope": "Independent strategy/economy; fixed placement, allocation routing, scouting and unit micro",
+            },
+        )
+        del episodes
+    return completed
 
 
 if __name__ == "__main__":

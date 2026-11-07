@@ -153,6 +153,11 @@ collects complete local episodes and trains/reloads checkpoints. Its
 [first pilot](docs/evaluations/2026-10-31-rl-pilot-v1.md) failed its playing-strength
 gate; the normal assistant remains rule controlled. Weights and rollout artifacts
 stay in ignored local storage.
+The [independent learned strategy/economy path](docs/rl-independent-training.md)
+now chooses explicit macro actions and gas staffing, with direct guarded army
+intent and a resumable Easy curriculum. It bypasses the hardcoded director and
+economic priorities while sharing declared placement, scouting and unit-micro
+skills. Use the training CLI's `train` command; `pilot` retains the archived hybrid.
 The separate [RL training plan](docs/rl-training-plan.md) covers teacher data,
 public opponents, headless Linux containers, patch compatibility and rollout
 throughput. [Winning-bot research](docs/research/winning-bot-tactics.md) supplies

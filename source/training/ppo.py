@@ -46,7 +46,11 @@ class PPOConfig:
 
 def masked_statistics(logits, sampled):
     """Differentiable counterpart to the reference sampler's stored distribution."""
-    offsets = (0, 7, 23, 30, 34)
+    offsets = [0]
+    for width in sampled.masks.widths:
+        offsets.append(offsets[-1] + width)
+    if logits.numel() != offsets[-1]:
+        raise ValueError("Logits differ from the recorded action contract")
     probabilities, entropies = [], []
     for h, index in enumerate(sampled.action.indices):
         if not sampled.masks.active[h]:
@@ -79,7 +83,7 @@ def advantages(records, config):
     return result, [a + r.value_estimate for a, r in zip(result, records, strict=True)]
 
 
-def update(model, episodes, policy_id, config=None, seed=0):
+def update(model, episodes, policy_id, config=None, seed=0, optimizer=None):
     config = config or PPOConfig()
     if not episodes or any(
         manifest["policy_id"] != policy_id or manifest["split"] != "train" for manifest, _ in episodes
@@ -87,6 +91,8 @@ def update(model, episodes, policy_id, config=None, seed=0):
         raise ValueError("PPO rejects foreign policy versions and non-training splits")
     rows, chunks = [], []
     for _manifest, records in episodes:
+        if any(r.before.shared.feature_version not in model.supported_features for r in records):
+            raise ValueError("PPO rejects incompatible feature/action contracts")
         if any(r.policy_id != policy_id for r in records):
             raise ValueError("Mixed policy versions inside episode")
         adv, returns = advantages(records, config)
@@ -94,7 +100,11 @@ def update(model, episodes, policy_id, config=None, seed=0):
         chunks.extend((len(rows) - 1, start) for start in range(0, len(records), config.sequence_length))
     flattened = torch.tensor([a for _, adv, _ in rows for a in adv])
     mean, scale = flattened.mean().item(), max(flattened.std(unbiased=False).item(), 1e-8)
-    optimizer = torch.optim.Adam(model.parameters(), lr=config.learning_rate)
+    optimizer = optimizer or torch.optim.Adam(model.parameters(), lr=config.learning_rate)
+    if {id(p) for group in optimizer.param_groups for p in group["params"]} != {
+        id(p) for p in model.parameters()
+    }:
+        raise ValueError("Optimizer does not belong to this model")
     rng = random.Random(seed)
     model.train()
     metrics = []

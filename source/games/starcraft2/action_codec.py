@@ -149,6 +149,11 @@ class DecodeResult:
     def from_dict(cls, data):
         from source.strategic_plan import MissionSpec
 
+        sample_type = SampledAction
+        if data["sampled"]["action_version"] == "strategy-economy-action-v1":
+            from source.games.starcraft2.learned_actions import LearnedSample
+
+            sample_type = LearnedSample
         plan = dict(data["plan"])
         plan["missions"] = tuple(MissionSpec(**{**m, "target": tuple(m["target"])}) for m in plan["missions"])
         for key in ("production", "scores"):
@@ -156,10 +161,10 @@ class DecodeResult:
         for key in ("scouting_requests", "response_evidence"):
             plan[key] = tuple(plan[key])
         return cls(
-            SampledAction.from_dict(data["sampled"]),
+            sample_type.from_dict(data["sampled"]),
             StrategicPlan(**plan),
             tuple(data["override_reasons"]),
-            ActionMasks(
+            sample_type.masks_type(
                 tuple(tuple(h) for h in data["execution_masks"]["heads"]),
                 tuple(data["execution_masks"]["active"]),
             ),

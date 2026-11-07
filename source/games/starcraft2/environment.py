@@ -127,11 +127,14 @@ class EnvironmentDirector:
         self.history = deque(maxlen=32)
         self.sequence = 0
         self.blocked = {}
-        self.rule = StrategicDirector()
+        self.rule = StrategicDirector() if environment.controller == "rule" else None
 
     def report_failure(self, target, now):
+        if self.environment.controller == "learned":
+            return
         self.blocked[target] = now + 30
-        self.rule.report_failure(target, now)
+        if self.rule is not None:
+            self.rule.report_failure(target, now)
 
     def decide(self, assessment):
         bot, environment = self.bot, self.environment
@@ -150,6 +153,10 @@ class EnvironmentDirector:
             issued=issued,
             effects=effects,
         )
+        macro_feedback = []
+        if environment.controller == "learned":
+            belief = bot.macro_skill.observe(bot, belief)
+            macro_feedback, bot.macro_skill.feedback = bot.macro_skill.feedback, []
         bot.previous_decision = assessment.time
         environment.events.put(
             {
@@ -159,6 +166,7 @@ class EnvironmentDirector:
                 "issued": issued,
                 "effects": effects,
                 "manifest": bot.manifest,
+                "macro_feedback": macro_feedback,
             }
         )
         environment.lease.release()
@@ -175,7 +183,14 @@ class EnvironmentDirector:
                 assessment.time,
             ):
                 raise ValueError("Environment action must match the current sampling observation")
-            bot.last_decoded = decode(sample, belief, self.sequence)
+            decoder = decode
+            if environment.controller == "learned":
+                from source.games.starcraft2.learned_actions import decode as learned_decode
+
+                decoder = learned_decode
+            bot.last_decoded = decoder(sample, belief, self.sequence)
+            if environment.controller == "learned":
+                bot.macro_skill.propose(bot.last_decoded)
             plan = bot.last_decoded.plan
         self.active = plan
         self.history.append({"time": assessment.time, "objective": plan.objective, "reason": plan.reason})
@@ -186,12 +201,47 @@ class TrainingAssistant(RuntimeAssistant):
     def __init__(self, settings, report, environment):
         super().__init__(settings, report)
         self.environment = environment
+        if environment.controller == "learned":
+            from source.games.starcraft2.learned_execution import (
+                DisabledReinforcement,
+                LearnedTactics,
+                MacroSkill,
+            )
+
+            self.tactics = LearnedTactics()
+            self.macro_skill = MacroSkill()
+            self.reinforcement = DisabledReinforcement()
         self.tactics.director = EnvironmentDirector(self, environment)
         self.previous_decision = None
         self.last_decoded = None
         self.issued = []
         self.effects = Effects()
         self.manifest = None
+
+    async def on_tactical_step(self):
+        if self.environment.controller != "learned":
+            return await super().on_tactical_step()
+        started = time.perf_counter()
+        if self._last_decision is None or self.time - self._last_tactics >= 2:
+            self._last_tactics = self.time
+            self._last_scouting = self.scouting.tick(self)
+            await self.macro_skill.refresh(self)
+            self._last_decision = self.tactics.tick(self)
+        if self.time - self._last_micro >= 0.125:
+            self._last_micro = self.time
+            self._micro_decisions.extend(self.tactics.micro(self))
+            self._micro_decisions = self._micro_decisions[-512:]
+        self._tactical_ms = round((time.perf_counter() - started) * 1000, 3)
+
+    async def macro(self):
+        if self.environment.controller == "learned":
+            return await self.macro_skill.execute(self)
+        return await super().macro()
+
+    async def allocate_workers(self):
+        if self.environment.controller == "learned":
+            return await self.macro_skill.allocate(self)
+        return await super().allocate_workers()
 
     def issue(self, command, paid=False, supply=False, scout_order=False):
         accepted = super().issue(command, paid=paid, supply=supply, scout_order=scout_order)
@@ -253,6 +303,21 @@ class TrainingAssistant(RuntimeAssistant):
             "decision_cadence": "existing_two_seconds_or_signature_invalidation",
             "time_unit": "game_seconds",
         }
+        if self.environment.controller == "learned":
+            from source.games.starcraft2 import learned_actions
+            from source.games.starcraft2.learned_model import MODEL_VERSION as LEARNED_MODEL_VERSION
+
+            self.manifest.update(
+                core_version=LEARNED_MODEL_VERSION,
+                adapter_version=learned_actions.FEATURE_VERSION,
+                feature_version=learned_actions.FEATURE_VERSION,
+                action_version=learned_actions.ACTION_VERSION,
+                mask_version=learned_actions.MASK_VERSION,
+                decoder_version=learned_actions.DECODER_VERSION,
+                executor_version=learned_actions.EXECUTOR_VERSION,
+                controller="independent_strategy_economy",
+                decision_cadence="fixed_two_game_seconds_rounded_to_api_step",
+            )
 
     async def on_end(self, result):
         if self.environment.closed.is_set() or self.report.data.get("bot_error"):
@@ -269,6 +334,8 @@ class TrainingAssistant(RuntimeAssistant):
                 issued=self.issued,
                 effects=effects,
             )
+            if self.environment.controller == "learned":
+                belief = self.macro_skill.observe(self, belief)
             reason = {Result.Victory: "victory", Result.Defeat: "defeat", Result.Tie: "draw"}.get(result)
             if reason is None:
                 raise RuntimeError(f"Unresolved game result: {result}")
@@ -284,6 +351,9 @@ class TrainingAssistant(RuntimeAssistant):
                     "issued": self.issued,
                     "effects": effects,
                     "manifest": self.manifest,
+                    "macro_feedback": self.macro_skill.feedback
+                    if self.environment.controller == "learned"
+                    else [],
                 }
             )
         except Exception as exc:
@@ -304,7 +374,7 @@ class LocalEnvironment:
         runtime=run_session,
         lease=None,
     ):
-        if controller not in {"policy", "rule"}:
+        if controller not in {"policy", "rule", "learned"}:
             raise ValueError("Unsupported environment controller")
         self.installation, self.map_path, self.output = installation, Path(map_path), Path(output)
         self.settings = settings or AssistantSettings(attack=True, profile="pressure")

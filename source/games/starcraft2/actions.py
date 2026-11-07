@@ -44,6 +44,7 @@ class DirectorActionV0:
 
 @dataclass(frozen=True)
 class ActionMasks:
+    widths = HEAD_WIDTHS
     heads: tuple[tuple[bool, ...], ...]
     active: tuple[bool, ...]
 
@@ -52,7 +53,7 @@ class ActionMasks:
             raise ValueError("Invalid immutable head masks")
         if len(self.heads) != 4 or any(type(active) is not bool for active in self.active):
             raise ValueError("Invalid head usage")
-        for mask, active, width in zip(self.heads, self.active, HEAD_WIDTHS, strict=True):
+        for mask, active, width in zip(self.heads, self.active, self.widths, strict=True):
             if not isinstance(mask, tuple) or len(mask) != width or not any(mask):
                 raise ValueError("Invalid or all-masked head")
             if any(type(value) is not bool for value in mask):
@@ -63,6 +64,10 @@ class ActionMasks:
 
 @dataclass(frozen=True)
 class SampledAction:
+    contract_action_version = ACTION_VERSION
+    contract_mask_version = MASK_VERSION
+    action_type = DirectorActionV0
+    masks_type = ActionMasks
     action: DirectorActionV0
     masks: ActionMasks
     logits: tuple[float, ...]
@@ -75,7 +80,12 @@ class SampledAction:
     mask_version: str = MASK_VERSION
 
     def __post_init__(self):
-        if self.action_version != ACTION_VERSION or self.mask_version != MASK_VERSION:
+        if not isinstance(self.action, self.action_type) or not isinstance(self.masks, self.masks_type):
+            raise ValueError("Action and masks differ from the sampling contract")
+        if (
+            self.action_version != self.contract_action_version
+            or self.mask_version != self.contract_mask_version
+        ):
             raise ValueError("Unsupported sampling contract")
         if not isinstance(self.logits, tuple) or not isinstance(self.head_log_probabilities, tuple):
             raise ValueError("Sampling record must be immutable")
@@ -110,18 +120,24 @@ class SampledAction:
     @classmethod
     def from_dict(cls, data):
         values = dict(data)
-        values["action"] = DirectorActionV0(**values["action"])
+        values["action"] = cls.action_type(**values["action"])
         masks = values["masks"]
-        values["masks"] = ActionMasks(tuple(tuple(head) for head in masks["heads"]), tuple(masks["active"]))
+        values["masks"] = cls.masks_type(
+            tuple(tuple(head) for head in masks["heads"]), tuple(masks["active"])
+        )
         for key in ("logits", "head_log_probabilities", "target_ids"):
             values[key] = tuple(values[key])
         return cls(**values)
 
 
-def split_logits(logits):
-    if len(logits) != 34 or any(not isfinite(value) for value in logits):
-        raise ValueError("Expected 34 finite logits")
-    return (logits[:7], logits[7:23], logits[23:30], logits[30:34])
+def split_logits(logits, widths=HEAD_WIDTHS):
+    if len(logits) != sum(widths) or any(not isfinite(value) for value in logits):
+        raise ValueError(f"Expected {sum(widths)} finite logits")
+    result, offset = [], 0
+    for width in widths:
+        result.append(logits[offset : offset + width])
+        offset += width
+    return tuple(result)
 
 
 def categorical(logits, mask):
@@ -150,7 +166,7 @@ def draw(logits, mask, rng):
 def head_log_probabilities(logits, action, masks):
     result = []
     for values, index, mask, active in zip(
-        split_logits(logits), action.indices, masks.heads, masks.active, strict=True
+        split_logits(logits, masks.widths), action.indices, masks.heads, masks.active, strict=True
     ):
         if not mask[index]:
             raise ValueError("Action is masked")

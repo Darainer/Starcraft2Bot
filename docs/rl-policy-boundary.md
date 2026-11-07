@@ -1,5 +1,11 @@
 # Parallel rule and learned policy tracks
 
+Implemented follow-up, 2026-11-07: the [independent strategy/economy controller](rl-independent-training.md)
+bypasses rule candidate generation, strategic composition, automatic economic
+spending and mission-level attack/retreat judgments. It adds explicit macro and
+gas staffing actions and an independent resumable Easy curriculum. The audit
+below describes the archived hybrid and the reasoning for this revised boundary.
+
 Architecture review, 2026-10-31. The user requested one hardcoded policy, developed
 elsewhere, and a learned policy maintained as a parallel track. The learned track
 starts its curriculum against Easy opponents. Its training progress, checkpoints
@@ -69,7 +75,8 @@ track enter RL through a separately frozen environment revision and evaluation.
 
 ## Control scope for the revision
 
-The model's intended control scope is being clarified with the user. These are
+The implemented next scope is strategy and economy with declared fixed execution
+skills. These are
 distinct experiments and should carry different action/decoder versions:
 
 | Scope | Learned decisions | Fixed behavior |
@@ -99,5 +106,5 @@ they are not relabeled as experience from the revised policy.
   sampling masks and original outcomes accompany each frozen batch. All live
   workers share the global eight-client limit and existing ownership safeguards.
 
-New Easy training follows the clarified control scope. The design audit itself
+New Easy training uses the implemented strategy/economy contract. The original design audit itself
 changes no gameplay code or existing checkpoint.

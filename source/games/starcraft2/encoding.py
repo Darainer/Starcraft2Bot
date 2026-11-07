@@ -65,6 +65,7 @@ class BeliefStateV1:
     target_overflow: int
     schema_version: str = "sc2-belief-state-v1"
     domain_ontology_version: str = ONTOLOGY_ID
+    macro_mask: tuple[bool, ...] = ()
 
     def to_dict(self):
         result = asdict(self)
@@ -93,6 +94,7 @@ class BeliefStateV1:
             data["target_overflow"],
             schema_version=data["schema_version"],
             domain_ontology_version=data["domain_ontology_version"],
+            macro_mask=tuple(data.get("macro_mask", ())),
         )
 
 
