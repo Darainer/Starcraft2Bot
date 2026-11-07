@@ -1,5 +1,11 @@
 # Independent learned strategy and economy
 
+The [completed first Easy run](evaluations/2026-11-07-rl-independent-easy-v1.md)
+records twelve defeats, 2,055 training transitions, 81 optimizer updates and a
+verified resume. The pipeline ran; playing-strength improvement remains unproven.
+Resuming an existing frozen budget works. Starting another budget from a trained
+checkpoint has not been implemented.
+
 Implemented 2026-11-07 on the RL branch. The learned controller now owns its
 economic actions as well as army intent. It runs alongside the separately
 developed hardcoded policy; neither is a prerequisite or teacher for the other.

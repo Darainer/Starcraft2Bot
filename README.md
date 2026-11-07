@@ -158,6 +158,9 @@ now chooses explicit macro actions and gas staffing, with direct guarded army
 intent and a resumable Easy curriculum. It bypasses the hardcoded director and
 economic priorities while sharing declared placement, scouting and unit-micro
 skills. Use the training CLI's `train` command; `pilot` retains the archived hybrid.
+The [first independent Easy run](docs/evaluations/2026-11-07-rl-independent-easy-v1.md)
+completed twelve games and 81 optimizer updates, with no wins or demonstrated
+playing-strength gain.
 The separate [RL training plan](docs/rl-training-plan.md) covers teacher data,
 public opponents, headless Linux containers, patch compatibility and rollout
 throughput. [Winning-bot research](docs/research/winning-bot-tactics.md) supplies

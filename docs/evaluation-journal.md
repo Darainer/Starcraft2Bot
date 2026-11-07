@@ -1,5 +1,18 @@
 # Evaluation journal and opponent assessment
 
+## 2026-11-07: independent learned strategy/economy on Easy
+
+The [first independent RL run](evaluations/2026-11-07-rl-independent-easy-v1.md)
+completed twelve Easy Terran Rush games at frozen source `3b05de3`: six training
+and six development episodes, all defeats. PPO used 2,055 training transitions
+and produced two reloaded checkpoints after 54 then 27 updates; the second round
+hit the KL stop. All starting fingerprints matched within each three-repeat
+group. Resume preserved episode/checkpoint hashes and the 81-update count while
+launching no new games. No playing-strength improvement or human-control
+acceptance is claimed. The report records economic execution failures, CPU/RSS
+measurements and the remaining continuation/evaluation work. Work stopped after
+publication, as requested.
+
 ## 2026-10-31: first recurrent PPO infrastructure pilot
 
 The [frozen RL pilot](evaluations/2026-10-31-rl-pilot-v1.md) ran three initial-policy,
