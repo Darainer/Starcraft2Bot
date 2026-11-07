@@ -1,0 +1,14 @@
+{
+  "profile": "pressure",
+  "opponent": {"race": "Terran", "difficulty": "VeryHard", "build": "Rush"},
+  "repeats": 3,
+  "seed": 31,
+  "policy_seed": 101,
+  "model_seed": 17,
+  "optimizer_seed": 23,
+  "step_size": 32,
+  "time_limit": 3600,
+  "capacity_wait_seconds": 3600,
+  "ppo": {"epochs": 2, "sequence_length": 32, "burn_in": 8,
+          "learning_rate": 0.0003, "gamma_seconds": 1800, "gae_seconds": 600}
+}

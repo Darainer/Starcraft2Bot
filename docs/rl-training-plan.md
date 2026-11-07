@@ -1,11 +1,22 @@
 # RL training and environment plan
 
-Version 0.2, 2026-10-31. **Training design; implementation follows the hardcoded
-bot milestone.** Use headless Linux containers as the eventual rollout target,
+Implementation update, 2026-10-31: the user authorized the offline contracts and
+then the full local research prototype. The [first recurrent PPO pilot](rl-training-pilot.md)
+collected real episodes, trained/reloaded a checkpoint and failed its targeted
+win-rate gate. The rule-bot acceptance and frozen expert-teacher gates below remain
+unfulfilled. The pilot used no imitation and makes no deployment/strength claim.
+
+Current scope, 2026-11-07: [independent learned strategy and economy](rl-independent-training.md)
+trains against Easy in parallel with hardcoded policy development. The native
+Windows collector and resumable PPO runner are implemented. Linux remains a
+future environment target. The historical BC-first stages below apply only if
+an accepted teacher is introduced; they do not gate from-scratch RL.
+
+Version 0.2 design, 2026-10-31. Use headless Linux containers as the eventual rollout target,
 subject to game-domain validation and a measured throughput pilot. Keep native
 Windows retail play as the current acceptance authority.
 
-The prerequisite is the [hardcoded milestone](hardcoded-elite-milestone.md):
+For optional expert imitation, the prerequisite is the [hardcoded milestone](hardcoded-elite-milestone.md):
 built-in AI reliability followed by established community opponents, with frozen
 source and reproducible acceptance. The current bot is not an accepted expert.
 After acceptance, freeze the teacher before collecting imitation data. The
@@ -17,7 +28,7 @@ The approved [two layer design](game-agnostic-architecture.md) places doctrine a
 recurrent reasoning in a game-agnostic core. StarCraft owns its domain beliefs,
 semantic encoder, policy/value heads, action decoder and environment. Training
 orchestration records and updates this composed policy; it is not a third policy
-layer. The first learner is trained on SC2 after the hardcoded gate. Another game
+layer. The learner trains on its own SC2 curriculum. Another game
 requires its own adapter and measured transfer, rather than a renamed SC2 schema.
 
 ## Recommended deployment

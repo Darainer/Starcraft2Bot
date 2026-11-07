@@ -1,0 +1,552 @@
+{
+  "schema_version": "rl-independent-evidence-v1",
+  "date": "2026-11-07",
+  "provenance": {
+    "source_revision": "3b05de3b7fa7fe721af056c477b383c1250ddf58",
+    "lock_sha256": "11b57f168178bd473cc908dcfd35efe50ad1af0e76560b488c11474568c4cc69"
+  },
+  "config": {
+    "profile": "pressure",
+    "opponent": {
+      "race": "Terran",
+      "difficulty": "Easy",
+      "build": "Rush"
+    },
+    "iterations": 2,
+    "repeats": 3,
+    "seed": 31,
+    "development_seed": 131,
+    "policy_seed": 101,
+    "model_seed": 17,
+    "optimizer_seed": 23,
+    "step_size": 32,
+    "time_limit": 3600,
+    "capacity_wait_seconds": 3600,
+    "ppo": {
+      "epochs": 2,
+      "sequence_length": 32,
+      "burn_in": 8,
+      "learning_rate": 5e-05,
+      "gamma_seconds": 1800,
+      "gae_seconds": 600
+    }
+  },
+  "environment": {
+    "map_sha256": "9cb078a287c76c0b55e3bc137b0e4590415231367d7c5724ab1bfd24a06a1d1e",
+    "executable_sha256": "541a027834eb1c9d0004baa24568e3b07670df479f17256b475609a9158ac9f4",
+    "ping": {
+      "game_version": "5.0.17.98310",
+      "base_build": 98310,
+      "data_build": 98310,
+      "data_version": "9C1F3D3D30CA252E33FC67CA05CBE1EA"
+    },
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.10",
+    "burnysc2": "7.3.0",
+    "pys2clientprotocol": "1.0.2",
+    "protobuf": "7.36.2",
+    "torch": "2.15.0+cpu"
+  },
+  "contracts": {
+    "feature_version": "sc2-strategy-economy-features-v1",
+    "action_version": "strategy-economy-action-v1",
+    "decoder_version": "sc2-strategy-economy-decoder-v1",
+    "executor_version": "sc2-placement-allocation-micro-v1",
+    "mask_version": "sc2-mechanical-masks-v1",
+    "normalization_version": "sc2-fixed-scales-v1",
+    "shared_ontology": "strategic-semantics-v1",
+    "domain_ontology": "sc2-public-beliefs-v1",
+    "reward_version": "terminal-win-loss-v1"
+  },
+  "validation": {
+    "synthetic_tests": 652,
+    "combined_coverage_percent": 87.9,
+    "locked_sync": true,
+    "lint": true,
+    "format": true,
+    "mypy": true,
+    "build": true,
+    "neural_recomputation_samples": 36,
+    "maximum_recomputed_logit_error": 0,
+    "maximum_recomputed_value_error": 0,
+    "training_episodes": 6,
+    "development_episodes": 6,
+    "development_excluded_from_updates": true,
+    "all_start_fingerprints_match_within_groups": true,
+    "zero_initial_memory_all_episodes": true,
+    "compatibility_audit_passed_all_episodes": true,
+    "complete_replays": 12
+  },
+  "checkpoints": [
+    {
+      "label": "initial",
+      "policy_id": "e18e08fb6dc14c0774fbb5739ffbe79d0d1c19b502c75272ec8c7927bccd7aaf",
+      "model_version": "sc2-strategy-economy-gru256-v1",
+      "parameters": 710375,
+      "core_sha256": "ffdb93f790137b108cade5386b086b3b76dfa600fbfa371f1701d2b7e033ab30",
+      "adapter_sha256": "c5bb2f2b7e87aa613f1a42202a6d5fe7d68a96ff5be087db7c5b133efbd2034c",
+      "optimizer_steps": 0
+    },
+    {
+      "label": "iteration-001",
+      "policy_id": "1d48e9a93972c04092ac62666a597f145a6d4728eb57dfe3c4a04147ce8cb254",
+      "model_version": "sc2-strategy-economy-gru256-v1",
+      "parameters": 710375,
+      "core_sha256": "e9fe78a39771b7cba3f688b3df5895668052b0a4c55b75892a8c31c1d0990e0b",
+      "adapter_sha256": "1214801fcab7a45902a23a927a1534be5d5f3fcf945e91c9144e6b59e5fff9b9",
+      "optimizer_steps": 54,
+      "optimizer_sha256": "472657d4c66e908a1d088cda1c905547949dc6b9e74cf63d65f406127b5260d0",
+      "parent_policy_id": "e18e08fb6dc14c0774fbb5739ffbe79d0d1c19b502c75272ec8c7927bccd7aaf",
+      "training_episode_ids": [
+        "2ca6339477464df7",
+        "1b7956b3ebd1482a",
+        "711c60c5dd154413"
+      ],
+      "transitions": 822,
+      "round_optimizer_steps": 54,
+      "kl_early_stop": false,
+      "maximum_recorded_kl": 0.01874777488410473,
+      "last_recorded_kl": 0.010825758799910545
+    },
+    {
+      "label": "iteration-002",
+      "policy_id": "6eced0d7b18fe5c77859b02af66e96bd75fe34dcd340ee09e28a0148ef1dd118",
+      "model_version": "sc2-strategy-economy-gru256-v1",
+      "parameters": 710375,
+      "core_sha256": "ee93e9378894e36b1b2bfbdc9089e64465edcb109fdda72995e40e697c002f63",
+      "adapter_sha256": "f4e2bc8fe38e8c1286a4f62b4d08e2091d69b6306b5d3500ad1be2694953b416",
+      "optimizer_steps": 81,
+      "optimizer_sha256": "2fc846baa78aae4fe656eac414bac14be4c2130d0b8c502bc065f8aebf56df23",
+      "parent_policy_id": "1d48e9a93972c04092ac62666a597f145a6d4728eb57dfe3c4a04147ce8cb254",
+      "training_episode_ids": [
+        "08d79d1b4f034cbe",
+        "4556385652e34bbb",
+        "c8fd9463872447d5"
+      ],
+      "transitions": 1233,
+      "round_optimizer_steps": 27,
+      "kl_early_stop": true,
+      "maximum_recorded_kl": 0.056100573390722275,
+      "last_recorded_kl": 0.056100573390722275
+    }
+  ],
+  "groups": [
+    {
+      "iteration": "iteration-001",
+      "split": "development",
+      "total_transitions": 1611,
+      "outcomes": {
+        "defeat": 3
+      },
+      "policy_id": "1d48e9a93972c04092ac62666a597f145a6d4728eb57dfe3c4a04147ce8cb254",
+      "initial_state_sha256": "6776918cf242fe63c022eb1cb612b6cf28470c5a2d498fb55da07b4f4c376341",
+      "game_seed": 131,
+      "policy_seed": 10101,
+      "compatibility_commands": 59,
+      "episodes": [
+        {
+          "episode_id": "f2e23fc94cf84018",
+          "outcome": "defeat",
+          "game_seconds": 1534.2857142857144,
+          "wall_seconds": 107.95940070017241,
+          "decisions": 537,
+          "max_workers": 47,
+          "max_army_supply": 30.0,
+          "decoder_overrides": 0,
+          "rollout_sha256": "35148d3b496d7d5825828cfcb010c873863f3192fb64c55b10e1be3760e87d34",
+          "runtime_sha256": "362efebf635d93180f12199e3d3f866d1f78a2369126ef1a65c41d0ab7a79e9a",
+          "replay_sha256": "5e056504c8d0db51ae633e167b784829299b829b1199f13d525f0c76cf5b8657",
+          "sampled_action_rejections": {
+            "880:208": 6,
+            "882:42": 5,
+            "880:44": 1
+          }
+        },
+        {
+          "episode_id": "7f79e66f306f4a36",
+          "outcome": "defeat",
+          "game_seconds": 1534.2857142857144,
+          "wall_seconds": 110.1487859999761,
+          "decisions": 537,
+          "max_workers": 47,
+          "max_army_supply": 30.0,
+          "decoder_overrides": 0,
+          "rollout_sha256": "f3fee89a6e717b519a54007c885811d55f683490f0e3f672d8378e7638e3cba2",
+          "runtime_sha256": "edc96db9a1628327473d1790dc847bf1cb58b0d7d791f29750c2cc8753edb6d4",
+          "replay_sha256": "029f9df0ff8cab2b01122d47fa8edc3b5a23182e6d1fa0e912ea34252c2d05ef",
+          "sampled_action_rejections": {
+            "880:208": 6,
+            "882:42": 5,
+            "880:44": 1
+          }
+        },
+        {
+          "episode_id": "920c9cbd550f4d77",
+          "outcome": "defeat",
+          "game_seconds": 1534.2857142857144,
+          "wall_seconds": 102.97854230017401,
+          "decisions": 537,
+          "max_workers": 47,
+          "max_army_supply": 30.0,
+          "decoder_overrides": 0,
+          "rollout_sha256": "1ac0190e94fea4a1d944a0fa4b24e3bd84a3f464bde268f61b1585f0edbd780c",
+          "runtime_sha256": "5637e97bf5cf73f797a80a996dfdbc95f8c7d739675bc36c3034475b04a603e6",
+          "replay_sha256": "2c72e3aa9bf24056d1142c3a9b1c65302cde2fe815fff9d50db7a10c976f2734",
+          "sampled_action_rejections": {
+            "880:208": 6,
+            "882:42": 5,
+            "880:44": 1
+          }
+        }
+      ],
+      "macro_feedback_counts": {
+        "assimilator/queued": 81,
+        "cybernetics_core/execution_failed": 90,
+        "forge/execution_failed": 108,
+        "forge/queued": 9,
+        "gateway/execution_failed": 168,
+        "gateway/queued": 24,
+        "nexus/execution_failed": 54,
+        "nexus/queued": 99,
+        "probe/queued": 219,
+        "pylon/execution_failed": 165,
+        "pylon/queued": 30,
+        "wait/wait": 423,
+        "zealot/queued": 141
+      }
+    },
+    {
+      "iteration": "iteration-001",
+      "split": "train",
+      "total_transitions": 822,
+      "outcomes": {
+        "defeat": 3
+      },
+      "policy_id": "e18e08fb6dc14c0774fbb5739ffbe79d0d1c19b502c75272ec8c7927bccd7aaf",
+      "initial_state_sha256": "6d2ddb4d4f759075d228f975a3fec1f52c81c3d7c6c839f1ae7aee6bd2318225",
+      "game_seed": 31,
+      "policy_seed": 101,
+      "compatibility_commands": 59,
+      "episodes": [
+        {
+          "episode_id": "2ca6339477464df7",
+          "outcome": "defeat",
+          "game_seconds": 782.8571428571429,
+          "wall_seconds": 46.58677570009604,
+          "decisions": 274,
+          "max_workers": 27,
+          "max_army_supply": 0,
+          "decoder_overrides": 0,
+          "rollout_sha256": "f5223f0b60c5f1a112dae29382a53c231f0f45949340a5e0ed29c26fbaf22f14",
+          "runtime_sha256": "edaa94f570a8f0aba333d25fb66561de85e41fec40a2001f1e43742aae444254",
+          "replay_sha256": "c6bcc183e4e4f61a3abaf46f3f6377f4bcc963d057cbf010a9d9b72da3013c10",
+          "sampled_action_rejections": {
+            "880:208": 1,
+            "882:42": 1
+          }
+        },
+        {
+          "episode_id": "1b7956b3ebd1482a",
+          "outcome": "defeat",
+          "game_seconds": 782.8571428571429,
+          "wall_seconds": 48.28667080006562,
+          "decisions": 274,
+          "max_workers": 27,
+          "max_army_supply": 0,
+          "decoder_overrides": 0,
+          "rollout_sha256": "4827a3132fae79821bbd81ee8fbbf898565bc2ff4151a5763622913134046f6f",
+          "runtime_sha256": "3b568cdc7b7ffeeb2b7eb7940cb66e0c9d4b1da2c8d36c1890b66f24ed29a924",
+          "replay_sha256": "33832a19aba2356fa91b352af321636c1ec2e3f5219b39c777eefa81930667f4",
+          "sampled_action_rejections": {
+            "880:208": 1,
+            "882:42": 1
+          }
+        },
+        {
+          "episode_id": "711c60c5dd154413",
+          "outcome": "defeat",
+          "game_seconds": 782.8571428571429,
+          "wall_seconds": 46.70572269987315,
+          "decisions": 274,
+          "max_workers": 27,
+          "max_army_supply": 0,
+          "decoder_overrides": 0,
+          "rollout_sha256": "4f7a46eaf93acf98e11045c227dfcebad944bc63f5fcac4c0a68c93467a223ef",
+          "runtime_sha256": "76e411aba715ccfe9aa3dc654b8a750e2a1b502d1ecac2215d95013fb61daf38",
+          "replay_sha256": "334d53e53e1e7c5a94a4f68406a23c92aeb23646b3f85303ddb6efc146783852",
+          "sampled_action_rejections": {
+            "880:208": 1,
+            "882:42": 1
+          }
+        }
+      ],
+      "macro_feedback_counts": {
+        "assimilator/queued": 27,
+        "forge/execution_failed": 54,
+        "forge/queued": 3,
+        "gateway/execution_failed": 114,
+        "gateway/queued": 6,
+        "ground_armor_1/queued": 3,
+        "ground_weapons_1/queued": 3,
+        "nexus/queued": 30,
+        "probe/queued": 84,
+        "pylon/execution_failed": 27,
+        "pylon/queued": 36,
+        "shields_1/queued": 3,
+        "wait/wait": 432
+      }
+    },
+    {
+      "iteration": "iteration-002",
+      "split": "development",
+      "total_transitions": 1704,
+      "outcomes": {
+        "defeat": 3
+      },
+      "policy_id": "6eced0d7b18fe5c77859b02af66e96bd75fe34dcd340ee09e28a0148ef1dd118",
+      "initial_state_sha256": "6776918cf242fe63c022eb1cb612b6cf28470c5a2d498fb55da07b4f4c376341",
+      "game_seed": 131,
+      "policy_seed": 10101,
+      "compatibility_commands": 59,
+      "episodes": [
+        {
+          "episode_id": "71933b6c8f894798",
+          "outcome": "defeat",
+          "game_seconds": 1621.4285714285716,
+          "wall_seconds": 112.23449309985153,
+          "decisions": 568,
+          "max_workers": 50,
+          "max_army_supply": 28.0,
+          "decoder_overrides": 0,
+          "rollout_sha256": "63e3f8c8b45d661ab4a389475c355530c344d79bbc5a013c9f277c2713f9ee76",
+          "runtime_sha256": "e0935dda075a037300a2fcb37677e60422cd1caa86b47afe590101c3038e3039",
+          "replay_sha256": "d047445fbd9a8801a38974c65603611a95a637038672c8a71cf24400d2797c97",
+          "sampled_action_rejections": {
+            "880:208": 9,
+            "882:42": 8,
+            "880:44": 2
+          }
+        },
+        {
+          "episode_id": "0ed66f37eefe4b43",
+          "outcome": "defeat",
+          "game_seconds": 1621.4285714285716,
+          "wall_seconds": 114.11836189986207,
+          "decisions": 568,
+          "max_workers": 50,
+          "max_army_supply": 28.0,
+          "decoder_overrides": 0,
+          "rollout_sha256": "e444cbea63fdd09b23b918ba06d13b38a0aa646ddfcae3e87f6983d31adffd48",
+          "runtime_sha256": "4ce400f92a85bb1bdfc352c7c68b6389a4cd0eefce7c0b32af95ca9ffc397819",
+          "replay_sha256": "621aca5be8c8f36deb38f5a24f67418cf0aab4aff8348ee4e25e8a1dcbea9100",
+          "sampled_action_rejections": {
+            "880:208": 9,
+            "882:42": 8,
+            "880:44": 2
+          }
+        },
+        {
+          "episode_id": "ddfe1cbce0874e76",
+          "outcome": "defeat",
+          "game_seconds": 1621.4285714285716,
+          "wall_seconds": 112.79233229998499,
+          "decisions": 568,
+          "max_workers": 50,
+          "max_army_supply": 28.0,
+          "decoder_overrides": 0,
+          "rollout_sha256": "a0df530b38c0d67114a90ae67898d9123f4a64f43f57aee57e4e4e06108caf6d",
+          "runtime_sha256": "1170f486d5a64db2fa829758662824f29d5822c4e6233c20e0385657ae041c36",
+          "replay_sha256": "a385408f01fbe5b434c3be25dd96b327b9ac1ae53f2ad9ff4df1f48db14e4075",
+          "sampled_action_rejections": {
+            "880:208": 9,
+            "882:42": 8,
+            "880:44": 2
+          }
+        }
+      ],
+      "macro_feedback_counts": {
+        "assimilator/queued": 93,
+        "cybernetics_core/execution_failed": 102,
+        "forge/execution_failed": 150,
+        "gateway/execution_failed": 216,
+        "gateway/queued": 12,
+        "nexus/execution_failed": 66,
+        "nexus/queued": 111,
+        "probe/queued": 225,
+        "pylon/execution_failed": 147,
+        "pylon/queued": 30,
+        "wait/wait": 405,
+        "zealot/queued": 147
+      }
+    },
+    {
+      "iteration": "iteration-002",
+      "split": "train",
+      "total_transitions": 1233,
+      "outcomes": {
+        "defeat": 3
+      },
+      "policy_id": "1d48e9a93972c04092ac62666a597f145a6d4728eb57dfe3c4a04147ce8cb254",
+      "initial_state_sha256": "6d2ddb4d4f759075d228f975a3fec1f52c81c3d7c6c839f1ae7aee6bd2318225",
+      "game_seed": 32,
+      "policy_seed": 102,
+      "compatibility_commands": 59,
+      "episodes": [
+        {
+          "episode_id": "08d79d1b4f034cbe",
+          "outcome": "defeat",
+          "game_seconds": 1174.2857142857144,
+          "wall_seconds": 77.93720579985529,
+          "decisions": 411,
+          "max_workers": 35,
+          "max_army_supply": 0,
+          "decoder_overrides": 0,
+          "rollout_sha256": "9736be8406eab9e20986c095b0c5d997732441f1f71260c1ff4f7b96480b22e5",
+          "runtime_sha256": "0c9ec0a4d7649e4c64ef96b7d917862212b75811ff3c0fcd163c882ccbcebb50",
+          "replay_sha256": "45deff0792c450cd335b93c0d01aee29080f366b8eac47ee96925c7cb506488d",
+          "sampled_action_rejections": {
+            "882:42": 7,
+            "880:208": 1
+          }
+        },
+        {
+          "episode_id": "4556385652e34bbb",
+          "outcome": "defeat",
+          "game_seconds": 1174.2857142857144,
+          "wall_seconds": 77.40802269987762,
+          "decisions": 411,
+          "max_workers": 35,
+          "max_army_supply": 0,
+          "decoder_overrides": 0,
+          "rollout_sha256": "e4e9766a7caf72ce2564a34dd9dbff6c55c8b428a3c527415a634fce9bb82e5c",
+          "runtime_sha256": "24c352da49987b9a1c7e2b77d9dc678192f2b3e2ac5c42f2f6264ca2f2f1510c",
+          "replay_sha256": "fbcfe912ceba9a87ac513ce36a0263852d963b04ad1388ec57604e4db0e8ab74",
+          "sampled_action_rejections": {
+            "882:42": 7,
+            "880:208": 1
+          }
+        },
+        {
+          "episode_id": "c8fd9463872447d5",
+          "outcome": "defeat",
+          "game_seconds": 1174.2857142857144,
+          "wall_seconds": 77.76259279996157,
+          "decisions": 411,
+          "max_workers": 35,
+          "max_army_supply": 0,
+          "decoder_overrides": 0,
+          "rollout_sha256": "3682969766e4d4983bd2d5dd51b34c1ef73cf0e6788aa8a079f46ac15e6a5768",
+          "runtime_sha256": "984ad17cc077b80b15f9feeb11ba70d5d204e84b7b765dcff0e2c67f95bfd756",
+          "replay_sha256": "23df6f3ea2b91069742bd7ab39605f4afdd69538c18ac7e4be9d8a34ce48f96a",
+          "sampled_action_rejections": {
+            "882:42": 7,
+            "880:208": 1
+          }
+        }
+      ],
+      "macro_feedback_counts": {
+        "assimilator/queued": 78,
+        "forge/execution_failed": 174,
+        "forge/queued": 3,
+        "gateway/execution_failed": 141,
+        "ground_armor_1/queued": 3,
+        "ground_weapons_1/queued": 3,
+        "nexus/queued": 75,
+        "probe/queued": 198,
+        "pylon/execution_failed": 129,
+        "pylon/queued": 48,
+        "shields_1/queued": 3,
+        "wait/wait": 378
+      }
+    }
+  ],
+  "benchmarks": [
+    {
+      "iteration": 1,
+      "model_parameters": 710375,
+      "float32_weight_bytes": 2841500,
+      "cpu": "Intel64 Family 6 Model 154 Stepping 3, GenuineIntel",
+      "torch": "2.15.0+cpu",
+      "torch_threads": 1,
+      "physical_memory_bytes": 34014814208,
+      "process_rss_bytes": 981622784,
+      "live_sc2_clients_at_start": 0,
+      "live_sc2_clients_at_end": 0,
+      "samples": [
+        {
+          "entities": 24,
+          "iterations": 100,
+          "p50_ms": 0.7636998780071735,
+          "p95_ms": 0.9419999551028013,
+          "p99_ms": 1.0735001415014267
+        },
+        {
+          "entities": 41,
+          "iterations": 100,
+          "p50_ms": 0.9775999933481216,
+          "p95_ms": 1.4921000692993402,
+          "p99_ms": 1.764100044965744
+        },
+        {
+          "entities": 58,
+          "iterations": 100,
+          "p50_ms": 1.1968999169766903,
+          "p95_ms": 1.8019999843090773,
+          "p99_ms": 2.203800017014146
+        }
+      ],
+      "scope": "End-to-end CPU neural forward including tensor encoding; game stepping and sampling excluded"
+    },
+    {
+      "iteration": 2,
+      "model_parameters": 710375,
+      "float32_weight_bytes": 2841500,
+      "cpu": "Intel64 Family 6 Model 154 Stepping 3, GenuineIntel",
+      "torch": "2.15.0+cpu",
+      "torch_threads": 1,
+      "physical_memory_bytes": 34014814208,
+      "process_rss_bytes": 1656131584,
+      "live_sc2_clients_at_start": 0,
+      "live_sc2_clients_at_end": 0,
+      "samples": [
+        {
+          "entities": 24,
+          "iterations": 100,
+          "p50_ms": 0.7712999358773232,
+          "p95_ms": 1.1314998846501112,
+          "p99_ms": 1.206299988552928
+        },
+        {
+          "entities": 56,
+          "iterations": 100,
+          "p50_ms": 1.1293001007288694,
+          "p95_ms": 1.6269998159259558,
+          "p99_ms": 2.6857000775635242
+        },
+        {
+          "entities": 80,
+          "iterations": 100,
+          "p50_ms": 1.4766999520361423,
+          "p95_ms": 1.9100999925285578,
+          "p99_ms": 2.257599961012602
+        }
+      ],
+      "scope": "End-to-end CPU neural forward including tensor encoding; game stepping and sampling excluded"
+    }
+  ],
+  "human_control": "not_verified",
+  "teacher_imitation": "not_used",
+  "strength_improvement_demonstrated": false,
+  "resume_verification": {
+    "status": "passed",
+    "wall_seconds": 106.34628519997932,
+    "episode_artifacts_unchanged": true,
+    "checkpoint_artifacts_unchanged": true,
+    "episode_count": 12,
+    "new_episode_directories": 0,
+    "new_sc2_processes_observed": 0,
+    "new_api_connection_log_entries": 0,
+    "optimizer_steps_before": 81,
+    "optimizer_steps_after": 81
+  }
+}
